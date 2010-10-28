@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Examples &mdash; python-iptables v0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.0.1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="python-iptables v0.0.1 documentation" href="index.html" />
+    <link rel="prev" title="Usage" href="usage.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="usage.html" title="Usage"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">python-iptables v0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="simple-rule-with-standard-target">
+<h2>Simple rule with standard target<a class="headerlink" href="#simple-rule-with-standard-target" title="Permalink to this headline">¶</a></h2>
+<p>Reject packets with source address <tt class="docutils literal"><span class="pre">127.0.0.1/255.0.0.0</span></tt> coming in on any of
+the eth interfaces:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">iptc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">TABLE_FILTER</span><span class="p">,</span> <span class="s">&quot;INPUT&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Rule</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">in_interface</span> <span class="o">=</span> <span class="s">&quot;eth+&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">src</span> <span class="o">=</span> <span class="s">&quot;127.0.0.1/255.0.0.0&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">target</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Target</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="s">&quot;DROP&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">target</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span><span class="o">.</span><span class="n">insert_rule</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="simple-rule-not-using-any-match-extensions">
+<h2>Simple rule not using any match extensions<a class="headerlink" href="#simple-rule-not-using-any-match-extensions" title="Permalink to this headline">¶</a></h2>
+<p>Inserting a rule to NAT TCP packets going out via <tt class="docutils literal"><span class="pre">eth0</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">iptc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">TABLE_NAT</span><span class="p">,</span> <span class="s">&quot;POSTROUTING&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Rule</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="s">&quot;tcp&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">out_interface</span> <span class="o">=</span> <span class="s">&quot;eth0&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">target</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Target</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="s">&quot;MASQUERADE&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">target</span><span class="o">.</span><span class="n">to_ports</span> <span class="o">=</span> <span class="s">&quot;1234&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">target</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span><span class="o">.</span><span class="n">insert_rule</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="rule-using-the-udp-match-extension">
+<h2>Rule using the udp match extension<a class="headerlink" href="#rule-using-the-udp-match-extension" title="Permalink to this headline">¶</a></h2>
+<p>Mark packets going to <tt class="docutils literal"><span class="pre">192.168.1.2</span></tt> UDP port <tt class="docutils literal"><span class="pre">1234</span></tt> with <tt class="docutils literal"><span class="pre">0xffff</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">iptc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">TABLE_MANGLE</span><span class="p">,</span> <span class="s">&quot;PREROUTING&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Rule</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">dst</span> <span class="o">=</span> <span class="s">&quot;192.168.1.2&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="s">&quot;udp&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">match</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Match</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="s">&quot;udp&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">match</span><span class="o">.</span><span class="n">dport</span> <span class="o">=</span> <span class="s">&quot;1234&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">add_match</span><span class="p">(</span><span class="n">match</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">target</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Target</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="s">&quot;MARK&quot;</span><span class="p">,</span> <span class="n">revision</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c"># latest revision</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">target</span><span class="o">.</span><span class="n">set_mark</span> <span class="o">=</span> <span class="s">&quot;0xffff&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">target</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span><span class="o">.</span><span class="n">insert_rule</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Examples</a><ul>
+<li><a class="reference external" href="#simple-rule-with-standard-target">Simple rule with standard target</a></li>
+<li><a class="reference external" href="#simple-rule-not-using-any-match-extensions">Simple rule not using any match extensions</a></li>
+<li><a class="reference external" href="#rule-using-the-udp-match-extension">Rule using the udp match extension</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="usage.html"
+                                  title="previous chapter">Usage</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/examples.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="usage.html" title="Usage"
+             >previous</a> |</li>
+        <li><a href="index.html">python-iptables v0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Nilvec.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Introduction &mdash; python-iptables v0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.0.1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="python-iptables v0.0.1 documentation" href="index.html" />
+    <link rel="next" title="Usage" href="usage.html" />
+    <link rel="prev" title="Welcome to python-iptables’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="usage.html" title="Usage"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to python-iptables’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">python-iptables v0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="about-python-iptables">
+<h2>About python-iptables<a class="headerlink" href="#about-python-iptables" title="Permalink to this headline">¶</a></h2>
+<p><strong>Iptables</strong> is the tool that is used to manage <strong>netfilter</strong>, the standard
+packet filtering and manipulation framework under Linux.  As the iptables
+manpage puts it:</p>
+<blockquote>
+<p>Iptables  is used to set up, maintain, and inspect the tables of IPv4
+packet filter rules in the Linux kernel.  Several different tables may be
+defined.</p>
+<p>Each  table  contains a number of built-in chains and may also contain
+user- defined chains.</p>
+<p>Each chain is a list of rules which can match a set of packets.   Each
+rule specifies what to do with a packet that matches.  This is called a
+<cite>target</cite>, which may be a jump to a user-defined chain in the same table.</p>
+</blockquote>
+<p>Python-iptables provides python bindings to iptables under Linux.
+Interoperability with iptables is achieved via using the iptables C libraries
+(<tt class="docutils literal"><span class="pre">libiptc</span></tt>, <tt class="docutils literal"><span class="pre">libxtables</span></tt>, and the iptables extensions), not calling the
+iptables binary and parsing its output.</p>
+</div>
+<div class="section" id="compiling-and-installing">
+<h2>Compiling and installing<a class="headerlink" href="#compiling-and-installing" title="Permalink to this headline">¶</a></h2>
+<p>First make sure you have iptables installed (most Linux distributions install
+it by default).  python-iptables needs the shared libraries <tt class="docutils literal"><span class="pre">libiptc.so.0</span></tt>
+and <tt class="docutils literal"><span class="pre">libxtables.so.2</span></tt> coming with iptables, they are installed in <tt class="docutils literal"><span class="pre">/lib</span></tt>
+on Ubuntu.</p>
+<p>You can compile python-iptables in the usual distutils way:</p>
+<div class="highlight-python"><pre>% cd python-iptables
+% python setup.py build</pre>
+</div>
+<p>To install it:</p>
+<div class="highlight-python"><pre>% sudo python setup.py install
+% sudo ldconfig</pre>
+</div>
+<p>Running <em>ldconfig</em> is necessary since python-iptables also contains a C
+wrapper library.  Make sure the directory where distutils installs shared
+libraries is in the dynamic linker&#8217;s search path (it&#8217;s in <tt class="docutils literal"><span class="pre">/etc/ld.so.conf</span></tt>
+or in one of the files in the folder <tt class="docutils literal"><span class="pre">/etc/ld.co.conf.d</span></tt>).  Under Ubuntu
+distutils by default installs into <tt class="docutils literal"><span class="pre">/usr/local/lib</span></tt>.</p>
+<p>Once everything is in place you can fire up python to check whether the
+package can be imported:</p>
+<div class="highlight-python"><pre>% sudo python
+&gt;&gt;&gt; import iptc
+&gt;&gt;&gt;</pre>
+</div>
+<p>You need to be root to be able to use iptables.</p>
+</div>
+<div class="section" id="what-is-supported">
+<h2>What is supported<a class="headerlink" href="#what-is-supported" title="Permalink to this headline">¶</a></h2>
+<p>The basic iptables framework and all the match/target extensions are supported
+by python-iptables.  One thing we have not worked on yet is IPv6 support, but
+in theory it should not be too hard.  This also means you can&#8217;t use IPv6-only
+match and target extensions either.</p>
+</div>
+<div class="section" id="contact">
+<h2>Contact<a class="headerlink" href="#contact" title="Permalink to this headline">¶</a></h2>
+<p>ldx (at) nilvec.com</p>
+<p><a class="reference external" href="http://nilvec.com">http://nilvec.com</a></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Introduction</a><ul>
+<li><a class="reference external" href="#about-python-iptables">About python-iptables</a></li>
+<li><a class="reference external" href="#compiling-and-installing">Compiling and installing</a></li>
+<li><a class="reference external" href="#what-is-supported">What is supported</a></li>
+<li><a class="reference external" href="#contact">Contact</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="index.html"
+                                  title="previous chapter">Welcome to python-iptables&#8217;s documentation!</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="usage.html"
+                                  title="next chapter">Usage</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/intro.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="usage.html" title="Usage"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to python-iptables’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">python-iptables v0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Nilvec.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+    </div>
+  </body>
+</html>
