@@ -1169,7 +1169,7 @@ class Table(object):
 
         handle = self._iptc.iptc_init(self.name)
         if not handle:
-            raise IPTCError("can't initialize %s: %s" % (table,
+            raise IPTCError("can't initialize %s: %s" % (self.name,
                 self.strerror()))
         self._handle = handle
 
