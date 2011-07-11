@@ -605,7 +605,8 @@ class Rule(object):
         * One target.  This determines what happens with the packet if it is
           matched.
     """
-    protocols = { socket.IPPROTO_TCP: "tcp",
+    protocols = { 0: "all",
+          socket.IPPROTO_TCP: "tcp",
           socket.IPPROTO_UDP: "udp",
           socket.IPPROTO_ICMP: "icmp",
           socket.IPPROTO_ESP: "esp",
