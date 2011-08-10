@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import ctypes as ct
+import ctypes.util
 import version
 
 XT_INV_PROTO   = 0x40       # Invert the sense of PROTO
@@ -144,10 +145,11 @@ class xtables_target(ct.Structure):
 class XTablesError(Exception):
     """Raised when an xtables call fails for some reason."""
 
-_lib_xtables = ct.CDLL('libxtables.so.2', mode=ct.RTLD_GLOBAL)
+_lib_xtables = ct.CDLL(ctypes.util.find_library("xtables"), mode=ct.RTLD_GLOBAL)
 
-_lib_xtwrapper = ct.CDLL('libxtwrapper.so')
-_throw = _lib_xtwrapper.throw_exception
+from distutils.sysconfig import get_python_lib
+_lib_xtwrapper = ct.CDLL(get_python_lib(1) + '/libxtwrapper.so')
+throw = _lib_xtwrapper.throw_exception
 
 def xt_exit(status, *args):
     _throw(status)
