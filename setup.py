@@ -3,22 +3,9 @@
 """python-iptables setup script"""
 
 import os
-from distutils import ccompiler
-from distutils.core import setup
+from distutils.core import setup, Extension
 
 execfile("iptc/version.py")
-
-# libxtwrapper sources
-LIBDIR="libxtwrapper"
-csources = [os.path.join(LIBDIR, src)
-        for src in os.listdir("libxtwrapper") if src.endswith(".c")]
-
-# compile and link libxtwrapper as a shared library
-compiler = ccompiler.new_compiler(compiler="unix")
-objs = compiler.compile(csources, extra_preargs=["-fPIC"])
-compiler.link_shared_lib(objs, "xtwrapper", output_dir=LIBDIR)
-lib = [os.path.join(LIBDIR,
-        compiler.library_filename("xtwrapper", lib_type="shared"))]
 
 # build/install python-iptables
 setup(
@@ -30,7 +17,7 @@ setup(
     url                 = "http://nilvec.com/",
     packages            = ["iptc"],
     package_dir         = {"iptc" : "iptc"},
-    data_files          = [("lib", lib)],
+    ext_modules         = [Extension("libxtwrapper", ["libxtwrapper/wrapper.c"])],
     classifiers         = [
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
