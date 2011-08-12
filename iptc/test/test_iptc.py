@@ -100,7 +100,7 @@ class TestChain(unittest.TestCase):
         table.autocommit = True
         self.assertTrue(len(table.chains) >= 3)
         for chain in table.chains:
-            if chain.name not in ["PREROUTING", "POSTROUTING", "OUTPUT"]:
+            if chain.name not in ["INPUT", "PREROUTING", "POSTROUTING", "OUTPUT"]:
                 self.failIf(chain.is_builtin())
 
         table = iptc.TABLE_MANGLE
