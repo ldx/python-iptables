@@ -15,7 +15,7 @@ import struct
 import weakref
 import ctypes.util
 
-from xtables import XT_INV_PROTO, NFPROTO_IPV4, XTF_TRY_LOAD, XTablesError, xtables, xtables_globals, xt_align, xt_counters, xt_entry_target, xt_entry_match
+from xtables import XT_INV_PROTO, NFPROTO_IPV4, XTF_TRY_LOAD, XTablesError, xtables, xtables_globals, xt_align, xt_counters, xt_entry_target, xt_entry_match, _lib_xtwrapper
 
 __all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError",
            "POLICY_ACCEPT", "POLICY_DROP", "POLICY_QUEUE", "POLICY_RETURN",
@@ -237,9 +237,6 @@ _libc = ct.CDLL(ctypes.util.find_library("c"))
 _optind = ct.c_long.in_dll(_libc, "optind")
 _optarg = ct.c_char_p.in_dll(_libc, "optarg")
 
-from distutils.sysconfig import get_python_lib
-_lib_xtwrapper = ct.CDLL(get_python_lib(1) + '/libxtwrapper.so')
-#_lib_xtwrapper.use_errno = True
 _wrap_parse = _lib_xtwrapper.wrap_parse
 _wrap_save = _lib_xtwrapper.wrap_save
 

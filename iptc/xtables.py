@@ -148,8 +148,15 @@ class XTablesError(Exception):
 _lib_xtables = ct.CDLL(ctypes.util.find_library("xtables"), mode=ct.RTLD_GLOBAL)
 
 from distutils.sysconfig import get_python_lib
-_lib_xtwrapper = ct.CDLL(get_python_lib(1) + '/libxtwrapper.so')
-throw = _lib_xtwrapper.throw_exception
+import sys
+for p in sys.path:
+    try:
+        _lib_xtwrapper = ct.CDLL('/'.join([p, 'libxtwrapper.so']))
+    except:
+        pass
+    else:
+        break
+_throw = _lib_xtwrapper.throw_exception
 
 def xt_exit(status, *args):
     _throw(status)
