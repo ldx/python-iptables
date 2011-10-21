@@ -21,6 +21,31 @@ __all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError",
            "POLICY_ACCEPT", "POLICY_DROP", "POLICY_QUEUE", "POLICY_RETURN",
            "TABLE_FILTER", "TABLE_NAT", "TABLE_MANGLE"]
 
+from subprocess import Popen, PIPE
+
+def insert_ko(modprobe, modname):
+    p = Popen([modprobe, modname], stderr=PIPE)
+    p.wait()
+    return (p.returncode, p.stderr.read(1024))
+
+def load_ko(modname):
+    # this will return the full path for the modprobe binary
+    proc = open("/proc/sys/kernel/modprobe")
+    modprobe = proc.read(1024)
+    if modprobe[len(modprobe) - 1] == '\n':
+        modprobe = modprobe[:len(modprobe) - 1]
+    return insert_ko(modprobe, modname)
+
+# First load the kernel module.  If it is already loaded modprobe will just
+# return with 0.
+rc, err = load_ko("ip_tables")
+if rc:
+    if not err:
+        err = "Failed to load the ip_tables kernel module."
+    if err[len(err) - 1] == "\n":
+        err = err[:len(err) - 1]
+    raise Exception(err)
+
 _IFNAMSIZ = 16
 
 class in_addr(ct.Structure):
