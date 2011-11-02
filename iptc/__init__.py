@@ -640,7 +640,7 @@ class Rule(object):
     def __init__(self, entry=None, chain=None):
         """
         *entry* is the ipt_entry buffer or None if the caller does not have
-        it.  *chain* is the chain object this rules belongs to.
+        it.  *chain* is the chain object this rule belongs to.
         """
         self._matches = []
         self._target = None
@@ -678,7 +678,7 @@ class Rule(object):
     def _get_matches(self):
         return self._matches[:] # return a copy
     matches = property(_get_matches)
-    """This is the list of matches hold in this rule."""
+    """This is the list of matches held in this rule."""
 
     def _get_target(self):
         return self._target
