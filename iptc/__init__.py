@@ -368,7 +368,7 @@ class Match(IPTCModule):
     are implemented as instance attributes in python.  However, to make the
     names of parameters legal attribute names they have to be converted.  The
     rule is to cut the leading double dash from the name, and replace
-    dashes in parameter names with underscores so they can are accepted by
+    dashes in parameter names with underscores so they are accepted by
     python as attribute names.  E.g. the *TOS* target has parameters
     *--set-tos*, *--and-tos*, *--or-tos* and *--xor-tos*; they become
     *target.set_tos*, *target.and_tos*, *target.or_tos* and *target.xor_tos*,
@@ -470,7 +470,7 @@ class Target(IPTCModule):
     are implemented as instance attributes in python.  However, to make the
     names of parameters legal attribute names they have to be converted.  The
     rule is to cut the leading double dash from the name, and replace
-    dashes in parameter names with underscores so they can are accepted by
+    dashes in parameter names with underscores so they are accepted by
     python as attribute names.  E.g. the *TOS* target has parameters
     *--set-tos*, *--and-tos*, *--or-tos* and *--xor-tos*; they become
     *target.set_tos*, *target.and_tos*, *target.or_tos* and *target.xor_tos*,
