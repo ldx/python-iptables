@@ -26,7 +26,7 @@ int wrap_parse(int (*fn)(), int i, char **argv, int inv, unsigned int *flags,
 }
 
 struct xt_entry_match;
-int wrap_save(int (*fn)(), const void *ip, const struct xt_entry_match *match)
+void wrap_save(int (*fn)(), const void *ip, const struct xt_entry_match *match)
 {
     fn(ip, match);
     fflush(stdout);
