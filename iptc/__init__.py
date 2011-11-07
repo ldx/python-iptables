@@ -1088,7 +1088,7 @@ class Chain(object):
         rbuf = rule.rule
         if not rbuf:
             raise ValueError("invalid rule")
-        self.table.append_entry(self.name, rbuf, position)
+        self.table.append_entry(self.name, rbuf)
 
     def insert_rule(self, rule, position=0):
         """Insert *rule* as the first entry in the chain if *position* is 0 or
