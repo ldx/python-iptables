@@ -1,0 +1,17 @@
+Source: python-iptables
+Section: net
+Priority: extra
+Maintainer: Juliano Martinez <juliano@martinez.io>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.8.4
+Homepage: https://github.com/ldx/python-iptables
+
+Package: python-iptables
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Python bindings for iptables 
+ Python-iptables is a Python project that provides bindings to the iptables C libraries in Linux. 
+ Interoperability with iptables is achieved using the iptables C libraries (libiptc, libxtables,
+ and iptables extensions), not calling the iptables executable and parsing its output as most other
+ iptables wrapper libraries do; this makes python-iptables faster and not prone to parsing errors,
+ at the same time leveraging all available iptables match and target extensions without further work.
