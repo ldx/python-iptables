@@ -2,7 +2,7 @@ Source: python-iptables
 Section: net
 Priority: extra
 Maintainer: Juliano Martinez <juliano@martinez.io>
-Build-Depends: cdbs (>= 0.4.49), debhelper (>= 7), python (>= 2.4), python-support
+Build-Depends: cdbs (>= 0.4.49), debhelper (>= 7), python (>= 2.4), python-support, python-all-dev (>= 2.3.5-11)
 XS-Python-Version: >= 2.6
 Standards-Version: 3.8.4
 Homepage: https://github.com/ldx/python-iptables
