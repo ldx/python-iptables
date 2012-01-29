@@ -496,7 +496,12 @@ class Target(IPTCModule):
         self._rule = rule
         self._revision = revision
 
-        module = _xt.find_target(name)
+        is_standard_target = False
+        if TABLE_FILTER.is_chain(name):
+            is_standard_target = True
+            module = _xt.find_target('standard')
+        else:
+            module = _xt.find_target(name)
         if not module:
             raise XTablesError("can't find target %s" % (name))
         self._module = module[0]
@@ -507,6 +512,9 @@ class Target(IPTCModule):
             self._update_pointers()
         else:
             self.reset()
+
+        if is_standard_target:
+            self.standard_target = name
 
     def __eq__(self, targ):
         basesz = ct.sizeof(xt_entry_target)

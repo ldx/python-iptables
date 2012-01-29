@@ -313,6 +313,7 @@ class TestRule(unittest.TestCase):
 
         chain = iptc.Chain(iptc.TABLE_FILTER, "iptc_test_chain")
         iptc.TABLE_FILTER.create_chain(chain)
+        target = iptc.Target(rule, "iptc_test_chain")
         rule.target = target
 
         chain.insert_rule(rule)
