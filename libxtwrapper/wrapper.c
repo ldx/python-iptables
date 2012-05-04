@@ -2,6 +2,24 @@
 #include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/utsname.h>
+
+int kernel_version;
+
+#define LINUX_VERSION(x,y,z)	(0x10000*(x) + 0x100*(y) + z)
+void get_kernel_version(void)
+{
+	static struct utsname uts;
+	int x = 0, y = 0, z = 0;
+
+	if (uname(&uts) == -1) {
+		fprintf(stderr, "Unable to retrieve kernel version.\n");
+        return;
+	}
+
+	sscanf(uts.release, "%d.%d.%d", &x, &y, &z);
+	kernel_version = LINUX_VERSION(x, y, z);
+}
 
 static jmp_buf env;
 

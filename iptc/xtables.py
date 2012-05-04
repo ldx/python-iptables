@@ -151,12 +151,16 @@ from distutils.sysconfig import get_python_lib
 import sys
 for p in sys.path:
     try:
-        _lib_xtwrapper = ct.CDLL('/'.join([p, 'libxtwrapper.so']))
+        _lib_xtwrapper = ct.CDLL('/'.join([p, 'libxtwrapper.so']), mode=ct.RTLD_GLOBAL)
     except:
         pass
     else:
         break
 _throw = _lib_xtwrapper.throw_exception
+
+_kernel_version = ct.c_int.in_dll(_lib_xtwrapper, 'kernel_version')
+_get_kernel_version = _lib_xtwrapper.get_kernel_version
+_get_kernel_version()
 
 def xt_exit(status, *args):
     _throw(status)
