@@ -289,6 +289,10 @@ class IPTCModule(object):
         else:
             inv = ct.c_int(0)
 
+        if not self._module.extra_opts:
+            raise AttributeError("%s: invalid parameter %s" %
+                    (self._module.name, parameter))
+
         _optarg.value = value
         _optind.value = 2
 
