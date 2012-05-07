@@ -102,10 +102,15 @@ class ipt_entry_match(xt_entry_match):
 
 ipt_align = xt_align
 
-try:
-    _libiptc = ct.CDLL(ctypes.util.find_library("ip4tc"), use_errno = True)
-except:
-    _libiptc = ct.CDLL(ctypes.util.find_library("iptc"), use_errno = True)
+_libiptc_file = ctypes.util.find_library("ip4tc")
+
+if not _libiptc_file:
+    _libiptc_file = ctypes.util.find_library("iptc")
+
+if not _libiptc_file:
+    raise IPTCError("error: libiptc/libip4tc not found")
+
+_libiptc = ct.CDLL(_libiptc_file, use_errno = True)
 
 class iptc(object):
     """This class contains all libiptc API calls."""
@@ -938,6 +943,12 @@ class Rule(object):
 
     protocol = property(get_protocol, set_protocol)
     """This is the transport layer protocol."""
+
+    def get_counters(self):
+        """This method returns a tuple pair of the packet and byte counters of
+        the rule."""
+        counters = self.entry.counters
+        return counters.pcnt, counters.bcnt
 
     def _get_rule(self):
         if not self.entry or not self._target or not self._target.target:
