@@ -102,10 +102,15 @@ class ipt_entry_match(xt_entry_match):
 
 ipt_align = xt_align
 
-try:
-    _libiptc = ct.CDLL(ctypes.util.find_library("ip4tc"), use_errno = True)
-except:
-    _libiptc = ct.CDLL(ctypes.util.find_library("iptc"), use_errno = True)
+_libiptc_file = ctypes.util.find_library("ip4tc")
+
+if not _libiptc_file:
+    _libiptc_file = ctypes.util.find_library("iptc")
+
+if not _libiptc_file:
+    raise IPTCError("error: libiptc/libip4tc not found")
+
+_libiptc = ct.CDLL(_libiptc_file, use_errno = True)
 
 class iptc(object):
     """This class contains all libiptc API calls."""
