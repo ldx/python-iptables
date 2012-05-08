@@ -944,6 +944,12 @@ class Rule(object):
     protocol = property(get_protocol, set_protocol)
     """This is the transport layer protocol."""
 
+    def get_counters(self):
+        """This method returns a tuple pair of the packet and byte counters of
+        the rule."""
+        counters = self.entry.counters
+        return counters.pcnt, counters.bcnt
+
     def _get_rule(self):
         if not self.entry or not self._target or not self._target.target:
             return None
