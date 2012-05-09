@@ -275,7 +275,6 @@ _xt = xtables(NFPROTO_IPV4)
 class IPTCModule(object):
     """Superclass for Match and Target."""
     pattern = re.compile("\s*(\!)?\s*--([-a-zA-Z0-9_:/]+)\s+(\!)?\s*([a-zA-Z0-9_:/]+(-[a-zA-Z0-9_:/]+)*)*")
-    pattern_with_quotes = re.compile("\s*(\!)?\s*--([-a-zA-Z0-9_:/]+)\s+(\!)?\s*(\"[a-zA-Z0-9_:/ ]+(-[a-zA-Z0-9_:/ ]+)*\")*")
 
     def __init__(self):
         self._name = None
@@ -341,7 +340,6 @@ class IPTCModule(object):
     def _get_value(self, buf, name):
         table = {} # variable -> (value, inverted)
         res = re.findall(IPTCModule.pattern, buf)
-        res += re.findall(IPTCModule.pattern_with_quotes, buf)
         for x in res:
             table[x[1]] = (x[3], x[0] or x[2])
         try:
