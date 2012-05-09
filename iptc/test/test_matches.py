@@ -162,12 +162,36 @@ class TestXTLimitMatch(unittest.TestCase):
 
         self.chain.delete_rule(self.rule)
 
+class TestCommentMatch(unittest.TestCase):
+    def setUp(self):
+        self.rule = iptc.Rule()
+        self.rule.src = "127.0.0.1"
+        self.rule.protocol = "udp"
+        self.rule.target = iptc.Target(self.rule, "ACCEPT")
+
+        self.match = iptc.Match(self.rule, "comment")
+        self.chain = iptc.Chain(iptc.TABLE_FILTER, "iptc_test_comment")
+        iptc.TABLE_FILTER.create_chain(self.chain)
+
+    def tearDown(self):
+        self.chain.flush()
+        self.chain.delete()
+
+    def test_comment(self):
+        comment = "comment test"
+        self.match.reset()
+        self.match.comment = comment
+        self.chain.insert_rule(self.rule)
+        self.assertEquals(self.match.comment.replace('"', ''), comment)
+
 def suite():
     suite_match = unittest.TestLoader().loadTestsFromTestCase(TestMatch)
     suite_udp = unittest.TestLoader().loadTestsFromTestCase(TestXTUdpMatch)
     suite_mark = unittest.TestLoader().loadTestsFromTestCase(TestXTMarkMatch)
     suite_limit = unittest.TestLoader().loadTestsFromTestCase(TestXTLimitMatch)
-    return unittest.TestSuite([suite_match, suite_udp, suite_mark, suite_limit])
+    suite_comment = unittest.TestLoader().loadTestsFromTestCase(TestCommentMatch)
+    return unittest.TestSuite([suite_match, suite_udp, suite_mark,
+        suite_limit, suite_comment])
 
 def run_tests():
     unittest.TextTestRunner(verbosity=2).run(suite())
