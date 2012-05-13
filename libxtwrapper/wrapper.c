@@ -43,9 +43,9 @@ int wrap_parse(int (*fn)(), int i, char **argv, int inv, unsigned int *flags,
     return rv;
 }
 
-struct xt_entry_match;
-void wrap_save(int (*fn)(), const void *ip, const struct xt_entry_match *match)
+struct ipt_ip;
+void wrap_save(int (*fn)(), const struct ipt_ip *ip, const void *m)
 {
-    fn(ip, match);
+    fn(ip, m);
     fflush(stdout);
 }
