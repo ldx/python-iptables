@@ -268,7 +268,13 @@ _optind = ct.c_long.in_dll(_libc, "optind")
 _optarg = ct.c_char_p.in_dll(_libc, "optarg")
 
 _wrap_parse = _lib_xtwrapper.wrap_parse
+_wrap_parse.restype = ct.c_int
+_wrap_parse.argtypes = [ct.c_void_p, ct.c_int, ct.POINTER(ct.c_char_p),
+        ct.c_int, ct.POINTER(ct.c_ulong), ct.POINTER(ipt_entry),
+        ct.POINTER(ct.c_void_p)]
 _wrap_save = _lib_xtwrapper.wrap_save
+_wrap_save.restype = ct.c_void_p
+_wrap_save.argtypes = [ct.c_void_p, ct.POINTER(ipt_ip), ct.c_void_p]
 
 _xt = xtables(NFPROTO_IPV4)
 
@@ -310,7 +316,8 @@ class IPTCModule(object):
                 entry = self._rule.entry and ct.pointer(self._rule.entry) or \
                         None
                 rv = _wrap_parse(self._module.parse, opt.val, argv, inv,
-                        ct.pointer(self._flags), entry, self._ptrptr)
+                        ct.pointer(self._flags), entry,
+                        ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
                 if rv != 1:
                     raise ValueError("invalid value %s" % (value))
                 return
