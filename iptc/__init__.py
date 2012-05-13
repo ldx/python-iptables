@@ -82,7 +82,7 @@ class ipt_ip(ct.Structure):
     IPT_INV_MASK    = 0x7F          # All possible flag bits mask
 
     def __init__(self):
-        self.smsk = self.dmsk= 0xffffffff # default: full netmask
+        self.smsk.s_addr = self.dmsk.s_addr = 0xffffffff # default: full netmask
 
 class ipt_entry(ct.Structure):
     """This class is a representation of the C struct ipt_entry."""
