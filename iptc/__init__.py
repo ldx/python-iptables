@@ -335,7 +335,7 @@ class IPTCModule(object):
             pipes = os.pipe()
             saved_out = os.dup(1)
             os.dup2(pipes[1], 1)
-            _wrap_save(self._module.save, None, self._ptr)
+            _wrap_save(self._module.save, self.rule.entry.ip, self._ptr)
             buf = os.read(pipes[0], 1024)
             os.dup2(saved_out, 1)
             os.close(pipes[0])
