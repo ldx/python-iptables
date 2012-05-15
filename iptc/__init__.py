@@ -280,8 +280,7 @@ _xt = xtables(NFPROTO_IPV4)
 
 class IPTCModule(object):
     """Superclass for Match and Target."""
-    pattern = re.compile("\s*(\!)?\s*--([-a-zA-Z0-9_:/.]+)\s+(\!)?\s*(([a-zA-Z0-9_:/.,]+(-[a-zA-Z0-9_:/.,]+)*)|(\"[a-zA-Z0-9_:/., ]+(-[a-zA-Z0-9_:/., ]+)*\"))*")
-
+    pattern = re.compile('\s*(!)?\s*--([-\w]+)\s+(!)?\s*"?([^"]*?)"?(?=\s*(?:!?\s*--|$))')
 
     def __init__(self):
         self._name = None
