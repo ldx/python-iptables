@@ -270,7 +270,7 @@ _optarg = ct.c_char_p.in_dll(_libc, "optarg")
 _wrap_parse = _lib_xtwrapper.wrap_parse
 _wrap_parse.restype = ct.c_int
 _wrap_parse.argtypes = [ct.c_void_p, ct.c_int, ct.POINTER(ct.c_char_p),
-        ct.c_int, ct.POINTER(ct.c_ulong), ct.POINTER(ipt_entry),
+        ct.c_int, ct.POINTER(ct.c_uint), ct.POINTER(ipt_entry),
         ct.POINTER(ct.c_void_p)]
 _wrap_save = _lib_xtwrapper.wrap_save
 _wrap_save.restype = ct.c_void_p
