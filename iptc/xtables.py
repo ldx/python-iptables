@@ -73,6 +73,63 @@ class option(ct.Structure):
             ("flag", ct.POINTER(ct.c_int)),
             ("val", ct.c_int)]
 
+class x6_option(ct.Structure):
+    _fields_ = [("name", ct.c_char_p),
+            ("type", ct.c_uint),
+            ("id", ct.c_uint),
+            ("excl", ct.c_uint),
+            ("also", ct.c_uint),
+            ("flags", ct.c_uint),
+            ("ptroff", ct.c_uint),
+            ("size", ct.c_size_t),
+            ("min", ct.c_uint),
+            ("max", ct.c_uint)]
+
+class x6_option_call_markmask(ct.Structure):
+    _fields_ = [("mark", ct.c_uint32),
+            ("mask", ct.c_uint32)]
+
+class x6_option_call_value(ct.Union):
+    _fields_ = [("u8", ct.c_uint8),
+            ("u8_range", ct.c_uint8 * 2),
+            ("syslog_level", ct.c_uint8),
+            ("protocol", ct.c_uint8),
+            ("u16", ct.c_uint16),
+            ("u16_range", ct.c_uint16 * 2),
+            ("port", ct.c_uint16),
+            ("port_range", ct.c_uint16 * 2),
+            ("u32", ct.c_uint32),
+            ("u32_range", ct.c_uint32 * 2),
+            ("u64", ct.c_uint64),
+            ("u64_range", ct.c_uint64 * 2),
+            ("dbl", ct.c_double),
+            # FIXME: Complete other structs.
+            ("s3", x6_option_call_markmask),
+            ("ethermac", ct.c_uint8 * 6)]
+
+class x6_option_call_assoc(ct.Union):
+    _fields_ = [("match", ct.POINTER(ct.c_void_p)),
+            ("target", ct.POINTER(ct.c_void_p))]
+
+class x6_option_call(ct.Structure):
+    _fields_ = [("arg", ct.c_char_p),
+            ("ext_name", ct.c_char_p),
+            ("entry", ct.POINTER(x6_option)),
+            ("data", ct.c_void_p),
+            ("xflags", ct.c_uint),
+            ("invert", ct.c_bool),
+            ("nvals", ct.c_uint8),
+            ("val", x6_option_call_value),
+            ("assoc", x6_option_call_assoc),
+            ("xt_entry", ct.c_void_p),
+            ("udata", ct.c_void_p)]
+
+class x6_option_fcheck(ct.Structure):
+    _fields_ = [("ext_name", ct.c_char_p),
+            ("data", ct.c_void_p),
+            ("udata", ct.c_void_p),
+            ("xflags", ct.c_uint)]
+
 class xtables_match(ct.Structure):
     _fields_ = [("version", ct.c_char_p),
             ("next", ct.c_void_p),
@@ -101,6 +158,12 @@ class xtables_match(ct.Structure):
                 ct.POINTER(xt_entry_match))),
             # Pointer to list of extra command-line options
             ("extra_opts", ct.POINTER(option)),
+            # New parser
+            ("x6_parse", ct.CFUNCTYPE(None, ct.POINTER(x6_option_call))),
+            ("x6_fcheck", ct.CFUNCTYPE(None, ct.POINTER(x6_option_fcheck))),
+            ("x6_options", ct.POINTER(x6_option)),
+            ("udata_size", ct.c_size_t),
+            ("udata", ct.c_void_p),
             # Ignore these men behind the curtain:
             ("option_offset", ct.c_uint),
             ("m", ct.POINTER(xt_entry_match)),
@@ -135,6 +198,12 @@ class xtables_target(ct.Structure):
                 ct.POINTER(xt_entry_target))),
             # Pointer to list of extra command-line options
             ("extra_opts", ct.POINTER(option)),
+            # New parser
+            ("x6_parse", ct.CFUNCTYPE(None, ct.POINTER(x6_option_call))),
+            ("x6_fcheck", ct.CFUNCTYPE(None, ct.POINTER(x6_option_fcheck))),
+            ("x6_options", ct.POINTER(x6_option)),
+            ("udata_size", ct.c_size_t),
+            ("udata", ct.c_void_p),
             # Ignore these men behind the curtain:
             ("option_offset", ct.c_uint),
             ("t", ct.POINTER(xt_entry_target)),

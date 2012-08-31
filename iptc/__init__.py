@@ -15,7 +15,7 @@ import struct
 import weakref
 import ctypes.util
 
-from xtables import XT_INV_PROTO, NFPROTO_IPV4, XTF_TRY_LOAD, XTablesError, xtables, xtables_globals, xt_align, xt_counters, xt_entry_target, xt_entry_match, _lib_xtwrapper
+from xtables import XT_INV_PROTO, NFPROTO_IPV4, XTF_TRY_LOAD, XTablesError, xtables, xtables_globals, xt_align, xt_counters, xt_entry_target, xt_entry_match, _lib_xtwrapper, x6_option_call, x6_option
 
 __all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError",
            "POLICY_ACCEPT", "POLICY_DROP", "POLICY_QUEUE", "POLICY_RETURN",
@@ -300,30 +300,64 @@ class IPTCModule(object):
         else:
             inv = ct.c_int(0)
 
-        if not self._module.extra_opts:
+        if self._module.x6_options:
+            if self._module.x6_parse == None:
+                raise NotImplementedError()
+            else:
+                cb = x6_option_call()
+                cb.entry = None
+                for opt in self._module.x6_options:
+                    if opt.name == None:
+                        break
+                    if opt.name == parameter:
+                        cb.entry = ct.pointer(opt)
+                        break
+                if cb.entry == None:
+                    raise AttributeError()
+                cb.arg = 0 # FIXME
+                cb.invert = False
+                cb.ext_name = self._module.name
+                try:
+                    #cb.data = self._module.t.data
+                    cb.data = None
+                    cb.xflags = self._module.tflags
+                    cb.target = self._module.t
+                    cb.xt_entry = None
+                    self._module.x6_parse(cb)
+                    self._module.tflags = cb.xflags
+                except AttributeError:
+                    #cb.data = self._module.m.data
+                    cb.data = None
+                    cb.xflags = self._module.mflags
+                    cb.match = self._module.m
+                    cb.xt_entry = None
+                    cb.udata = self._module.udata
+                    self._module.x6_parse(cb)
+                    self._module.mflags = cb.xflags
+        elif self._module.extra_opts:
+            _optarg.value = value
+            _optind.value = 2
+	
+            argv = (ct.c_char_p * 2)()
+            argv[0] = parameter
+            argv[1] = value
+    
+            for opt in self._module.extra_opts:
+                if opt.name == parameter:
+                    entry = self._rule.entry and ct.pointer(self._rule.entry) or \
+                            None
+                    rv = _wrap_parse(self._module.parse, opt.val, argv, inv,
+                            ct.pointer(self._flags), entry,
+                            ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
+                    if rv != 1:
+                        raise ValueError("invalid value %s" % (value))
+                    return
+                elif not opt.name:
+                    break
+            raise AttributeError("invalid parameter %s" % (parameter))
+        else:
             raise AttributeError("%s: invalid parameter %s" %
                     (self._module.name, parameter))
-
-        _optarg.value = value
-        _optind.value = 2
-
-        argv = (ct.c_char_p * 2)()
-        argv[0] = parameter
-        argv[1] = value
-
-        for opt in self._module.extra_opts:
-            if opt.name == parameter:
-                entry = self._rule.entry and ct.pointer(self._rule.entry) or \
-                        None
-                rv = _wrap_parse(self._module.parse, opt.val, argv, inv,
-                        ct.pointer(self._flags), entry,
-                        ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
-                if rv != 1:
-                    raise ValueError("invalid value %s" % (value))
-                return
-            elif not opt.name:
-                break
-        raise AttributeError("invalid parameter %s" % (parameter))
 
     def final_check(self):
         if self._module and self._module.final_check:
@@ -516,8 +550,10 @@ class Target(IPTCModule):
         if TABLE_FILTER.is_chain(name):
             is_standard_target = True
             module = _xt.find_target('standard')
+            print "in standard module"
         else:
             module = _xt.find_target(name)
+            print "in extended module " + name
         if not module:
             raise XTablesError("can't find target %s" % (name))
         self._module = module[0]
