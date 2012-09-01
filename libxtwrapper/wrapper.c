@@ -63,16 +63,32 @@ void wrap_save(int (*fn)(), const struct ipt_ip *ip, const void *m)
 int wrap_mpcall(unsigned int c, char **argv, int inv,
 		struct xtables_match *m, struct xt_entry_match *mm, void *fw)
 {
-	m->m = mm; // FIXME: See above.
-	xtables_option_mpcall(c, argv, inv, m, fw);
-	return 1; /* true */
+    int rv = 1;
+    int err;
+
+    if ((err = setjmp(env)) == 0) {
+        m->m = mm; // FIXME: See above.
+        xtables_option_mpcall(c, argv, inv, m, fw);
+    } else {
+        errno = err;
+    }
+
+    return rv;
 }
 
 int wrap_tpcall(unsigned int c, char **argv, int inv,
 		struct xtables_target *t, struct xt_entry_target *tt, void *fw)
 {
-	t->t = tt; // FIXME: See above.
-	xtables_option_tpcall(c, argv, inv, t, fw);
-	return 1; /* true */
+    int rv = 1;
+    int err;
+
+    if ((err = setjmp(env)) == 0) {
+        t->t = tt; // FIXME: See above.
+        xtables_option_tpcall(c, argv, inv, t, fw);
+    } else {
+        errno = err;
+    }
+
+    return rv;
 }
 

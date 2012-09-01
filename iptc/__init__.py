@@ -544,7 +544,7 @@ class Target(IPTCModule):
     does not take any value in the iptables extension, an empty string ""
     should be used.
     """
-    def __init__(self, rule, name=None, target=None, revision=0):
+    def __init__(self, rule, name=None, target=None, revision=0, table=None):
         """
         *rule* is the Rule object this match belongs to; it can be changed
         later via *set_rule()*.  *name* is the name of the iptables target
@@ -558,12 +558,17 @@ class Target(IPTCModule):
             raise ValueError("can't create target based on nothing")
         if name == None:
             name = target.u.user.name
+        if table == None:
+            if target == None:
+                table = TABLE_FILTER
+            else:
+                raise ValueError("table must be specified if target provided")
         self._name = name
         self._rule = rule
         self._revision = revision
 
         is_standard_target = False
-        if TABLE_FILTER.is_chain(name):
+        if table.is_chain(name):
             is_standard_target = True
             module = _xt.find_target('standard')
         else:
@@ -1064,7 +1069,7 @@ class Rule(object):
 
         target = ct.cast(ct.byref(entry, entry.target_offset),
               ct.POINTER(ipt_entry_target))[0]
-        self.target = Target(self, target=target)
+        self.target = Target(self, target=target, table=self.chain.table)
         jump = self.chain.table.get_target(entry) # standard target is special
         if jump:
             self._target.standard_target = jump
