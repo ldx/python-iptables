@@ -508,7 +508,6 @@ class Match(IPTCModule):
 
         Parameters are set to their default value, any
         flags are cleared."""
-        print self.size
         ct.memset(ct.byref(self._match_buf), 0, self.size)
         self._update_pointers()
         m = self._ptr[0]
@@ -567,10 +566,8 @@ class Target(IPTCModule):
         if TABLE_FILTER.is_chain(name):
             is_standard_target = True
             module = _xt.find_target('standard')
-            print "in standard module"
         else:
             module = _xt.find_target(name)
-            print "in extended module " + name
         if not module:
             raise XTablesError("can't find target %s" % (name))
         self._module = module[0]
