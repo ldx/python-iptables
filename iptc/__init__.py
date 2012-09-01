@@ -15,7 +15,7 @@ import struct
 import weakref
 import ctypes.util
 
-from xtables import XT_INV_PROTO, NFPROTO_IPV4, XTF_TRY_LOAD, XTablesError, xtables, xtables_globals, xt_align, xt_counters, xt_entry_target, xt_entry_match, _lib_xtwrapper, x6_option_call, x6_option
+from xtables import XT_INV_PROTO, NFPROTO_IPV4, XTF_TRY_LOAD, XTablesError, xtables, xtables_globals, xt_align, xt_counters, xt_entry_target, xt_entry_match, _lib_xtwrapper, x6_option_call, x6_option, xtables_target, xtables_match
 
 __all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError",
            "POLICY_ACCEPT", "POLICY_DROP", "POLICY_QUEUE", "POLICY_RETURN",
@@ -275,6 +275,14 @@ _wrap_parse.argtypes = [ct.c_void_p, ct.c_int, ct.POINTER(ct.c_char_p),
 _wrap_save = _lib_xtwrapper.wrap_save
 _wrap_save.restype = ct.c_void_p
 _wrap_save.argtypes = [ct.c_void_p, ct.POINTER(ipt_ip), ct.c_void_p]
+_wrap_x6_parse_match = _lib_xtwrapper.wrap_mpcall
+_wrap_x6_parse_match.restype = ct.c_int
+_wrap_x6_parse_match.argtables = [ct.c_uint, ct.POINTER(ct.c_char_p),
+        ct.c_int, ct.POINTER(xtables_match), ct.c_void_p, ct.c_void_p]
+_wrap_x6_parse_target = _lib_xtwrapper.wrap_tpcall
+_wrap_x6_parse_target.restype = ct.c_int
+_wrap_x6_parse_target.argtables = [ct.c_uint, ct.POINTER(ct.c_char_p),
+        ct.c_int, ct.POINTER(xtables_target), ct.c_void_p, ct.c_void_p]
 
 _xt = xtables(NFPROTO_IPV4)
 
@@ -300,55 +308,63 @@ class IPTCModule(object):
         else:
             inv = ct.c_int(0)
 
-        if self._module.x6_options:
+        """if self._module.x6_options:
             if self._module.x6_parse == None:
                 raise NotImplementedError()
             else:
-                cb = x6_option_call()
-                cb.entry = None
                 for opt in self._module.x6_options:
                     if opt.name == None:
                         break
                     if opt.name == parameter:
-                        cb.entry = ct.pointer(opt)
-                        break
-                if cb.entry == None:
-                    raise AttributeError()
-                cb.arg = 0 # FIXME
-                cb.invert = False
-                cb.ext_name = self._module.name
-                try:
-                    #cb.data = self._module.t.data
-                    cb.data = None
-                    cb.xflags = self._module.tflags
-                    cb.target = self._module.t
-                    cb.xt_entry = None
-                    self._module.x6_parse(cb)
-                    self._module.tflags = cb.xflags
-                except AttributeError:
-                    #cb.data = self._module.m.data
-                    cb.data = None
-                    cb.xflags = self._module.mflags
-                    cb.match = self._module.m
-                    cb.xt_entry = None
-                    cb.udata = self._module.udata
-                    self._module.x6_parse(cb)
-                    self._module.mflags = cb.xflags
-        elif self._module.extra_opts:
+                        cb = x6_option_call()
+                        cb.entry = self._rule.entry and ct.pointer(self._rule.entry) or \
+                            None
+                        cb.arg = 0 # FIXME
+                        cb.invert = False
+                        cb.ext_name = self._module.name
+                        try:
+                            #cb.data = self._module.t.data
+                            cb.data = None
+                            cb.xflags = self._module.tflags
+                            cb.target = self._module.t
+                            cb.xt_entry = None
+                            self._module.x6_parse(cb)
+                            self._module.tflags = cb.xflags
+                        except AttributeError:
+                            #cb.data = self._module.m.data
+                            cb.data = None
+                            cb.xflags = self._module.mflags
+                            cb.match = self._module.m
+                            cb.xt_entry = None
+                            cb.udata = self._module.udata
+                            self._module.x6_parse(cb)
+                            self._module.mflags = cb.xflags"""
+        if self._module.extra_opts or self._module.x6_options:
             _optarg.value = value
             _optind.value = 2
 	
             argv = (ct.c_char_p * 2)()
             argv[0] = parameter
             argv[1] = value
-    
-            for opt in self._module.extra_opts:
+   
+            v = self._module.extra_opts or self._module.x6_options 
+            for opt in v:
+                if opt.name == None:
+                    break
                 if opt.name == parameter:
                     entry = self._rule.entry and ct.pointer(self._rule.entry) or \
                             None
-                    rv = _wrap_parse(self._module.parse, opt.val, argv, inv,
-                            ct.pointer(self._flags), entry,
-                            ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
+                    if self._module.x6_options:
+                        if (isinstance(self, Match)):
+                            rv = _wrap_x6_parse_match(opt.id, argv, inv, ct.pointer(self._module), ct.pointer(self._module.m), entry)
+                        elif (isinstance(self, Target)):
+                            rv = _wrap_x6_parse_target(opt.id, argv, inv, ct.pointer(self._module), ct.pointer(self._module.t), entry)
+                        else:
+                            raise ValueError("invalid calling type")
+                    else:
+                        rv = _wrap_parse(self._module.parse, opt.val, argv, inv,
+                               ct.pointer(self._flags), entry,
+                               ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
                     if rv != 1:
                         raise ValueError("invalid value %s" % (value))
                     return
@@ -492,6 +508,7 @@ class Match(IPTCModule):
 
         Parameters are set to their default value, any
         flags are cleared."""
+        print self.size
         ct.memset(ct.byref(self._match_buf), 0, self.size)
         self._update_pointers()
         m = self._ptr[0]
