@@ -340,6 +340,7 @@ class IPTCModule(object):
             os.dup2(saved_out, 1)
             os.close(pipes[0])
             os.close(pipes[1])
+            os.close(saved_out)
             return self._get_value(buf, name)
         else:
             return None
