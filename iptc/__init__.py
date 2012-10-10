@@ -19,7 +19,7 @@ from xtables import XT_INV_PROTO, NFPROTO_IPV4, XTF_TRY_LOAD, XTablesError, xtab
 
 __all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError",
            "POLICY_ACCEPT", "POLICY_DROP", "POLICY_QUEUE", "POLICY_RETURN",
-           "TABLE_FILTER", "TABLE_NAT", "TABLE_MANGLE"]
+           "TABLE_FILTER", "TABLE_NAT", "TABLE_MANGLE", "TABLES"]
 
 from subprocess import Popen, PIPE
 
@@ -514,13 +514,16 @@ class Target(IPTCModule):
         self._revision = revision
 
         is_standard_target = False
-        if TABLE_FILTER.is_chain(name):
-            is_standard_target = True
-            module = _xt.find_target('standard')
-        else:
-            module = _xt.find_target(name)
+	module = None
+	for t in TABLES:
+            if t.is_chain(name):
+                is_standard_target = True
+                module = _xt.find_target('standard')
+
         if not module:
-            raise XTablesError("can't find target %s" % (name))
+            module = _xt.find_target(name)
+            if not module:
+                raise XTablesError("can't find target %s" % (name))
         self._module = module[0]
 
         self._target_buf = (ct.c_ubyte * self.size)()
@@ -1414,3 +1417,6 @@ TABLE_NAT = Table("nat")
 """This is the constant for the NAT table."""
 TABLE_MANGLE = Table("mangle")
 """This is the constant for the mangle table."""
+
+TABLES = [TABLE_FILTER, TABLE_NAT, TABLE_MANGLE]
+"""This is a list of the fixed iptables tables"""
