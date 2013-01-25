@@ -438,7 +438,7 @@ class Match(IPTCModule):
         return not self.__eq__(rule)
 
     def _get_size(self):
-        return self._module.size + ct.sizeof(xt_entry_match)
+        return xt_align(self._module.size + ct.sizeof(xt_entry_match))
     size = property(_get_size)
     """This is the full size of the underlying C structure."""
 
@@ -558,7 +558,7 @@ class Target(IPTCModule):
         return not self.__eq__(rule)
 
     def _get_size(self):
-        return self._module.size + ct.sizeof(xt_entry_target)
+        return xt_align(self._module.size + ct.sizeof(xt_entry_target))
     size = property(_get_size)
     """This is the full size of the underlying C structure."""
 
