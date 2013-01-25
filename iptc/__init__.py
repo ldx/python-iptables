@@ -457,8 +457,7 @@ class Match(IPTCModule):
     def reset(self):
         """Reset the match.
 
-        Parameters are set to their default value, any
-        flags are cleared."""
+        Parameters are set to their default values, any flags are cleared."""
         ct.memset(ct.byref(self._match_buf), 0, self.size)
         self._update_pointers()
         m = self._ptr[0]
@@ -588,7 +587,7 @@ class Target(IPTCModule):
                 ct.POINTER(ct.POINTER(xt_entry_target)))
 
     def reset(self):
-        """Reset the match.  Parameters are set to their default value, any
+        """Reset the target.  Parameters are set to their default values, any
         flags are cleared."""
         ct.memset(ct.byref(self._target_buf), 0, self.size)
         self._update_pointers()
