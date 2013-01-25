@@ -17,7 +17,8 @@ setup(
     url                 = "http://nilvec.com/",
     packages            = ["iptc"],
     package_dir         = {"iptc" : "iptc"},
-    ext_modules         = [Extension("libxtwrapper", ["libxtwrapper/wrapper.c"])],
+    ext_modules         = [Extension("libxtwrapper",
+        ["libxtwrapper/wrapper.c"])], #"libxtwrapper/xtoptions.c"])],
     classifiers         = [
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
