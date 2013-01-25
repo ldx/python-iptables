@@ -467,6 +467,7 @@ class Match(IPTCModule):
         self._flags = ct.c_uint(0)
         if self._module.init:
             self._module.init(self._ptr)
+        self._module.m = self._ptr
 
     def _get_match(self):
         return ct.cast(ct.byref(self.match_buf), ct.POINTER(xt_entry_match))[0]
@@ -598,6 +599,7 @@ class Target(IPTCModule):
         self._flags = ct.c_uint(0)
         if self._module.init:
             self._module.init(self._ptr)
+        self._module.t = self._ptr
 
     def _get_target(self):
         return ct.cast(ct.byref(self.target_buf),
