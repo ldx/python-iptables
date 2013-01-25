@@ -85,7 +85,7 @@ class xtables_match(ct.Structure):
             ("init", ct.CFUNCTYPE(None, ct.POINTER(xt_entry_match))),
             # fourth parameter entry is struct ipt_entry for example
             # int (*parse)(int c, char **argv, int invert, unsigned int *flags,
-            #              const void *entry, struct xt_entry_match **match);
+            #              const void *entry, struct xt_entry_match **match)
             ("parse", ct.CFUNCTYPE(ct.c_int, ct.c_int,
                 ct.POINTER(ct.c_char_p), ct.c_int,
                 ct.POINTER(ct.c_uint), ct.c_void_p,
@@ -119,7 +119,7 @@ class xtables_target(ct.Structure):
             ("init", ct.CFUNCTYPE(None, ct.POINTER(xt_entry_target))),
             # fourth parameter entry is struct ipt_entry for example
             # int (*parse)(int c, char **argv, int invert, unsigned int *flags,
-            #              const void *entry, struct xt_entry_target **target);
+            #              const void *entry, struct xt_entry_target **target)
             ("parse", ct.CFUNCTYPE(ct.c_int,
                 ct.POINTER(ct.c_char_p), ct.c_int,
                 ct.POINTER(ct.c_uint), ct.c_void_p,

@@ -514,8 +514,8 @@ class Target(IPTCModule):
         self._revision = revision
 
         is_standard_target = False
-	module = None
-	for t in TABLES:
+        module = None
+        for t in TABLES:
             if t.is_chain(name):
                 is_standard_target = True
                 module = _xt.find_target('standard')
