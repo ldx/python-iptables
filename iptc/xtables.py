@@ -73,6 +73,82 @@ class option(ct.Structure):
             ("flag", ct.POINTER(ct.c_int)),
             ("val", ct.c_int)]
 
+class xt_option_entry(ct.Structure):
+    _fields_ = [("name", ct.c_char_p),
+            ("type", ct.c_int),
+            ("id", ct.c_uint),
+            ("excl", ct.c_uint),
+            ("also", ct.c_uint),
+            ("flags", ct.c_uint),
+            ("ptroff", ct.c_uint),
+            ("size", ct.c_size_t),
+            ("min", ct.c_uint),
+            ("max", ct.c_uint)]
+
+class _U1(ct.Union):
+    _fields_ = [("match", ct.POINTER(ct.POINTER(xt_entry_match))),
+            ("target", ct.POINTER(ct.POINTER(xt_entry_target)))]
+
+class nf_inet_addr(ct.Union):
+    _fields_ = [("all", ct.c_uint32 * 4),
+            ("ip", ct.c_uint32),
+            ("ip6", ct.c_uint32 * 4),
+            ("in", ct.c_uint32),
+            ("in6", ct.c_uint8 * 16)]
+
+class _S1(ct.Structure):
+    _fields_ = [("haddr", nf_inet_addr),
+            ("hmask", nf_inet_addr),
+            ("hlen", ct.c_uint8)]
+
+class _S2(ct.Structure):
+    _fields_ = [("tos_value", ct.c_uint8),
+            ("tos_mask", ct.c_uint8)]
+
+class _S3(ct.Structure):
+    _fields_ = [("mark", ct.c_uint32),
+            ("mask", ct.c_uint32)]
+
+class _U_val(ct.Union):
+    _anonymous_ = ("s1", "s2", "s3")
+    _fields_ = [("u8", ct.c_uint8),
+            ("u8_range", ct.c_uint8 * 2),
+            ("syslog_level", ct.c_uint8),
+            ("protocol", ct.c_uint8),
+            ("u16", ct.c_uint16),
+            ("u16_range", ct.c_uint16 * 2),
+            ("port", ct.c_uint16),
+            ("port_range", ct.c_uint16 * 2),
+            ("u32", ct.c_uint32),
+            ("u32_range", ct.c_uint32 * 2),
+            ("u64", ct.c_uint64),
+            ("u64_range", ct.c_uint64 * 2),
+            ("double", ct.c_double),
+            ("s1", _S1),
+            ("s2", _S2),
+            ("s3", _S3),
+            ("ethermac", ct.c_uint8 * 6)]
+
+class xt_option_call(ct.Structure):
+    _anonymous_ = ("u",)
+    _fields_ = [("arg", ct.c_char_p),
+            ("ext_name", ct.c_char_p),
+            ("entry", ct.POINTER(xt_option_entry)),
+            ("data", ct.c_void_p),
+            ("xflags", ct.c_uint),
+            ("invert", ct.c_uint8),
+            ("nvals", ct.c_uint8),
+            ("val", _U_val),
+            ("u", _U1),
+            ("xt_entry", ct.c_void_p),
+            ("udata", ct.c_void_p)]
+
+class xt_fcheck_call(ct.Structure):
+    _fields_ = [("ext_name", ct.c_char_p),
+            ("data", ct.c_void_p),
+            ("udata", ct.c_void_p),
+            ("xflags", ct.c_uint)]
+
 class xtables_match(ct.Structure):
     _fields_ = [("version", ct.c_char_p),
             ("next", ct.c_void_p),
@@ -101,7 +177,17 @@ class xtables_match(ct.Structure):
                 ct.POINTER(xt_entry_match))),
             # Pointer to list of extra command-line options
             ("extra_opts", ct.POINTER(option)),
+
+            # Introduced with the new iptables API
+            ("x6_parse", ct.CFUNCTYPE(None, ct.POINTER(xt_option_call))),
+            ("x6_fcheck", ct.CFUNCTYPE(None, ct.POINTER(xt_fcheck_call))),
+            ("x6_options", ct.POINTER(xt_option_entry)),
+
+            # Size of per-extension instance extra "global" scratch space
+            ("udata_size", ct.c_size_t),
+
             # Ignore these men behind the curtain:
+            ("udata", ct.c_void_p),
             ("option_offset", ct.c_uint),
             ("m", ct.POINTER(xt_entry_match)),
             ("mflags", ct.c_uint),
@@ -135,7 +221,17 @@ class xtables_target(ct.Structure):
                 ct.POINTER(xt_entry_target))),
             # Pointer to list of extra command-line options
             ("extra_opts", ct.POINTER(option)),
+
+            # Introduced with the new iptables API
+            ("x6_parse", ct.CFUNCTYPE(None, ct.POINTER(xt_option_call))),
+            ("x6_fcheck", ct.CFUNCTYPE(None, ct.POINTER(xt_fcheck_call))),
+            ("x6_options", ct.POINTER(xt_option_entry)),
+
+            # Size of per-extension instance extra "global" scratch space
+            ("udata_size", ct.c_size_t),
+
             # Ignore these men behind the curtain:
+            ("udata", ct.c_void_p),
             ("option_offset", ct.c_uint),
             ("t", ct.POINTER(xt_entry_target)),
             ("tflags", ct.c_uint),
@@ -157,6 +253,10 @@ for p in sys.path:
     else:
         break
 _throw = _lib_xtwrapper.throw_exception
+
+_wrap_x6parse = _lib_xtwrapper.wrap_x6parse
+_wrap_x6parse.restype = ct.c_int
+_wrap_x6parse.argtypes = [ct.c_void_p, ct.POINTER(xt_option_call)]
 
 _kernel_version = ct.c_int.in_dll(_lib_xtwrapper, 'kernel_version')
 _get_kernel_version = _lib_xtwrapper.get_kernel_version
@@ -197,3 +297,102 @@ class xtables(object):
 
     def find_target(self, name):
         return xtables._xtables_find_target(name, XTF_TRY_LOAD)
+
+def xtables_option_lookup(entry, id):
+    for e in entry:
+        if not e.name:
+            break
+        if e.id == id:
+            return e
+    return None
+
+# Dispatch arguments to the appropriate parse function, based upon the
+# extension's choice of API.
+def xtables_option_tpcall(c, argv, invert, t, fw, optarg):
+    c -= t.option_offset
+    cb = xt_option_call()
+    entry = xtables_option_lookup(t.x6_options, c)
+    if not entry:
+        raise XTablesError("%s does not know id %u" % (t.name, c))
+    cb.entry = ct.pointer(entry)
+    cb.arg      = optarg
+    cb.invert   = invert
+    cb.ext_name = t.name
+    cb.data     = ct.cast(t.t[0].data, ct.c_void_p)
+    cb.xflags   = t.tflags
+    cb.target   = ct.pointer(t.t)
+    cb.xt_entry = ct.cast(fw, ct.c_void_p)
+    cb.udata    = t.udata
+    rv = _wrap_x6parse(t.x6_parse, ct.pointer(cb))
+    if rv != 0:
+        raise XTablesError("%s: parameter error %d (%s)" % (t.name, rv,
+            optarg.value))
+    #t.x6_parse(ct.pointer(cb))
+    #t.tflags = cb.xflags
+
+# Dispatch arguments to the appropriate parse function, based upon the
+# extension's choice of API.
+def xtables_option_mpcall(c, argv, invert, m, fw, optarg):
+    c -= m.option_offset
+    cb = xt_option_call()
+    entry = xtables_option_lookup(m.x6_options, c)
+    if not entry:
+        raise XTablesError("%s does not know id %u" % (m.name, c))
+    cb.entry = ct.pointer(entry)
+    cb.arg      = optarg
+    cb.invert   = invert
+    cb.ext_name = m.name
+    cb.data     = ct.cast(m.m[0].data, ct.c_void_p)
+    cb.xflags   = m.mflags
+    cb.match   = ct.pointer(m.m)
+    cb.xt_entry = ct.cast(fw, ct.c_void_p)
+    cb.udata    = m.udata
+    rv = _wrap_x6parse(m.x6_parse, ct.pointer(cb))
+    if rv != 0:
+        raise XTablesError("%s: parameter error %d (%s)" % (m.name, rv,
+            optarg.value))
+    #m.x6_parse(ct.pointer(cb))
+    #m.mflags = cb.xflags
+
+# Check that all option constraints have been met. This effectively replaces
+# ->final_check of the older API.
+def xtables_options_fcheck(name, xflags, table):
+    for entry in table:
+        if entry.flags & XTOPT_MAND and not xflags & (1 << entry.id):
+            raise XTablesError("%s: --%s must be specified" % (name,
+                entry.name))
+            if not xflags & (1 << entry.id):
+                continue
+        # XXX: check for conflicting options
+
+# Dispatch arguments to the appropriate final_check function, based upon the
+# extension's choice of API.
+def xtables_option_tfcall(target):
+    if target.x6_fcheck:
+        cb = xt_fcheck_call()
+        cb.ext_name = target.name
+        cb.data     = target.t.data
+        cb.xflags   = target.tflags
+        cb.udata    = target.udata
+        target.x6_fcheck(ct.pointer(cb))
+    elif target.final_check:
+        target.final_check(target.tflags)
+
+    if target.x6_options:
+        xtables_options_fcheck(target.name, target.tflags, target.x6_options)
+
+# Dispatch arguments to the appropriate final_check function, based upon the
+# extension's choice of API.
+def xtables_option_mfcall(match):
+    if match.x6_fcheck:
+        cb = xt_fcheck_call()
+        cb.ext_name = match.name
+        cb.data     = match.m.data
+        cb.xflags   = match.mflags
+        cb.udata    = match.udata
+        match.x6_fcheck(ct.pointer(cb))
+    elif match.final_check:
+        match.final_check(match.tflags)
+
+    if match.x6_options:
+        xtables_options_fcheck(match.name, match.mflags, match.x6_options)

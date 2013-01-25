@@ -43,6 +43,21 @@ int wrap_parse(int (*fn)(), int i, char **argv, int inv, unsigned int *flags,
     return rv;
 }
 
+struct xt_option_call;
+int wrap_x6parse(void (*fn)(), struct xt_option_call *cb)
+{
+    int err;
+
+    if ((err = setjmp(env)) == 0) {
+        fn(cb);
+    } else {
+        errno = err;
+        return -err;
+    }
+
+    return 0;
+}
+
 struct ipt_ip;
 void wrap_save(int (*fn)(), const struct ipt_ip *ip, const void *m)
 {

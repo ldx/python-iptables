@@ -15,7 +15,7 @@ import struct
 import weakref
 import ctypes.util
 
-from xtables import XT_INV_PROTO, NFPROTO_IPV4, XTF_TRY_LOAD, XTablesError, xtables, xtables_globals, xt_align, xt_counters, xt_entry_target, xt_entry_match, _lib_xtwrapper
+from xtables import XT_INV_PROTO, NFPROTO_IPV4, XTF_TRY_LOAD, XTablesError, xtables, xtables_globals, xt_align, xt_counters, xt_entry_target, xt_entry_match, _lib_xtwrapper, xtables_option_mfcall, xtables_option_tfcall, xtables_option_mpcall, xtables_option_tpcall
 
 __all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError",
            "POLICY_ACCEPT", "POLICY_DROP", "POLICY_QUEUE", "POLICY_RETURN",
@@ -296,11 +296,13 @@ class IPTCModule(object):
         value = value.rstrip().lstrip()
         if "!" in value:
             inv = ct.c_int(1)
+            binv = ct.c_uint8(1)
             value = value.replace("!", "")
         else:
             inv = ct.c_int(0)
+            binv = ct.c_uint8(0)
 
-        if not self._module.extra_opts:
+        if not self._module.extra_opts and not self._module.x6_options:
             raise AttributeError("%s: invalid parameter %s" %
                     (self._module.name, parameter))
 
@@ -311,18 +313,35 @@ class IPTCModule(object):
         argv[0] = parameter
         argv[1] = value
 
-        for opt in self._module.extra_opts:
-            if opt.name == parameter:
-                entry = self._rule.entry and ct.pointer(self._rule.entry) or \
-                        None
-                rv = _wrap_parse(self._module.parse, opt.val, argv, inv,
-                        ct.pointer(self._flags), entry,
-                        ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
-                if rv != 1:
-                    raise ValueError("invalid value %s" % (value))
-                return
-            elif not opt.name:
-                break
+        entry = self._rule.entry and ct.pointer(self._rule.entry) or None
+
+        if self._module.x6_options:
+            for opt in self._module.x6_options:
+                if not opt.name:
+                    break
+                if opt.name == parameter:
+                    if type(self) == Match:
+                        xtables_option_mpcall(opt.id, argv, binv,
+                                self._module, entry, _optarg)
+                    elif type(self) == Target:
+                        xtables_option_tpcall(opt.id, argv, binv,
+                                self._module, entry, _optarg)
+                    else:
+                        raise Exception("invalid module object")
+                    return
+        elif self._module.extra_opts:
+            for opt in self._module.extra_opts:
+                if opt.name == parameter:
+                    #entry = self._rule.entry and ct.pointer(self._rule.entry) or \
+                    #        None
+                    rv = _wrap_parse(self._module.parse, opt.val, argv, inv,
+                            ct.pointer(self._flags), entry,
+                            ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
+                    if rv != 1:
+                        raise ValueError("invalid value %s" % (value))
+                    return
+                elif not opt.name:
+                    break
         raise AttributeError("invalid parameter %s" % (parameter))
 
     def final_check(self):
