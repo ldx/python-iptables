@@ -246,12 +246,16 @@ class TestIPTMasqueradeTarget(unittest.TestCase):
 
         self.chain.insert_rule(self.rule)
 
+        found = False
         for r in self.chain.rules:
-            if r != self.rule:
-                self.chain.delete_rule(self.rule)
-                self.fail("inserted rule does not match original")
+            if r == self.rule:
+                found = True
+                break
 
         self.chain.delete_rule(self.rule)
+
+        if not found:
+            self.fail("inserted rule does not match original")
 
 def suite():
     suite_target = unittest.TestLoader().loadTestsFromTestCase(TestTarget)
