@@ -29,7 +29,7 @@ void throw_exception(int err)
 }
 
 int wrap_parse(int (*fn)(), int i, char **argv, int inv, unsigned int *flags,
-               char *p, void **mptr)
+               void *p, void **mptr)
 {
     int rv = -1;
     int err;
@@ -59,7 +59,7 @@ int wrap_x6parse(void (*fn)(), struct xt_option_call *cb)
 }
 
 struct ipt_ip;
-void wrap_save(int (*fn)(), const struct ipt_ip *ip, const void *m)
+void wrap_save(int (*fn)(), const void *ip, const void *m)
 {
     fn(ip, m);
     fflush(stdout);

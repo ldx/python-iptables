@@ -15,7 +15,7 @@ import struct
 import weakref
 import ctypes.util
 
-from xtables import XT_INV_PROTO, NFPROTO_IPV4, XTF_TRY_LOAD, XTablesError, xtables, xtables_globals, xt_align, xt_counters, xt_entry_target, xt_entry_match, _lib_xtwrapper, xtables_option_mfcall, xtables_option_tfcall, xtables_option_mpcall, xtables_option_tpcall
+from xtables import XT_INV_PROTO, NFPROTO_IPV4, XTF_TRY_LOAD, XTablesError, xtables, xtables_globals, xt_align, xt_counters, xt_entry_target, xt_entry_match
 
 __all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError",
            "POLICY_ACCEPT", "POLICY_DROP", "POLICY_QUEUE", "POLICY_RETURN",
@@ -263,19 +263,6 @@ class IPTCError(Exception):
     executing an iptables operation.
     """
 
-_libc = ct.CDLL(ctypes.util.find_library("c"))
-_optind = ct.c_long.in_dll(_libc, "optind")
-_optarg = ct.c_char_p.in_dll(_libc, "optarg")
-
-_wrap_parse = _lib_xtwrapper.wrap_parse
-_wrap_parse.restype = ct.c_int
-_wrap_parse.argtypes = [ct.c_void_p, ct.c_int, ct.POINTER(ct.c_char_p),
-        ct.c_int, ct.POINTER(ct.c_uint), ct.POINTER(ipt_entry),
-        ct.POINTER(ct.c_void_p)]
-_wrap_save = _lib_xtwrapper.wrap_save
-_wrap_save.restype = ct.c_void_p
-_wrap_save.argtypes = [ct.c_void_p, ct.POINTER(ipt_ip), ct.c_void_p]
-
 _xt = xtables(NFPROTO_IPV4)
 
 class IPTCModule(object):
@@ -292,22 +279,17 @@ class IPTCModule(object):
         raise NotImplementedError()
 
     def parse(self, parameter, value):
-        parameter = parameter.rstrip().lstrip()
-        value = value.rstrip().lstrip()
-        if "!" in value:
-            inv = ct.c_int(1)
-            binv = ct.c_uint8(1)
-            value = value.replace("!", "")
-        else:
-            inv = ct.c_int(0)
-            binv = ct.c_uint8(0)
-
         if not self._module.extra_opts and not self._module.x6_options:
             raise AttributeError("%s: invalid parameter %s" %
                     (self._module.name, parameter))
 
-        _optarg.value = value
-        _optind.value = 2
+        parameter = parameter.rstrip().lstrip()
+        value = value.rstrip().lstrip()
+        if "!" in value:
+            inv = ct.c_int(1)
+            value = value.replace("!", "")
+        else:
+            inv = ct.c_int(0)
 
         argv = (ct.c_char_p * 2)()
         argv[0] = parameter
@@ -315,38 +297,17 @@ class IPTCModule(object):
 
         entry = self._rule.entry and ct.pointer(self._rule.entry) or None
 
-        if self._module.x6_options:
-            for opt in self._module.x6_options:
-                if not opt.name:
-                    break
-                if opt.name == parameter:
-                    if type(self) == Match:
-                        xtables_option_mpcall(opt.id, argv, binv,
-                                self._module, entry, _optarg)
-                    elif type(self) == Target:
-                        xtables_option_tpcall(opt.id, argv, binv,
-                                self._module, entry, _optarg)
-                    else:
-                        raise Exception("invalid module object")
-                    return
-        elif self._module.extra_opts:
-            for opt in self._module.extra_opts:
-                if opt.name == parameter:
-                    #entry = self._rule.entry and ct.pointer(self._rule.entry) or \
-                    #        None
-                    rv = _wrap_parse(self._module.parse, opt.val, argv, inv,
-                            ct.pointer(self._flags), entry,
-                            ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
-                    if rv != 1:
-                        raise ValueError("invalid value %s" % (value))
-                    return
-                elif not opt.name:
-                    break
-        raise AttributeError("invalid parameter %s" % (parameter))
+        self._parse(argv, inv, entry)
+
+    def _parse(self, argv, inv, entry):
+        raise NotImplementedError()
 
     def final_check(self):
         if self._module and self._module.final_check:
-            self._module.final_check(self._flags)
+            self._final_check() # subclasses override this
+
+    def _final_check(self):
+        raise NotImplementedError()
 
     def save(self, name):
         if self._module and self._module.save:
@@ -354,7 +315,7 @@ class IPTCModule(object):
             pipes = os.pipe()
             saved_out = os.dup(1)
             os.dup2(pipes[1], 1)
-            _wrap_save(self._module.save, self.rule.entry.ip, self._ptr)
+            _xt.save(self._module, self.rule.entry.ip, self._ptr)
             buf = os.read(pipes[0], 1024)
             os.dup2(saved_out, 1)
             os.close(pipes[0])
@@ -455,6 +416,13 @@ class Match(IPTCModule):
 
     def __ne__(self, rule):
         return not self.__eq__(rule)
+
+    def _final_check(self):
+        _xt.final_check_match(self._module)
+
+    def _parse(self, argv, inv, entry):
+        _xt.parse_match(argv, inv, self._module, entry,
+                ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
 
     def _get_size(self):
         return xt_align(self._module.size + ct.sizeof(xt_entry_match))
@@ -575,6 +543,13 @@ class Target(IPTCModule):
 
     def __ne__(self, rule):
         return not self.__eq__(rule)
+
+    def _final_check(self):
+        _xt.final_check_target(self._module)
+
+    def _parse(self, argv, inv, entry):
+        _xt.parse_target(argv, inv, self._module, entry,
+                ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
 
     def _get_size(self):
         return xt_align(self._module.size + ct.sizeof(xt_entry_target))
