@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
 
-"""
-.. module:: iptc
-   :synopsis: Python bindings for libiptc.
-
-.. moduleauthor:: Nilvec <nilvec@nilvec.com>
-"""
-
 import os
 import re
 import ctypes as ct
