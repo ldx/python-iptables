@@ -17,9 +17,12 @@ class TestTable(unittest.TestCase):
         self.assertEquals(id(nat), id(iptc.TABLE_NAT))
         mangle = iptc.Table("mangle")
         self.assertEquals(id(mangle), id(iptc.TABLE_MANGLE))
+        raw = iptc.Table("raw")
+        self.assertEquals(id(raw), id(iptc.TABLE_RAW))
         self.assertNotEquals(id(filt), id(nat))
         self.assertNotEquals(id(filt), id(mangle))
         self.assertNotEquals(id(nat), id(mangle))
+        self.assertNotEquals(id(nat), id(raw))
 
 class TestChain(unittest.TestCase):
     def setUp(self):
@@ -70,6 +73,10 @@ class TestChain(unittest.TestCase):
         self.assertTrue(table.is_chain("POSTROUTING"))
         self.assertTrue(table.is_chain("OUTPUT"))
 
+        table = iptc.TABLE_RAW
+        self.assertTrue(table.is_chain("PREROUTING"))
+        self.assertTrue(table.is_chain("OUTPUT"))
+
     def test_builtin_chain(self):
         table = iptc.TABLE_FILTER
         self.assertTrue(table.builtin_chain("INPUT"))
@@ -86,6 +93,10 @@ class TestChain(unittest.TestCase):
         self.assertTrue(table.builtin_chain("PREROUTING"))
         self.assertTrue(table.builtin_chain("FORWARD"))
         self.assertTrue(table.builtin_chain("POSTROUTING"))
+        self.assertTrue(table.builtin_chain("OUTPUT"))
+
+        table = iptc.TABLE_RAW
+        self.assertTrue(table.builtin_chain("PREROUTING"))
         self.assertTrue(table.builtin_chain("OUTPUT"))
 
     def test_chains(self):
@@ -111,9 +122,16 @@ class TestChain(unittest.TestCase):
                   "FORWARD", "OUTPUT"]:
                 self.failIf(chain.is_builtin())
 
+        table = iptc.TABLE_RAW
+        table.autocommit = True
+        self.assertTrue(len(table.chains) >= 2)
+        for chain in table.chains:
+            if chain.name not in ["PREROUTING", "OUTPUT"]:
+                self.failIf(chain.is_builtin())
+
     def test_chain_counters(self):
         for chain in (chain for table in [iptc.TABLE_FILTER, iptc.TABLE_NAT,
-                iptc.TABLE_MANGLE] for chain in table.chains):
+                iptc.TABLE_MANGLE, iptc.TABLE_RAW] for chain in table.chains):
             counters = chain.get_counters()
             chain.zero_counters()
             counters = chain.get_counters()

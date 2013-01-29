@@ -1405,6 +1405,8 @@ TABLE_NAT = Table("nat")
 """This is the constant for the NAT table."""
 TABLE_MANGLE = Table("mangle")
 """This is the constant for the mangle table."""
+TABLE_RAW = Table("raw")
+"""This is the constant for the raw table."""
 
-TABLES = [TABLE_FILTER, TABLE_NAT, TABLE_MANGLE]
+TABLES = [TABLE_FILTER, TABLE_NAT, TABLE_MANGLE, TABLE_RAW]
 """This is a list of the fixed iptables tables"""
