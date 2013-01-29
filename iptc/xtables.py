@@ -249,9 +249,9 @@ _lib_xtables = ct.CDLL(ctypes.util.find_library("xtables"), mode=ct.RTLD_GLOBAL)
 
 from distutils.sysconfig import get_python_lib
 import sys
-for p in sys.path:
+for _p in sys.path:
     try:
-        _lib_xtwrapper = ct.CDLL('/'.join([p, 'libxtwrapper.so']), mode=ct.RTLD_GLOBAL)
+        _lib_xtwrapper = ct.CDLL('/'.join([_p, 'libxtwrapper.so']), mode=ct.RTLD_GLOBAL)
     except:
         pass
     else:
@@ -275,10 +275,10 @@ _kernel_version = ct.c_int.in_dll(_lib_xtwrapper, 'kernel_version')
 _get_kernel_version = _lib_xtwrapper.get_kernel_version
 _get_kernel_version()
 
-def xt_exit(status, *args):
+def _xt_exit(status, *args):
     _throw(status)
-EXIT_FN = ct.CFUNCTYPE(None, ct.c_int, ct.c_char_p)
-xt_exit = EXIT_FN(xt_exit)
+_EXIT_FN = ct.CFUNCTYPE(None, ct.c_int, ct.c_char_p)
+_xt_exit = _EXIT_FN(_xt_exit)
 
 class xtables(object):
     _xtables_init_all = _lib_xtables.xtables_init_all
@@ -300,7 +300,7 @@ class xtables(object):
         self._xt_globals.program_version = version.__version__
         self._xt_globals.orig_opts = None
         self._xt_globals.opts = None
-        self._xt_globals.exit_err = xt_exit
+        self._xt_globals.exit_err = _xt_exit
         rv = xtables._xtables_init_all(ct.pointer(self._xt_globals), proto)
         if rv:
             raise XTablesError("xtables_init_all() failed: %d" % (rv))
