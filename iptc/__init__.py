@@ -23,28 +23,28 @@ __all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError",
 
 from subprocess import Popen, PIPE
 
-def insert_ko(modprobe, modname):
+def _insert_ko(modprobe, modname):
     p = Popen([modprobe, modname], stderr=PIPE)
     p.wait()
     return (p.returncode, p.stderr.read(1024))
 
-def load_ko(modname):
+def _load_ko(modname):
     # this will return the full path for the modprobe binary
     proc = open("/proc/sys/kernel/modprobe")
     modprobe = proc.read(1024)
     if modprobe[len(modprobe) - 1] == '\n':
         modprobe = modprobe[:len(modprobe) - 1]
-    return insert_ko(modprobe, modname)
+    return _insert_ko(modprobe, modname)
 
 # First load the kernel module.  If it is already loaded modprobe will just
 # return with 0.
-rc, err = load_ko("ip_tables")
-if rc:
-    if not err:
-        err = "Failed to load the ip_tables kernel module."
-    if err[len(err) - 1] == "\n":
-        err = err[:len(err) - 1]
-    raise Exception(err)
+_rc, _err = _load_ko("ip_tables")
+if _rc:
+    if not _err:
+        _err = "Failed to load the ip_tables kernel module."
+    if _err[len(_err) - 1] == "\n":
+        _err = _err[:len(_err) - 1]
+    raise Exception(_err)
 
 _IFNAMSIZ = 16
 
