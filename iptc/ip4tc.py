@@ -954,8 +954,8 @@ class Rule(object):
         entrysz = ipt_align(ct.sizeof(ipt_entry));
         matchsz = 0
         for m in self._matches:
-            matchsz += m.size
-        targetsz = self._target.size
+            matchsz += ipt_align(m.size)
+        targetsz = ipt_align(self._target.size)
 
         self.entry.target_offset = entrysz + matchsz
         self.entry.next_offset = entrysz + matchsz + targetsz
@@ -970,7 +970,7 @@ class Rule(object):
         # copy matches to buf at offset of entrysz + match size
         offset = 0
         for m in self._matches:
-            sz = m.size
+            sz = ipt_align(m.size)
             buf[entrysz+offset:entrysz+offset+sz] = m.match_buf[:sz]
             offset += sz
 
