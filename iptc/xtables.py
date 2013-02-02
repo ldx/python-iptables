@@ -337,6 +337,9 @@ class xtables(object):
     # Dispatch arguments to the appropriate parse function, based upon the
     # extension's choice of API.
     def parse_target(self, argv, invert, t, fw, ptr):
+        _optarg.value = argv[1]
+        _optind.value = 2
+
         if not t.x6_options or not t.x6_parse: # old API
             self._parse(t, argv, invert, t.tflags, fw, ptr)
             return
@@ -345,9 +348,6 @@ class xtables(object):
         entry = self._option_lookup(t.x6_options, argv[0])
         if not entry:
             raise XTablesError("%s does not know parameter" % (t.name, argv[0]))
-
-        _optarg.value = argv[1]
-        _optind.value = 2
 
         cb = xt_option_call()
         cb.entry = ct.pointer(entry)
@@ -368,6 +368,9 @@ class xtables(object):
     # Dispatch arguments to the appropriate parse function, based upon the
     # extension's choice of API.
     def parse_match(self, argv, invert, m, fw, ptr):
+        _optarg.value = argv[1]
+        _optind.value = 2
+
         if not m.x6_options or not m.x6_parse: # old API
             self._parse(m, argv, invert, m.mflags, fw, ptr)
             return
@@ -376,9 +379,6 @@ class xtables(object):
         entry = self._option_lookup(m.x6_options, argv[0])
         if not entry:
             raise XTablesError("%s does not know parameter" % (m.name, argv[0]))
-
-        _optarg.value = argv[1]
-        _optind.value = 2
 
         cb = xt_option_call()
         cb.entry = ct.pointer(entry)
