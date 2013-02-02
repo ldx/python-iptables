@@ -347,7 +347,7 @@ class xtables(object):
         # new API
         entry = self._option_lookup(t.x6_options, argv[0])
         if not entry:
-            raise XTablesError("%s does not know parameter" % (t.name, argv[0]))
+            raise XTablesError("%s does not know parameter %s" % (t.name, argv[0]))
 
         cb = xt_option_call()
         cb.entry = ct.pointer(entry)
@@ -378,7 +378,7 @@ class xtables(object):
         # new API
         entry = self._option_lookup(m.x6_options, argv[0])
         if not entry:
-            raise XTablesError("%s does not know parameter" % (m.name, argv[0]))
+            raise XTablesError("%s does not know parameter %s" % (m.name, argv[0]))
 
         cb = xt_option_call()
         cb.entry = ct.pointer(entry)
