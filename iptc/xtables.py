@@ -326,7 +326,7 @@ class xtables(object):
         for opt in module.extra_opts:
             if opt.name == argv[0]:
                 rv = _wrap_parse(module.parse, opt.val, argv, inv,
-                        flags, entry, ptr)
+                        ct.pointer(ct.c_uint(flags)), entry, ptr)
                 if rv != 1:
                     raise ValueError("invalid value %s" % (value))
                 return
