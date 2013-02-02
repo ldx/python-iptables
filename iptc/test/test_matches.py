@@ -184,14 +184,62 @@ class TestCommentMatch(unittest.TestCase):
         self.chain.insert_rule(self.rule)
         self.assertEquals(self.match.comment.replace('"', ''), comment)
 
+class TestIprangeMatch(unittest.TestCase):
+    def setUp(self):
+        self.rule = iptc.Rule()
+        self.rule.protocol = "tcp"
+        self.rule.target = iptc.Target(self.rule, "ACCEPT")
+
+        self.match = iptc.Match(self.rule, "iprange", revision=1)
+
+        self.chain = iptc.Chain(iptc.TABLE_FILTER, "iptc_test_iprange")
+        iptc.TABLE_FILTER.create_chain(self.chain)
+
+    def tearDown(self):
+        self.chain.flush()
+        self.chain.delete()
+
+    def test_iprange(self):
+        self.match.src_range = "192.168.1.100-192.168.1.200"
+        self.match.dst_range = "172.22.33.106"
+        self.rule.add_match(self.match)
+
+        self.chain.insert_rule(self.rule)
+
+        for r in self.chain.rules:
+            if r != self.rule:
+                self.chain.delete_rule(self.rule)
+                self.fail("inserted rule does not match original")
+
+        self.chain.delete_rule(self.rule)
+
+    def test_iprange_tcpdport(self):
+        self.match.src_range = "192.168.1.100-192.168.1.200"
+        self.match.dst_range = "172.22.33.106"
+        self.rule.add_match(self.match)
+
+        match = iptc.Match(self.rule, "tcp")
+        match.dport = "22"
+        self.rule.add_match(match)
+
+        self.chain.insert_rule(self.rule)
+
+        for r in self.chain.rules:
+            if r != self.rule:
+                self.chain.delete_rule(self.rule)
+                self.fail("inserted rule does not match original")
+
+        self.chain.delete_rule(self.rule)
+
 def suite():
     suite_match = unittest.TestLoader().loadTestsFromTestCase(TestMatch)
     suite_udp = unittest.TestLoader().loadTestsFromTestCase(TestXTUdpMatch)
     suite_mark = unittest.TestLoader().loadTestsFromTestCase(TestXTMarkMatch)
     suite_limit = unittest.TestLoader().loadTestsFromTestCase(TestXTLimitMatch)
     suite_comment = unittest.TestLoader().loadTestsFromTestCase(TestCommentMatch)
+    suite_iprange = unittest.TestLoader().loadTestsFromTestCase(TestIprangeMatch)
     return unittest.TestSuite([suite_match, suite_udp, suite_mark,
-        suite_limit, suite_comment])
+        suite_limit, suite_comment, suite_iprange])
 
 def run_tests():
     unittest.TextTestRunner(verbosity=2).run(suite())
