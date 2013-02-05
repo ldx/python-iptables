@@ -1244,6 +1244,7 @@ class Table(object):
     def strerror(self):
         """Returns any pending iptables error from the previous operation."""
         errno = ct.get_errno()
+        ct.set_errno(0)
         if errno == 0:
             return "libiptc version error"
         return self._iptc.iptc_strerror(errno)
