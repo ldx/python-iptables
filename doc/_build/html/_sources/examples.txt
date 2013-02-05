@@ -116,7 +116,7 @@ Multiple matches with iprange
 Now we will add multiple matches to a rule. This one is the python-iptables
 equivalent of the following iptables command:
 
-    # iptables -A INPUT -p tcp –destination-port 22 -m iprange –src-range 192.168.1.100-192.168.1.200 –dst-range 172.22.33.106 -j DROP
+# iptables -A INPUT -p tcp –destination-port 22 -m iprange –src-range 192.168.1.100-192.168.1.200 –dst-range 172.22.33.106 -j DROP
 
     >>> import iptc
     >>> rule = iptc.Rule()
