@@ -10,6 +10,23 @@ class TestMatch(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_match_create(self):
+        rule = iptc.Rule()
+        match = rule.create_match("udp")
+
+        for m in rule.matches:
+            self.failUnless(m == match)
+
+        # check that we can change match parameters after creation
+        match.sport = "12345:55555"
+        match.dport = "!33333"
+
+        m = iptc.Match(iptc.Rule(), "udp")
+        m.sport = "12345:55555"
+        m.dport = "!33333"
+
+        self.failUnless(m == match)
+
     def test_match_compare(self):
         m1 = iptc.Match(iptc.Rule(), "udp")
         m1.sport = "12345:55555"

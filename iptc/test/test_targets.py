@@ -10,6 +10,19 @@ class TestTarget(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_target_create(self):
+        rule = iptc.Rule()
+        target = rule.create_target("MARK", revision=1)
+
+        self.failUnless(rule.target == target)
+
+        target.set_mark = "0x123"
+
+        t = iptc.Target(iptc.Rule(), "MARK", revision=1)
+        t.set_mark = "0x123"
+
+        self.failUnless(t == target)
+
     def test_target_compare(self):
         t1 = iptc.Target(iptc.Rule(), "MARK", revision=1)
         t1.set_mark = "0x123"

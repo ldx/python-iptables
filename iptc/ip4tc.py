@@ -682,6 +682,22 @@ class Rule(object):
     def __ne__(self, rule):
         return not self.__eq__(rule)
 
+    def create_match(self, name, revision=0):
+        """Create a *match*, and add it to the list of matches in this rule.
+        *name* is the name of the match extension, *revision* is the revision
+        to use."""
+        match = Match(self, name=name, revision=revision)
+        self.add_match(match)
+        return match
+
+    def create_target(self, name, revision=0):
+        """Create a new *target*, and set it as this rule's target. *name* is
+        the name of the target extension, *revision* is the revision to
+        use."""
+        target = Target(self, name=name, revision=revision)
+        self.target = target
+        return target
+
     def add_match(self, match):
         """Adds a match to the rule.  One can add any number of matches."""
         match.rule = self
