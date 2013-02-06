@@ -301,12 +301,15 @@ class IPTCModule(object):
         raise NotImplementedError()
 
     def save(self, name):
+        return self._save(name, self.rule.entry.ip)
+
+    def _save(self, name, ip):
         if self._module and self._module.save:
             # redirect C stdout to a pipe and read back the output of m->save
             pipes = os.pipe()
             saved_out = os.dup(1)
             os.dup2(pipes[1], 1)
-            _xt.save(self._module, self.rule.entry.ip, self._ptr)
+            _xt.save(self._module, ip, self._ptr)
             buf = os.read(pipes[0], 1024)
             os.dup2(saved_out, 1)
             os.close(pipes[0])
