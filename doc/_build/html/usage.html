@@ -284,7 +284,7 @@ determines the fate of the packet.</p>
 <h2>Match<a class="headerlink" href="#match" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="iptc.Match">
-<em class="property">class </em><tt class="descclassname">iptc.</tt><tt class="descname">Match</tt><big>(</big><em>rule</em>, <em>name=None</em>, <em>match=None</em>, <em>revision=0</em><big>)</big><a class="headerlink" href="#iptc.Match" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">iptc.</tt><tt class="descname">Match</tt><big>(</big><em>rule</em>, <em>name=None</em>, <em>match=None</em>, <em>revision=None</em><big>)</big><a class="headerlink" href="#iptc.Match" title="Permalink to this definition">¶</a></dt>
 <dd><p>Matches are extensions which can match for special header fields or
 other attributes of a packet.</p>
 <p>Target and match extensions in iptables have parameters.  These parameters
@@ -304,7 +304,8 @@ extension (in lower case), <em>match</em> is the raw buffer of the match
 structure if the caller has it.  Either <em>name</em> or <em>match</em> must be
 provided.  <em>revision</em> is the revision number of the extension that
 should be used; different revisions use different structures in C and
-they usually only work with certain kernel versions.</p>
+they usually only work with certain kernel versions. Python-iptables
+by default will use the latest revision available.</p>
 <dl class="attribute">
 <dt id="iptc.Match.match">
 <tt class="descname">match</tt><a class="headerlink" href="#iptc.Match.match" title="Permalink to this definition">¶</a></dt>
@@ -344,7 +345,7 @@ in userspace.</p>
 <h2>Target<a class="headerlink" href="#target" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="iptc.Target">
-<em class="property">class </em><tt class="descclassname">iptc.</tt><tt class="descname">Target</tt><big>(</big><em>rule</em>, <em>name=None</em>, <em>target=None</em>, <em>revision=0</em><big>)</big><a class="headerlink" href="#iptc.Target" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">iptc.</tt><tt class="descname">Target</tt><big>(</big><em>rule</em>, <em>name=None</em>, <em>target=None</em>, <em>revision=None</em><big>)</big><a class="headerlink" href="#iptc.Target" title="Permalink to this definition">¶</a></dt>
 <dd><p>Targets specify what to do with a packet when a match is found while
 traversing the list of rule entries in a chain.</p>
 <p>Target and match extensions in iptables have parameters.  These parameters
@@ -364,7 +365,8 @@ extension (in upper case), <em>target</em> is the raw buffer of the target
 structure if the caller has it.  Either <em>name</em> or <em>target</em> must be
 provided.  <em>revision</em> is the revision number of the extension that
 should be used; different revisions use different structures in C and
-they usually only work with certain kernel versions.</p>
+they usually only work with certain kernel versions. Python-iptables
+by default will use the latest revision available.</p>
 <dl class="method">
 <dt id="iptc.Target.reset">
 <tt class="descname">reset</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Target.reset" title="Permalink to this definition">¶</a></dt>
@@ -438,7 +440,7 @@ it.  <em>chain</em> is the chain object this rule belongs to.</p>
 
 <dl class="method">
 <dt id="iptc.Rule.create_match">
-<tt class="descname">create_match</tt><big>(</big><em>name</em>, <em>revision=0</em><big>)</big><a class="headerlink" href="#iptc.Rule.create_match" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">create_match</tt><big>(</big><em>name</em>, <em>revision=None</em><big>)</big><a class="headerlink" href="#iptc.Rule.create_match" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a <em>match</em>, and add it to the list of matches in this rule.
 <em>name</em> is the name of the match extension, <em>revision</em> is the revision
 to use.</p>
@@ -446,7 +448,7 @@ to use.</p>
 
 <dl class="method">
 <dt id="iptc.Rule.create_target">
-<tt class="descname">create_target</tt><big>(</big><em>name</em>, <em>revision=0</em><big>)</big><a class="headerlink" href="#iptc.Rule.create_target" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">create_target</tt><big>(</big><em>name</em>, <em>revision=None</em><big>)</big><a class="headerlink" href="#iptc.Rule.create_target" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a new <em>target</em>, and set it as this rule&#8217;s target. <em>name</em> is
 the name of the target extension, <em>revision</em> is the revision to
 use.</p>
