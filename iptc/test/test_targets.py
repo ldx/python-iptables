@@ -12,22 +12,22 @@ class TestTarget(unittest.TestCase):
 
     def test_target_create(self):
         rule = iptc.Rule()
-        target = rule.create_target("MARK", revision=1)
+        target = rule.create_target("MARK")
 
         self.failUnless(rule.target == target)
 
         target.set_mark = "0x123"
 
-        t = iptc.Target(iptc.Rule(), "MARK", revision=1)
+        t = iptc.Target(iptc.Rule(), "MARK")
         t.set_mark = "0x123"
 
         self.failUnless(t == target)
 
     def test_target_compare(self):
-        t1 = iptc.Target(iptc.Rule(), "MARK", revision=1)
+        t1 = iptc.Target(iptc.Rule(), "MARK")
         t1.set_mark = "0x123"
 
-        t2 = iptc.Target(iptc.Rule(), "MARK", revision=1)
+        t2 = iptc.Target(iptc.Rule(), "MARK")
         t2.set_mark = "0x123"
 
         self.failUnless(t1 == t2)
@@ -151,7 +151,7 @@ class TestXTTosTarget(unittest.TestCase):
         self.match = iptc.Match(self.rule, "tcp")
         self.rule.add_match(self.match)
 
-        self.target = iptc.Target(self.rule, "TOS", revision=1)
+        self.target = iptc.Target(self.rule, "TOS")
         self.rule.target = self.target
 
         self.chain = iptc.Chain(iptc.TABLE_MANGLE, "iptc_test_tos")

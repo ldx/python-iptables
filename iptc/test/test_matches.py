@@ -101,7 +101,7 @@ class TestXTMarkMatch(unittest.TestCase):
         self.rule.protocol = "tcp"
         self.rule.target = iptc.Target(self.rule, "ACCEPT")
 
-        self.match = iptc.Match(self.rule, "mark", revision=1)
+        self.match = iptc.Match(self.rule, "mark")
         self.chain = iptc.Chain(iptc.TABLE_FILTER, "iptc_test_mark")
         iptc.TABLE_FILTER.create_chain(self.chain)
 
@@ -207,7 +207,7 @@ class TestIprangeMatch(unittest.TestCase):
         self.rule.protocol = "tcp"
         self.rule.target = iptc.Target(self.rule, "ACCEPT")
 
-        self.match = iptc.Match(self.rule, "iprange", revision=1)
+        self.match = iptc.Match(self.rule, "iprange")
 
         self.chain = iptc.Chain(iptc.TABLE_FILTER, "iptc_test_iprange")
         iptc.TABLE_FILTER.create_chain(self.chain)
