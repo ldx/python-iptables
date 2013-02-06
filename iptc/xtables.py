@@ -328,11 +328,11 @@ class xtables(object):
                 rv = _wrap_parse(module.parse, opt.val, argv, inv,
                         ct.pointer(ct.c_uint(flags)), entry, ptr)
                 if rv != 1:
-                    raise ValueError("invalid value %s" % (value))
+                    raise ValueError("invalid value %s" % (argv[1]))
                 return
             elif not opt.name:
                 break
-        raise AttributeError("invalid parameter %s" % (optname))
+        raise AttributeError("invalid parameter %s" % (argv[0]))
 
     # Dispatch arguments to the appropriate parse function, based upon the
     # extension's choice of API.
@@ -347,7 +347,7 @@ class xtables(object):
         # new API
         entry = self._option_lookup(t.x6_options, argv[0])
         if not entry:
-            raise XTablesError("%s does not know parameter %s" % (t.name, argv[0]))
+            raise XTablesError("%s: no such parameter %s" % (t.name, argv[0]))
 
         cb = xt_option_call()
         cb.entry = ct.pointer(entry)
@@ -378,7 +378,7 @@ class xtables(object):
         # new API
         entry = self._option_lookup(m.x6_options, argv[0])
         if not entry:
-            raise XTablesError("%s does not know parameter %s" % (m.name, argv[0]))
+            raise XTablesError("%s: no such parameter %s" % (m.name, argv[0]))
 
         cb = xt_option_call()
         cb.entry = ct.pointer(entry)
