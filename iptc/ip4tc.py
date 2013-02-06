@@ -63,12 +63,6 @@ class ipt_entry(ct.Structure):
           ("counters", xt_counters),     # Packet and byte counters
           ("elems", ct.c_ubyte * 0)]      # The matches (if any) then the target
 
-class ipt_entry_target(xt_entry_target):
-    pass
-
-class ipt_entry_match(xt_entry_match):
-    pass
-
 _libiptc_file = ctypes.util.find_library("ip4tc")
 
 if not _libiptc_file:
@@ -1005,13 +999,13 @@ class Rule(object):
             off = 0
             while entrysz + off < entry.target_offset:
                 match = ct.cast(ct.byref(entry.elems, off),
-                        ct.POINTER(ipt_entry_match))[0]
+                        ct.POINTER(xt_entry_match))[0]
                 m = Match(self, match=match)
                 self.add_match(m)
                 off += m.size
 
         target = ct.cast(ct.byref(entry, entry.target_offset),
-              ct.POINTER(ipt_entry_target))[0]
+              ct.POINTER(xt_entry_target))[0]
         self.target = Target(self, target=target)
         jump = self.chain.table.get_target(entry) # standard target is special
         if jump:
