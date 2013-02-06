@@ -224,8 +224,6 @@ class IPTCError(Exception):
     executing an iptables operation.
     """
 
-_xt = xtables(NFPROTO_IPV4)
-
 class IPTCModule(object):
     """Superclass for Match and Target."""
     pattern = re.compile('\s*(!)?\s*--([-\w]+)\s+(!)?\s*"?([^"]*?)"?(?=\s*(?:!?\s*--|$))')
@@ -279,7 +277,7 @@ class IPTCModule(object):
             pipes = os.pipe()
             saved_out = os.dup(1)
             os.dup2(pipes[1], 1)
-            _xt.save(self._module, ip, self._ptr)
+            self._xt.save(self._module, ip, self._ptr)
             buf = os.read(pipes[0], 1024)
             os.dup2(saved_out, 1)
             os.close(pipes[0])
@@ -356,7 +354,9 @@ class Match(IPTCModule):
         self._name = name
         self._rule = rule
 
-        module = _xt.find_match(name)
+        self._xt = xtables(rule.nfproto)
+
+        module = self._xt.find_match(name)
         if not module:
             raise XTablesError("can't find match %s" % (name))
         self._module = module[0]
@@ -387,10 +387,10 @@ class Match(IPTCModule):
         return not self.__eq__(rule)
 
     def _final_check(self):
-        _xt.final_check_match(self._module)
+        self._xt.final_check_match(self._module)
 
     def _parse(self, argv, inv, entry):
-        _xt.parse_match(argv, inv, self._module, entry,
+        self._xt.parse_match(argv, inv, self._module, entry,
                 ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
 
     def _get_size(self):
@@ -469,15 +469,17 @@ class Target(IPTCModule):
         self._name = name
         self._rule = rule
 
+        self._xt = xtables(rule.nfproto)
+
         is_standard_target = False
         module = None
         for t in TABLES:
             if t.is_chain(name):
                 is_standard_target = True
-                module = _xt.find_target('standard')
+                module = self._xt.find_target('standard')
 
         if not module:
-            module = _xt.find_target(name)
+            module = self._xt.find_target(name)
             if not module:
                 raise XTablesError("can't find target %s" % (name))
         self._module = module[0]
@@ -519,10 +521,10 @@ class Target(IPTCModule):
         return not self.__eq__(rule)
 
     def _final_check(self):
-        _xt.final_check_target(self._module)
+        self._xt.final_check_target(self._module)
 
     def _parse(self, argv, inv, entry):
-        _xt.parse_target(argv, inv, self._module, entry,
+        self._xt.parse_target(argv, inv, self._module, entry,
                 ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
 
     def _get_size(self):
@@ -639,6 +641,7 @@ class Rule(object):
         *entry* is the ipt_entry buffer or None if the caller does not have
         it.  *chain* is the chain object this rule belongs to.
         """
+        self.nfproto = NFPROTO_IPV4
         self._matches = []
         self._target = None
         self.chain = chain
