@@ -49,7 +49,7 @@ To set up a rule that matches packets marked with 0xff:
 
     >>> rule = iptc.Rule()
     >>> rule.protocol = "tcp"
-    >>> match = rule.create_match("mark", revision=1)
+    >>> match = rule.create_match("mark")
     >>> match.mark = "0xff"
 
 Parameters are always strings.
@@ -105,7 +105,7 @@ Mark packets going to ``192.168.1.2`` UDP port ``1234`` with ``0xffff``:
     >>> match = iptc.Match(rule, "udp")
     >>> match.dport = "1234"
     >>> rule.add_match(match)
-    >>> target = iptc.Target(rule, "MARK", revision=2) # latest revision
+    >>> target = iptc.Target(rule, "MARK")
     >>> target.set_mark = "0xffff"
     >>> rule.target = target
     >>> chain.insert_rule(rule)
@@ -124,7 +124,7 @@ equivalent of the following iptables command:
     >>> match = iptc.Match(rule, "tcp")
     >>> match.dport = "22"
     >>> rule.add_match(match)
-    >>> match = iptc.Match(rule, "iprange", revision=1)
+    >>> match = iptc.Match(rule, "iprange")
     >>> match.src_range = "192.168.1.100-192.168.1.200"
     >>> match.dst_range = "172.22.33.106"
     >>> rule.add_match(match)
