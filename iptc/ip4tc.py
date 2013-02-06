@@ -93,8 +93,6 @@ class ipt_entry_target(xt_entry_target):
 class ipt_entry_match(xt_entry_match):
     pass
 
-ipt_align = xt_align
-
 _libiptc_file = ctypes.util.find_library("ip4tc")
 
 if not _libiptc_file:
@@ -974,7 +972,7 @@ class Rule(object):
         return counters.pcnt, counters.bcnt
 
     def _entry_size(self):
-        return ipt_align(ct.sizeof(ipt_entry))
+        return xt_align(ct.sizeof(ipt_entry))
 
     def _get_rule(self):
         if not self.entry or not self._target or not self._target.target:
@@ -983,8 +981,8 @@ class Rule(object):
         entrysz = self._entry_size()
         matchsz = 0
         for m in self._matches:
-            matchsz += ipt_align(m.size)
-        targetsz = ipt_align(self._target.size)
+            matchsz += xt_align(m.size)
+        targetsz = xt_align(self._target.size)
 
         self.entry.target_offset = entrysz + matchsz
         self.entry.next_offset = entrysz + matchsz + targetsz
@@ -999,7 +997,7 @@ class Rule(object):
         # copy matches to buf at offset of entrysz + match size
         offset = 0
         for m in self._matches:
-            sz = ipt_align(m.size)
+            sz = xt_align(m.size)
             buf[entrysz+offset:entrysz+offset+sz] = m.match_buf[:sz]
             offset += sz
 
