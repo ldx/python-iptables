@@ -367,7 +367,7 @@ class Match(IPTCModule):
     should be used.
 
     """
-    def __init__(self, rule, name=None, match=None, revision=0):
+    def __init__(self, rule, name=None, match=None, revision=None):
         """
         *rule* is the Rule object this match belongs to; it can be changed
         later via *set_rule()*.  *name* is the name of the iptables match
@@ -375,7 +375,8 @@ class Match(IPTCModule):
         structure if the caller has it.  Either *name* or *match* must be
         provided.  *revision* is the revision number of the extension that
         should be used; different revisions use different structures in C and
-        they usually only work with certain kernel versions.
+        they usually only work with certain kernel versions. Python-iptables
+        by default will use the latest revision available.
         """
         if not name and not match:
             raise ValueError("can't create match based on nothing")
@@ -383,13 +384,16 @@ class Match(IPTCModule):
             name = match.u.user.name
         self._name = name
         self._rule = rule
-        self._revision = revision
 
         module = _xt.find_match(name)
         if not module:
             raise XTablesError("can't find match %s" % (name))
         self._module = module[0]
         self._module.mflags = 0
+        if revision != None:
+            self._revision = revision
+        else:
+            self._revision = self._module.revision
 
         self._match_buf = (ct.c_ubyte * self.size)()
         if match:
@@ -476,7 +480,7 @@ class Target(IPTCModule):
     does not take any value in the iptables extension, an empty string ""
     should be used.
     """
-    def __init__(self, rule, name=None, target=None, revision=0):
+    def __init__(self, rule, name=None, target=None, revision=None):
         """
         *rule* is the Rule object this match belongs to; it can be changed
         later via *set_rule()*.  *name* is the name of the iptables target
@@ -484,7 +488,8 @@ class Target(IPTCModule):
         structure if the caller has it.  Either *name* or *target* must be
         provided.  *revision* is the revision number of the extension that
         should be used; different revisions use different structures in C and
-        they usually only work with certain kernel versions.
+        they usually only work with certain kernel versions. Python-iptables
+        by default will use the latest revision available.
         """
         if name == None and target == None:
             raise ValueError("can't create target based on nothing")
@@ -492,7 +497,6 @@ class Target(IPTCModule):
             name = target.u.user.name
         self._name = name
         self._rule = rule
-        self._revision = revision
 
         is_standard_target = False
         module = None
@@ -507,6 +511,10 @@ class Target(IPTCModule):
                 raise XTablesError("can't find target %s" % (name))
         self._module = module[0]
         self._module.tflags = 0
+        if revision != None:
+            self._revision = revision
+        else:
+            self._revision = self._module.revision
 
         self._target_buf = (ct.c_ubyte * self.size)()
         if target:
@@ -684,7 +692,7 @@ class Rule(object):
     def __ne__(self, rule):
         return not self.__eq__(rule)
 
-    def create_match(self, name, revision=0):
+    def create_match(self, name, revision=None):
         """Create a *match*, and add it to the list of matches in this rule.
         *name* is the name of the match extension, *revision* is the revision
         to use."""
@@ -692,7 +700,7 @@ class Rule(object):
         self.add_match(match)
         return match
 
-    def create_target(self, name, revision=0):
+    def create_target(self, name, revision=None):
         """Create a new *target*, and set it as this rule's target. *name* is
         the name of the target extension, *revision* is the revision to
         use."""
