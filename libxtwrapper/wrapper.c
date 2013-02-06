@@ -65,5 +65,6 @@ void wrap_save(int (*fn)(const void *, const void *),
                const void *ip, const void *m)
 {
     fn(ip, m);
+    fprintf(stdout, "\n"); /* make sure something is written to stdout */
     fflush(stdout);
 }
