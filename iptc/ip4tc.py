@@ -269,7 +269,7 @@ class IPTCModule(object):
         raise NotImplementedError()
 
     def save(self, name):
-        return self._save(name, self.rule.entry.ip)
+        return self._save(name, self.rule.get_ip())
 
     def _save(self, name, ip):
         if self._module and self._module.save:
@@ -691,6 +691,9 @@ class Rule(object):
         """Removes *match* from the list of matches."""
         self._matches.remove(match)
 
+    def get_ip(self):
+        return self.entry.ip
+
     def _get_matches(self):
         return self._matches[:] # return a copy
     matches = property(_get_matches)
@@ -947,8 +950,15 @@ class Rule(object):
         counters = self.entry.counters
         return counters.pcnt, counters.bcnt
 
+    # override the following three for the IPv6 subclass
     def _entry_size(self):
         return xt_align(ct.sizeof(ipt_entry))
+
+    def _entry_type(self):
+        return ipt_entry
+
+    def _new_entry(self):
+        return ipt_entry()
 
     def _get_rule(self):
         if not self.entry or not self._target or not self._target.target:
@@ -985,12 +995,13 @@ class Rule(object):
 
     def _set_rule(self, entry):
         if not entry:
-            self.entry = ipt_entry()
+            self.entry = self._new_entry()
             return
         else:
-            self.entry = ct.cast(ct.pointer(entry), ct.POINTER(ipt_entry))[0]
+            self.entry = ct.cast(ct.pointer(entry),
+                    ct.POINTER(self._entry_type()))[0]
 
-        if not isinstance(entry, ipt_entry):
+        if not isinstance(entry, self._entry_type()):
             raise TypeError()
 
         entrysz = self._entry_size()
