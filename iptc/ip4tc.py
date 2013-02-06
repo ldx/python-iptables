@@ -973,11 +973,14 @@ class Rule(object):
         counters = self.entry.counters
         return counters.pcnt, counters.bcnt
 
+    def _entry_size(self):
+        return ipt_align(ct.sizeof(ipt_entry))
+
     def _get_rule(self):
         if not self.entry or not self._target or not self._target.target:
             return None
 
-        entrysz = ipt_align(ct.sizeof(ipt_entry));
+        entrysz = self._entry_size()
         matchsz = 0
         for m in self._matches:
             matchsz += ipt_align(m.size)
@@ -1016,7 +1019,7 @@ class Rule(object):
         if not isinstance(entry, ipt_entry):
             raise TypeError()
 
-        entrysz = ipt_align(ct.sizeof(ipt_entry));
+        entrysz = self._entry_size()
         matchsz = entry.target_offset - entrysz
         targetsz = entry.next_offset - entry.target_offset
 
@@ -1044,7 +1047,7 @@ class Rule(object):
         if not self.entry:
             return None
 
-        entrysz = ipt_align(ct.sizeof(ipt_entry));
+        entrysz = self._entry_size()
         matchsz = self.entry.target_offset - entrysz
         targetsz = self.entry.next_offset - self.entry.target_offset
 
