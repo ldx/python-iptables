@@ -325,8 +325,8 @@ class xtables(object):
     def _parse(self, module, argv, inv, flags, entry, ptr):
         for opt in module.extra_opts:
             if opt.name == argv[0]:
-                rv = _wrap_parse(module.parse, opt.val, argv, inv,
-                        ct.pointer(ct.c_uint(flags)), entry, ptr)
+                rv = _wrap_parse(module.parse, opt.val, argv, inv, flags,
+                        entry, ptr)
                 if rv != 1:
                     raise ValueError("invalid value %s" % (argv[1]))
                 return
@@ -341,7 +341,9 @@ class xtables(object):
         _optind.value = 2
 
         if not t.x6_options or not t.x6_parse: # old API
-            self._parse(t, argv, invert, t.tflags, fw, ptr)
+            flags = ct.pointer(ct.c_uint(0))
+            self._parse(t, argv, invert, flags, fw, ptr)
+            t.tflags |= flags[0]
             return
 
         # new API
@@ -355,7 +357,7 @@ class xtables(object):
         cb.invert   = ct.c_uint8(invert.value)
         cb.ext_name = t.name
         cb.data     = ct.cast(t.t[0].data, ct.c_void_p)
-        cb.xflags   = t.tflags
+        cb.xflags   = 0
         cb.target   = ct.pointer(t.t)
         cb.xt_entry = ct.cast(fw, ct.c_void_p)
         cb.udata    = t.udata
@@ -363,7 +365,7 @@ class xtables(object):
         if rv != 0:
             raise XTablesError("%s: parameter error %d (%s)" % (t.name, rv,
                 argv[1]))
-        #t.tflags = cb.xflags
+        t.tflags |= cb.xflags
 
     # Dispatch arguments to the appropriate parse function, based upon the
     # extension's choice of API.
@@ -372,7 +374,9 @@ class xtables(object):
         _optind.value = 2
 
         if not m.x6_options or not m.x6_parse: # old API
-            self._parse(m, argv, invert, m.mflags, fw, ptr)
+            flags = ct.pointer(ct.c_uint(0))
+            self._parse(m, argv, invert, flags, fw, ptr)
+            m.mflags |= flags[0]
             return
 
         # new API
@@ -386,7 +390,7 @@ class xtables(object):
         cb.invert   = ct.c_uint8(invert.value)
         cb.ext_name = m.name
         cb.data     = ct.cast(m.m[0].data, ct.c_void_p)
-        cb.xflags   = m.mflags
+        cb.xflags   = 0
         cb.match   = ct.pointer(m.m)
         cb.xt_entry = ct.cast(fw, ct.c_void_p)
         cb.udata    = m.udata
@@ -394,7 +398,7 @@ class xtables(object):
         if rv != 0:
             raise XTablesError("%s: parameter error %d (%s)" % (m.name, rv,
                 argv[1]))
-        #m.mflags = cb.xflags
+        m.mflags |= cb.xflags
 
     # Check that all option constraints have been met. This effectively replaces
     # ->final_check of the older API.

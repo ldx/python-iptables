@@ -389,6 +389,7 @@ class Match(IPTCModule):
         if not module:
             raise XTablesError("can't find match %s" % (name))
         self._module = module[0]
+        self._module.mflags = 0
 
         self._match_buf = (ct.c_ubyte * self.size)()
         if match:
@@ -444,10 +445,10 @@ class Match(IPTCModule):
         m.u.user.name = self.name
         m.u.match_size = self.size
         m.u.user.revision = self._revision
-        self._flags = ct.c_uint(0)
         if self._module.init:
             self._module.init(self._ptr)
         self._module.m = self._ptr
+        self._module.mflags = 0
 
     def _get_match(self):
         return ct.cast(ct.byref(self.match_buf), ct.POINTER(xt_entry_match))[0]
@@ -505,6 +506,7 @@ class Target(IPTCModule):
             if not module:
                 raise XTablesError("can't find target %s" % (name))
         self._module = module[0]
+        self._module.tflags = 0
 
         self._target_buf = (ct.c_ubyte * self.size)()
         if target:
@@ -583,10 +585,10 @@ class Target(IPTCModule):
         t.u.user.name = self.name
         t.u.target_size = self.size
         t.u.user.revision = self._revision
-        self._flags = ct.c_uint(0)
         if self._module.init:
             self._module.init(self._ptr)
         self._module.t = self._ptr
+        self._module.tflags = 0
 
     def _get_target(self):
         return ct.cast(ct.byref(self.target_buf),
