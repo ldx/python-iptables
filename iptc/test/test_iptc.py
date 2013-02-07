@@ -222,6 +222,153 @@ class TestChain(unittest.TestCase):
         else:
             fail("managed to set FORWARD policy to RETURN")
 
+class TestRule6(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_rule_address(self):
+        # valid addresses
+        rule = iptc.Rule6()
+        for addr in ["::/ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+                "!2000::1/ffff::"]:
+            rule.src = addr
+            self.assertEquals(rule.src, addr)
+            rule.dst = addr
+            self.assertEquals(rule.dst, addr)
+        addr = "::1"
+        rule.src = addr
+        self.assertEquals("::1/ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+                rule.src)
+        rule.dst = addr
+        self.assertEquals("::1/ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+                rule.dst)
+
+        # invalid addresses
+        for addr in ["2001:fg::/::", "2001/ffff::",
+                "::1/ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+                "::1/ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff:"]:
+            try:
+                rule.src = addr
+            except ValueError:
+                pass
+            else:
+                self.fail("rule accepted invalid address %s" % (addr))
+            try:
+                rule.dst = addr
+            except ValueError:
+                pass
+            else:
+                self.fail("rule accepted invalid address %s" % (addr))
+
+    def test_rule_interface(self):
+        # valid interfaces
+        rule = iptc.Rule6()
+        for intf in ["eth0", "eth+", "ip6tnl1", "ip6tnl+", "!ppp0", "!ppp+"]:
+            rule.in_interface = intf
+            self.assertEquals(intf, rule.in_interface)
+            rule.out_interface = intf
+            self.assertEquals(intf, rule.out_interface)
+
+        # invalid interfaces
+        for intf in ["itsaverylonginterfacename"]:
+            try:
+                rule.out_interface = intf
+            except ValueError:
+                pass
+            else:
+                self.fail("rule accepted invalid interface name %s" % (intf))
+            try:
+                rule.in_interface = intf
+            except ValueError:
+                pass
+            else:
+                self.fail("rule accepted invalid interface name %s" % (intf))
+
+    def test_rule_protocol(self):
+        rule = iptc.Rule6()
+        for proto in ["tcp", "udp", "icmp", "AH", "ESP", "!TCP", "!UDP",
+                "!ICMP", "!ah", "!esp"]:
+            rule.protocol = proto
+            self.assertEquals(proto.lower(), rule.protocol)
+        for proto in ["", "asdf", "!"]:
+            try:
+                rule.protocol = proto
+            except ValueError:
+                pass
+            except IndexError:
+                pass
+            else:
+                self.fail("rule accepted invalid protocol %s" % (proto))
+
+    def test_rule_compare(self):
+        r1 = iptc.Rule6()
+        r1.src = "::1/ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
+        r1.dst = "2001::/ffff::"
+        r1.protocol = "tcp"
+        r1.in_interface = "wlan+"
+        r1.out_interface = "eth1"
+
+        r2 = iptc.Rule6()
+        r2.src = "::1/ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
+        r2.dst = "2001::/ffff::"
+        r2.protocol = "tcp"
+        r2.in_interface = "wlan+"
+        r2.out_interface = "eth1"
+
+        self.failUnless(r1 == r2)
+
+        r1.src = "::1/ffff::"
+        self.failIf(r1 == r2)
+
+    def test_rule_standard_target(self):
+        try:
+            target = iptc.Target(iptc.Rule(), "jump_to_chain")
+        except:
+            pass
+        else:
+            self.fail("target accepted invalid name jump_to_chain")
+
+        rule = iptc.Rule6()
+        rule.protocol = "tcp"
+        rule.src = "::1"
+
+        target = iptc.Target(rule, "RETURN")
+        self.assertEquals(target.name, "RETURN")
+        target = iptc.Target(rule, "ACCEPT")
+        self.assertEquals(target.name, "ACCEPT")
+        target = iptc.Target(rule, "")
+        self.assertEquals(target.name, "")
+        target.standard_target = "ACCEPT"
+        self.assertEquals(target.name, "ACCEPT")
+        self.assertEquals(target.standard_target, "ACCEPT")
+
+        chain = iptc.Chain(iptc.TABLE6_FILTER, "iptc_test_chain")
+        iptc.TABLE6_FILTER.create_chain(chain)
+        target = iptc.Target(rule, "iptc_test_chain")
+        rule.target = target
+
+        chain.insert_rule(rule)
+        chain.delete_rule(rule)
+
+        chain.delete()
+
+    def test_rule_iterate(self):
+        for r in (rule for chain in iptc.TABLE6_FILTER.chains
+              for rule in chain.rules if rule):
+            pass
+        for r in (rule for chain in iptc.TABLE6_RAW.chains
+              for rule in chain.rules if rule):
+            pass
+        for r in (rule for chain in iptc.TABLE_MANGLE.chains
+              for rule in chain.rules if rule):
+            pass
+        for r in (rule for chain in iptc.TABLE6_SECURITY.chains
+              for rule in chain.rules if rule):
+            pass
+
 class TestRule(unittest.TestCase):
     def setUp(self):
         pass
@@ -375,9 +522,10 @@ def suite():
     suite_table6 = unittest.TestLoader().loadTestsFromTestCase(TestTable6)
     suite_table = unittest.TestLoader().loadTestsFromTestCase(TestTable)
     suite_chain = unittest.TestLoader().loadTestsFromTestCase(TestChain)
+    suite_rule6 = unittest.TestLoader().loadTestsFromTestCase(TestRule6)
     suite_rule = unittest.TestLoader().loadTestsFromTestCase(TestRule)
     return unittest.TestSuite([suite_table6, suite_table, suite_chain,
-        suite_rule])
+        suite_rule6, suite_rule])
 
 def run_tests():
     unittest.TextTestRunner(verbosity=2).run(suite())
