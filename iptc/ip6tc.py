@@ -226,6 +226,21 @@ class Rule6(Rule):
         self.chain = chain
         self.rule = entry
 
+    def __eq__(self, rule):
+        if self._target != rule._target:
+            return False
+        if len(self._matches) != len(rule._matches):
+            return False
+        if set(rule._matches) != set([x for x in rule._matches if x in
+                self._matches]):
+            return False
+        if self.src == rule.src and self.dst == rule.dst and \
+                self.protocol == rule.protocol and \
+                self.in_interface == rule.in_interface and \
+                self.out_interface == rule.out_interface:
+            return True
+        return False
+
     def save(self, name):
         return self._save(name, self.entry.ipv6)
 
