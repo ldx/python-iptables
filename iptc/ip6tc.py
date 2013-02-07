@@ -254,12 +254,14 @@ class Rule6(Rule):
         if self.entry.ipv6.invflags & ip6t_ip6.IP6T_INV_SRCIP:
             src = "".join([src, "!"])
         try:
-            addr = socket.inet_ntop(socket.AF_INET, self.entry.ipv6.src)
+            addr = socket.inet_ntop(socket.AF_INET6,
+                    self.entry.ipv6.src.s6_addr)
         except socket.error as e:
             raise IPTCError("error in internal state: invalid address")
         src = "".join([src, addr, "/"])
         try:
-            netmask = socket.inet_ntop(socket.AF_INET, self.entry.ipv6.smsk)
+            netmask = socket.inet_ntop(socket.AF_INET6,
+                    self.entry.ipv6.smsk.s6_addr)
         except socket.error as e:
             raise IPTCError("error in internal state: invalid netmask")
         src = "".join([src, netmask])
@@ -281,16 +283,19 @@ class Rule6(Rule):
             addr = src[:slash]
             netm = src[slash + 1:]
 
+        arr = ct.c_uint8 * 16
         ina = in6_addr()
         try:
-            ina.s6_addr = socket.inet_pton(socket.AF_INET6, addr)
+            ina.s6_addr = arr.from_buffer_copy(
+                    socket.inet_pton(socket.AF_INET6, addr))
         except socket.error as e:
             raise ValueError("invalid address %s" % (addr))
         self.entry.ipv6.src = ina
 
         neta = in6_addr()
         try:
-            neta.s6_addr = socket.inet_pton(socket.AF_INET6, netm)
+            neta.s6_addr = arr.from_buffer_copy(
+                    socket.inet_pton(socket.AF_INET6, netm))
         except socket.error as e:
             raise ValueError("invalid netmask %s" % (netm))
         self.entry.ipv6.smsk = neta
@@ -304,12 +309,14 @@ class Rule6(Rule):
         if self.entry.ipv6.invflags & ip6t_ip6.IP6T_INV_DSTIP:
             dst = "".join([dst, "!"])
         try:
-            addr = socket.inet_ntop(socket.AF_INET6, self.entry.ipv6.dst)
+            addr = socket.inet_ntop(socket.AF_INET6,
+                    self.entry.ipv6.dst.s6_addr)
         except socket.error as e:
             raise IPTCError("error in internal state: invalid address")
         dst = "".join([dst, addr, "/"])
         try:
-            netmask = socket.inet_ntop(socket.AF_INET6, self.entry.ipv6.smsk)
+            netmask = socket.inet_ntop(socket.AF_INET6,
+                    self.entry.ipv6.dmsk.s6_addr)
         except socket.error as e:
             raise IPTCError("error in internal state: invalid netmask")
         dst = "".join([dst, netmask])
@@ -331,19 +338,22 @@ class Rule6(Rule):
             addr = dst[:slash]
             netm = dst[slash + 1:]
 
+        arr = ct.c_uint8 * 16
         ina = in6_addr()
         try:
-            ina.s6_addr = socket.inet_pton(socket.AF_INET6, addr)
+            ina.s6_addr = arr.from_buffer_copy(
+                    socket.inet_pton(socket.AF_INET6, addr))
         except socket.error as e:
             raise ValueError("invalid address %s" % (addr))
         self.entry.ipv6.dst = ina
 
         neta = in6_addr()
         try:
-            neta.s6_addr = socket.inet_pton(socket.AF_INET6, netm)
+            neta.s6_addr = arr.from_buffer_copy(
+                    socket.inet_pton(socket.AF_INET6, netm))
         except socket.error as e:
             raise ValueError("invalid netmask %s" % (netm))
-        self.entry.ipv6.smsk = neta
+        self.entry.ipv6.dmsk = neta
 
     dst = property(get_dst, set_dst)
     """This is the destination network address with an optional network mask
