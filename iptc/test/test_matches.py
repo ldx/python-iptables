@@ -65,7 +65,7 @@ class TestXTUdpMatch(unittest.TestCase):
             self.match.dport = port
             self.assertEquals(self.match.dport, port.replace(" ", ""))
             self.match.reset()
-        for port in ["123456", "asdf", "!asdf", "1234:1233"]:
+        for port in ["-1", "asdf", "!asdf"]:
             try:
                 self.match.sport = port
             except Exception, e:
