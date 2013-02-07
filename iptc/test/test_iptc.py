@@ -3,6 +3,27 @@
 import unittest
 import iptc
 
+class TestTable6(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_table6(self):
+        filt = iptc.Table6("filter")
+        self.assertEquals(id(filt), id(iptc.TABLE6_FILTER))
+        security = iptc.Table6("security")
+        self.assertEquals(id(security), id(iptc.TABLE6_SECURITY))
+        mangle = iptc.Table6("mangle")
+        self.assertEquals(id(mangle), id(iptc.TABLE6_MANGLE))
+        raw = iptc.Table6("raw")
+        self.assertEquals(id(raw), id(iptc.TABLE6_RAW))
+        self.assertNotEquals(id(filt), id(security))
+        self.assertNotEquals(id(filt), id(mangle))
+        self.assertNotEquals(id(security), id(mangle))
+        self.assertNotEquals(id(security), id(raw))
+
 class TestTable(unittest.TestCase):
     def setUp(self):
         pass
@@ -351,10 +372,12 @@ class TestRule(unittest.TestCase):
             pass
 
 def suite():
+    suite_table6 = unittest.TestLoader().loadTestsFromTestCase(TestTable6)
     suite_table = unittest.TestLoader().loadTestsFromTestCase(TestTable)
     suite_chain = unittest.TestLoader().loadTestsFromTestCase(TestChain)
     suite_rule = unittest.TestLoader().loadTestsFromTestCase(TestRule)
-    return unittest.TestSuite([suite_table, suite_chain, suite_rule])
+    return unittest.TestSuite([suite_table6, suite_table, suite_chain,
+        suite_rule])
 
 def run_tests():
     unittest.TextTestRunner(verbosity=2).run(suite())
