@@ -24,6 +24,27 @@ class TestTable(unittest.TestCase):
         self.assertNotEquals(id(nat), id(mangle))
         self.assertNotEquals(id(nat), id(raw))
 
+    def test_refresh(self):
+        chain = iptc.Chain(iptc.TABLE_FILTER, "tmp_chain_for_testing")
+        iptc.TABLE_FILTER.create_chain(chain)
+        rule = iptc.Rule()
+        match = iptc.Match(rule, "tcp")
+        match.dport = "1234"
+        rule.add_match(match)
+        try:
+            chain.insert_rule(rule)
+            iptc.TABLE_FILTER.delete_chain(chain)
+            self.fail("inserted invalid rule")
+        except:
+            pass
+        iptc.TABLE_FILTER.refresh()
+        target = iptc.Target(rule, "ACCEPT")
+        rule.target = target
+        rule.protocol = "tcp"
+        chain.insert_rule(rule)
+        chain.delete_rule(rule)
+        iptc.TABLE_FILTER.delete_chain(chain)
+
 class TestChain(unittest.TestCase):
     def setUp(self):
         pass
