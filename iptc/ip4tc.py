@@ -473,7 +473,7 @@ class Target(IPTCModule):
 
         is_standard_target = False
         module = None
-        for t in TABLES:
+        for t in rule.tables:
             if t.is_chain(name):
                 is_standard_target = True
                 module = self._xt.find_target('standard')
@@ -665,6 +665,11 @@ class Rule(object):
 
     def __ne__(self, rule):
         return not self.__eq__(rule)
+
+    def _get_tables(self):
+        return TABLES
+    tables = property(_get_tables)
+    """This is the list of tables for our protocol."""
 
     def create_match(self, name, revision=None):
         """Create a *match*, and add it to the list of matches in this rule.
