@@ -2,6 +2,7 @@
 
 import ctypes as ct
 import ctypes.util
+import weakref
 import version
 
 XT_INV_PROTO   = 0x40       # Invert the sense of PROTO
@@ -293,7 +294,17 @@ class xtables(object):
     _xtables_find_target.restype = ct.POINTER(xtables_target)
     _xtables_find_target.argtypes = [ct.c_char_p, ct.c_int]
 
+    _cache = weakref.WeakValueDictionary()
+
+    def __new__(cls, proto):
+        obj = xtables._cache.get(proto, None)
+        if not obj:
+            obj = object.__new__(cls)
+            xtables._cache[proto] = obj
+        return obj
+
     def __init__(self, proto):
+        self.proto = proto
         self._xt_globals = xtables_globals()
         self._xt_globals.option_offset = 0
         self._xt_globals.program_name = version.__pkgname__
@@ -304,6 +315,9 @@ class xtables(object):
         rv = xtables._xtables_init_all(ct.pointer(self._xt_globals), proto)
         if rv:
             raise XTablesError("xtables_init_all() failed: %d" % (rv))
+
+    def __repr__(self):
+        return "XTables for protocol %d" % (self.proto)
 
     def find_match(self, name):
         return xtables._xtables_find_match(name, XTF_TRY_LOAD, None)

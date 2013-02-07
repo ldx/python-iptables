@@ -9,35 +9,11 @@ import weakref
 import ctypes.util
 
 from xtables import XT_INV_PROTO, NFPROTO_IPV4, XTF_TRY_LOAD, XTablesError, xtables, xt_align, xt_counters, xt_entry_target, xt_entry_match
+from util import load_kernel
 
 __all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError",
            "POLICY_ACCEPT", "POLICY_DROP", "POLICY_QUEUE", "POLICY_RETURN",
            "TABLE_FILTER", "TABLE_NAT", "TABLE_MANGLE", "TABLES"]
-
-from subprocess import Popen, PIPE
-
-def _insert_ko(modprobe, modname):
-    p = Popen([modprobe, modname], stderr=PIPE)
-    p.wait()
-    return (p.returncode, p.stderr.read(1024))
-
-def _load_ko(modname):
-    # this will return the full path for the modprobe binary
-    proc = open("/proc/sys/kernel/modprobe")
-    modprobe = proc.read(1024)
-    if modprobe[len(modprobe) - 1] == '\n':
-        modprobe = modprobe[:len(modprobe) - 1]
-    return _insert_ko(modprobe, modname)
-
-# First load the kernel module.  If it is already loaded modprobe will just
-# return with 0.
-_rc, _err = _load_ko("ip_tables")
-if _rc:
-    if not _err:
-        _err = "Failed to load the ip_tables kernel module."
-    if _err[len(_err) - 1] == "\n":
-        _err = _err[:len(_err) - 1]
-    raise Exception(_err)
 
 _IFNAMSIZ = 16
 
@@ -86,14 +62,6 @@ class ipt_entry(ct.Structure):
           ("comefrom", ct.c_uint),        # Back pointer
           ("counters", xt_counters),     # Packet and byte counters
           ("elems", ct.c_ubyte * 0)]      # The matches (if any) then the target
-
-class ipt_entry_target(xt_entry_target):
-    pass
-
-class ipt_entry_match(xt_entry_match):
-    pass
-
-ipt_align = xt_align
 
 _libiptc_file = ctypes.util.find_library("ip4tc")
 
@@ -256,8 +224,6 @@ class IPTCError(Exception):
     executing an iptables operation.
     """
 
-_xt = xtables(NFPROTO_IPV4)
-
 class IPTCModule(object):
     """Superclass for Match and Target."""
     pattern = re.compile('\s*(!)?\s*--([-\w]+)\s+(!)?\s*"?([^"]*?)"?(?=\s*(?:!?\s*--|$))')
@@ -303,12 +269,15 @@ class IPTCModule(object):
         raise NotImplementedError()
 
     def save(self, name):
+        return self._save(name, self.rule.get_ip())
+
+    def _save(self, name, ip):
         if self._module and self._module.save:
             # redirect C stdout to a pipe and read back the output of m->save
             pipes = os.pipe()
             saved_out = os.dup(1)
             os.dup2(pipes[1], 1)
-            _xt.save(self._module, self.rule.entry.ip, self._ptr)
+            self._xt.save(self._module, ip, self._ptr)
             buf = os.read(pipes[0], 1024)
             os.dup2(saved_out, 1)
             os.close(pipes[0])
@@ -385,7 +354,9 @@ class Match(IPTCModule):
         self._name = name
         self._rule = rule
 
-        module = _xt.find_match(name)
+        self._xt = xtables(rule.nfproto)
+
+        module = self._xt.find_match(name)
         if not module:
             raise XTablesError("can't find match %s" % (name))
         self._module = module[0]
@@ -416,10 +387,10 @@ class Match(IPTCModule):
         return not self.__eq__(rule)
 
     def _final_check(self):
-        _xt.final_check_match(self._module)
+        self._xt.final_check_match(self._module)
 
     def _parse(self, argv, inv, entry):
-        _xt.parse_match(argv, inv, self._module, entry,
+        self._xt.parse_match(argv, inv, self._module, entry,
                 ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
 
     def _get_size(self):
@@ -498,15 +469,17 @@ class Target(IPTCModule):
         self._name = name
         self._rule = rule
 
+        self._xt = xtables(rule.nfproto)
+
         is_standard_target = False
         module = None
-        for t in TABLES:
+        for t in rule.tables:
             if t.is_chain(name):
                 is_standard_target = True
-                module = _xt.find_target('standard')
+                module = self._xt.find_target('standard')
 
         if not module:
-            module = _xt.find_target(name)
+            module = self._xt.find_target(name)
             if not module:
                 raise XTablesError("can't find target %s" % (name))
         self._module = module[0]
@@ -548,10 +521,10 @@ class Target(IPTCModule):
         return not self.__eq__(rule)
 
     def _final_check(self):
-        _xt.final_check_target(self._module)
+        self._xt.final_check_target(self._module)
 
     def _parse(self, argv, inv, entry):
-        _xt.parse_target(argv, inv, self._module, entry,
+        self._xt.parse_target(argv, inv, self._module, entry,
                 ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
 
     def _get_size(self):
@@ -668,6 +641,7 @@ class Rule(object):
         *entry* is the ipt_entry buffer or None if the caller does not have
         it.  *chain* is the chain object this rule belongs to.
         """
+        self.nfproto = NFPROTO_IPV4
         self._matches = []
         self._target = None
         self.chain = chain
@@ -691,6 +665,11 @@ class Rule(object):
 
     def __ne__(self, rule):
         return not self.__eq__(rule)
+
+    def _get_tables(self):
+        return TABLES
+    tables = property(_get_tables)
+    """This is the list of tables for our protocol."""
 
     def create_match(self, name, revision=None):
         """Create a *match*, and add it to the list of matches in this rule.
@@ -716,6 +695,9 @@ class Rule(object):
     def remove_match(self, match):
         """Removes *match* from the list of matches."""
         self._matches.remove(match)
+
+    def get_ip(self):
+        return self.entry.ip
 
     def _get_matches(self):
         return self._matches[:] # return a copy
@@ -973,15 +955,25 @@ class Rule(object):
         counters = self.entry.counters
         return counters.pcnt, counters.bcnt
 
+    # override the following three for the IPv6 subclass
+    def _entry_size(self):
+        return xt_align(ct.sizeof(ipt_entry))
+
+    def _entry_type(self):
+        return ipt_entry
+
+    def _new_entry(self):
+        return ipt_entry()
+
     def _get_rule(self):
         if not self.entry or not self._target or not self._target.target:
             return None
 
-        entrysz = ipt_align(ct.sizeof(ipt_entry));
+        entrysz = self._entry_size()
         matchsz = 0
         for m in self._matches:
-            matchsz += ipt_align(m.size)
-        targetsz = ipt_align(self._target.size)
+            matchsz += xt_align(m.size)
+        targetsz = xt_align(self._target.size)
 
         self.entry.target_offset = entrysz + matchsz
         self.entry.next_offset = entrysz + matchsz + targetsz
@@ -996,7 +988,7 @@ class Rule(object):
         # copy matches to buf at offset of entrysz + match size
         offset = 0
         for m in self._matches:
-            sz = ipt_align(m.size)
+            sz = xt_align(m.size)
             buf[entrysz+offset:entrysz+offset+sz] = m.match_buf[:sz]
             offset += sz
 
@@ -1008,15 +1000,16 @@ class Rule(object):
 
     def _set_rule(self, entry):
         if not entry:
-            self.entry = ipt_entry()
+            self.entry = self._new_entry()
             return
         else:
-            self.entry = ct.cast(ct.pointer(entry), ct.POINTER(ipt_entry))[0]
+            self.entry = ct.cast(ct.pointer(entry),
+                    ct.POINTER(self._entry_type()))[0]
 
-        if not isinstance(entry, ipt_entry):
+        if not isinstance(entry, self._entry_type()):
             raise TypeError()
 
-        entrysz = ipt_align(ct.sizeof(ipt_entry));
+        entrysz = self._entry_size()
         matchsz = entry.target_offset - entrysz
         targetsz = entry.next_offset - entry.target_offset
 
@@ -1025,13 +1018,13 @@ class Rule(object):
             off = 0
             while entrysz + off < entry.target_offset:
                 match = ct.cast(ct.byref(entry.elems, off),
-                        ct.POINTER(ipt_entry_match))[0]
+                        ct.POINTER(xt_entry_match))[0]
                 m = Match(self, match=match)
                 self.add_match(m)
                 off += m.size
 
         target = ct.cast(ct.byref(entry, entry.target_offset),
-              ct.POINTER(ipt_entry_target))[0]
+              ct.POINTER(xt_entry_target))[0]
         self.target = Target(self, target=target)
         jump = self.chain.table.get_target(entry) # standard target is special
         if jump:
@@ -1044,7 +1037,7 @@ class Rule(object):
         if not self.entry:
             return None
 
-        entrysz = ipt_align(ct.sizeof(ipt_entry));
+        entrysz = self._entry_size()
         matchsz = self.entry.target_offset - entrysz
         targetsz = self.entry.next_offset - self.entry.target_offset
 
