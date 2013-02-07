@@ -1283,6 +1283,7 @@ class Table(object):
         if rv != 1:
             raise IPTCError("can't create chain %s: %s" % (chain,
                 self.strerror()))
+        return Chain(self, chain)
 
     @autocommit
     def delete_chain(self, chain):
