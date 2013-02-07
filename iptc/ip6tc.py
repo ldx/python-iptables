@@ -244,6 +244,11 @@ class Rule6(Rule):
     def save(self, name):
         return self._save(name, self.entry.ipv6)
 
+    def _get_tables(self):
+        return TABLES6
+    tables = property(_get_tables)
+    """This is the list of tables for our protocol."""
+
     def get_src(self):
         src = ""
         if self.entry.ipv6.invflags & ip6t_ip6.IP6T_INV_SRCIP:
