@@ -1232,11 +1232,17 @@ class Table(object):
         if rv != 1:
             raise IPTCError("can't commit: %s" % (self.strerror()))
 
-    def _free(self):
+    def _free(self, ignore_exc=True):
         if self._handle == None:
             raise IPTCError("table is not initialized")
-        self.commit()
-        self._iptc.iptc_free(self._handle)
+        try:
+            self.commit()
+        except IPTCError, e:
+            if not ignore_exc:
+                raise e
+        finally:
+            self._iptc.iptc_free(self._handle)
+            self._handle = None
 
     def refresh(self):
         """Commit any pending operation and refresh the status of iptables."""
