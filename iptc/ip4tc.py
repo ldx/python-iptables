@@ -1176,16 +1176,23 @@ def autocommit(fn):
 class Table(object):
     """A table is the most basic building block in iptables.
 
-    There are three fixed tables:
-        * **TABLE_FILTER**, the filter table,
-        * **TABLE_NAT**, the NAT table and
-        * **TABLE_MANGLE**, the mangle table.
+    There are four fixed tables:
+        * **Table.FILTER**, the filter table,
+        * **Table.NAT**, the NAT table,
+        * **Table.MANGLE**, the mangle table and
+        * **Table.RAW**, the raw table.
+
+    The four tables are cached, so if you create a new Table, and it has been
+    instantiated before, then it will be reused. To get access to e.g. the
+    filter table:
+
+    >>> table = iptc.Table(iptc.Table.FILTER)
 
     The interface provided by *Table* is rather low-level, in fact it maps to
     *libiptc* API calls one by one, and take low-level iptables structs as
-    parameters.  It is encouraged to use Chain, Rule, Match and Target to
-    achieve what is wanted instead, since they hide the low-level details from
-    the user.
+    parameters.  It is encouraged to, when possible, use Chain, Rule, Match
+    and Target to achieve what is wanted instead, since they hide the
+    low-level details from the user.
     """
 
     FILTER = "filter"
