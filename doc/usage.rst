@@ -4,16 +4,17 @@ Usage
 The python API in *python-iptables* tries to mimic the logic of iptables.  You
 have
 
-    * **Tables**, **TABLE_FILTER**, **TABLE_NAT**, **TABLE_MANGLE** and
-      **TABLE_RAW** for IPv4, and **Tables6**, **TABLE6_FILTER**,
-      **TABLE6_SECURITY**, **TABLE6_MANGLE** and **TABLE6_RAW** for IPv6.
-      They can be used to filter packets, do network address translation or
-      modify packets in various ways.
+    * **Tables**, **Table.FILTER**, **Table.NAT**, **Table.MANGLE** and
+      **Table.RAW** for IPv4; **Table6.FILTER**, **Table6.SECURITY**,
+      **Table6.MANGLE** and **Table6.RAW** for IPv6.  They can be used to
+      filter packets, do network address translation or modify packets in
+      various ways.
 
     * **Chains** inside tables.  Each table has a few built-in chains, but you
       can also create your own chains and jump into them from other chains.
       When you create your chains you should also specify which table it will
-      be used in.
+      be used in. **Chains** have **Policies**, which tell what to do when the
+      end of a chain is reached.
 
     * Each chain has zero or more **rules**.  A rule specifies what kind of
       packets to match (matches, each rule can have zero, one or more matches)

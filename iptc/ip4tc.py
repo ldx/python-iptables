@@ -1108,14 +1108,15 @@ class Chain(object):
         self.table.zero_entries(self.name)
 
     def set_policy(self, policy, counters=None):
-        """Set the chain policy to *policy*.  If *counters* is not *None*, the
-        chain counters are also adjusted."""
+        """Set the chain policy to *policy*, which should either be a string
+        or a Policy object.  If *counters* is not *None*, the chain counters
+        are also adjusted. *Counters* is a list or tuple with two elements."""
         if isinstance(policy, Policy):
             policy = policy.name
         self.table.set_policy(self.name, policy, counters)
 
     def get_policy(self):
-        """Returns the policy of the chain."""
+        """Returns the policy of the chain as a Policy object."""
         policy, counters = self.table.get_policy(self.name)
         return policy
 

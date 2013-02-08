@@ -57,15 +57,16 @@
 have</p>
 <blockquote>
 <div><ul class="simple">
-<li><strong>Tables</strong>, <strong>TABLE_FILTER</strong>, <strong>TABLE_NAT</strong>, <strong>TABLE_MANGLE</strong> and
-<strong>TABLE_RAW</strong> for IPv4, and <strong>Tables6</strong>, <strong>TABLE6_FILTER</strong>,
-<strong>TABLE6_SECURITY</strong>, <strong>TABLE6_MANGLE</strong> and <strong>TABLE6_RAW</strong> for IPv6.
-They can be used to filter packets, do network address translation or
-modify packets in various ways.</li>
+<li><strong>Tables</strong>, <strong>Table.FILTER</strong>, <strong>Table.NAT</strong>, <strong>Table.MANGLE</strong> and
+<strong>Table.RAW</strong> for IPv4; <strong>Table6.FILTER</strong>, <strong>Table6.SECURITY</strong>,
+<strong>Table6.MANGLE</strong> and <strong>Table6.RAW</strong> for IPv6.  They can be used to
+filter packets, do network address translation or modify packets in
+various ways.</li>
 <li><strong>Chains</strong> inside tables.  Each table has a few built-in chains, but you
 can also create your own chains and jump into them from other chains.
 When you create your chains you should also specify which table it will
-be used in.</li>
+be used in. <strong>Chains</strong> have <strong>Policies</strong>, which tell what to do when the
+end of a chain is reached.</li>
 <li>Each chain has zero or more <strong>rules</strong>.  A rule specifies what kind of
 packets to match (matches, each rule can have zero, one or more matches)
 and what to do with them (target, each rule has one of them).  Iptables
@@ -322,7 +323,7 @@ the chain.</p>
 <dl class="method">
 <dt id="iptc.Chain.get_policy">
 <tt class="descname">get_policy</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Chain.get_policy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the policy of the chain.</p>
+<dd><p>Returns the policy of the chain as a Policy object.</p>
 </dd></dl>
 
 <dl class="method">
@@ -360,8 +361,9 @@ not specified, else <em>rule</em> is inserted in the given position.</p>
 <dl class="method">
 <dt id="iptc.Chain.set_policy">
 <tt class="descname">set_policy</tt><big>(</big><em>policy</em>, <em>counters=None</em><big>)</big><a class="headerlink" href="#iptc.Chain.set_policy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the chain policy to <em>policy</em>.  If <em>counters</em> is not <em>None</em>, the
-chain counters are also adjusted.</p>
+<dd><p>Set the chain policy to <em>policy</em>, which should either be a string
+or a Policy object.  If <em>counters</em> is not <em>None</em>, the chain counters
+are also adjusted. <em>Counters</em> is a list or tuple with two elements.</p>
 </dd></dl>
 
 <dl class="method">
