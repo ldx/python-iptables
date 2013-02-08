@@ -11,9 +11,7 @@ import ctypes.util
 from xtables import XT_INV_PROTO, NFPROTO_IPV4, XTF_TRY_LOAD, XTablesError, xtables, xt_align, xt_counters, xt_entry_target, xt_entry_match
 from util import load_kernel
 
-__all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError",
-           "POLICY_ACCEPT", "POLICY_DROP", "POLICY_QUEUE", "POLICY_RETURN",
-           "TABLE_FILTER", "TABLE_NAT", "TABLE_MANGLE", "TABLES"]
+__all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError"]
 
 _IFNAMSIZ = 16
 
@@ -588,6 +586,17 @@ class Policy(object):
     with target RETURN is matched, the target specified by the chain policy
     determines the fate of the packet.
     """
+
+    ACCEPT = "ACCEPT"
+    """If no matching rule has been found so far then accept the packet."""
+    DROP = "DROP"
+    """If no matching rule has been found so far then drop the packet."""
+    QUEUE = "QUEUE"
+    """If no matching rule has been found so far then queue the packet to
+    userspace."""
+    RETURN = "RETURN"
+    """Return to calling chain."""
+
     _cache = weakref.WeakValueDictionary()
 
     def __new__(cls, name):
@@ -599,16 +608,6 @@ class Policy(object):
 
     def __init__(self, name):
         self.name = name
-
-POLICY_ACCEPT = Policy("ACCEPT")
-"""If no matching rule has been found so far then accept the packet."""
-POLICY_DROP = Policy("DROP")
-"""If no matching rule has been found so far then drop the packet."""
-POLICY_QUEUE = Policy("QUEUE")
-"""If no matching rule has been found so far then queue the packet to
-userspace."""
-POLICY_RETURN = Policy("RETURN")
-"""Return to calling chain."""
 
 def _a_to_i(addr):
     return struct.unpack("I", addr)[0]
@@ -1188,6 +1187,16 @@ class Table(object):
     achieve what is wanted instead, since they hide the low-level details from
     the user.
     """
+
+    FILTER = "filter"
+    """This is the constant for the filter table."""
+    MANGLE = "mangle"
+    """This is the constant for the mangle table."""
+    RAW = "raw"
+    """This is the constant for the raw table."""
+    NAT = "nat"
+    """This is the constant for the nat table."""
+
     _cache = weakref.WeakValueDictionary()
 
     def __new__(cls, name, autocommit = True):
@@ -1425,15 +1434,3 @@ class Table(object):
             if not self.builtin_chain(chain):
                 chain.flush()
                 chain.delete()
-
-TABLE_FILTER = Table("filter")
-"""This is the constant for the filter table."""
-TABLE_NAT = Table("nat")
-"""This is the constant for the NAT table."""
-TABLE_MANGLE = Table("mangle")
-"""This is the constant for the mangle table."""
-TABLE_RAW = Table("raw")
-"""This is the constant for the raw table."""
-
-TABLES = [TABLE_FILTER, TABLE_NAT, TABLE_MANGLE, TABLE_RAW]
-"""This is a list of the fixed iptables tables"""

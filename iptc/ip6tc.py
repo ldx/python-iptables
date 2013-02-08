@@ -12,8 +12,7 @@ from ip4tc import Rule, Table
 from xtables import XT_INV_PROTO, NFPROTO_IPV6, XTF_TRY_LOAD, XTablesError, xtables, xt_align, xt_counters, xt_entry_target, xt_entry_match
 from util import load_kernel
 
-__all__ = ["Table6", "Rule6", "TABLE6_FILTER", "TABLE6_MANGLE", "TABLE6_RAW",
-"TABLE6_SECURITY", "TABLES6"]
+__all__ = ["Table6", "Rule6"]
 
 load_kernel("ip6_tables")
 
@@ -536,6 +535,15 @@ class Rule6(Rule):
 class Table6(Table):
     """The IPv6 version of Table."""
 
+    FILTER = "filter"
+    """This is the constant for the filter table."""
+    MANGLE = "mangle"
+    """This is the constant for the mangle table."""
+    RAW = "raw"
+    """This is the constant for the raw table."""
+    SECURITY = "security"
+    """This is the constant for the security table."""
+
     _cache = weakref.WeakValueDictionary()
 
     def __new__(cls, name, autocommit = True):
@@ -559,15 +567,3 @@ class Table6(Table):
         self.name = name
         self.autocommit = autocommit
         self.refresh()
-
-TABLE6_FILTER = Table6("filter")
-"""This is the constant for the IPv6 filter table."""
-TABLE6_MANGLE = Table6("mangle")
-"""This is the constant for the IPv6 mangle table."""
-TABLE6_RAW = Table6("raw")
-"""This is the constant for the IPv6 raw table."""
-TABLE6_SECURITY = Table6("security")
-"""This is the constant for the IPv6 security table."""
-
-TABLES6 = [TABLE6_FILTER, TABLE6_MANGLE, TABLE6_RAW, TABLE6_SECURITY]
-"""This is a list of the fixed ip6tables tables"""
