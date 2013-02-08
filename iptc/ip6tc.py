@@ -249,6 +249,26 @@ class Rule6(Rule):
     tables = property(_get_tables)
     """This is the list of tables for our protocol."""
 
+    def _count_bits(self, n):
+        bits = 0
+        while n > 0:
+            if n & 1:
+                bits += 1
+            n = n >> 1
+        return bits
+
+    def _create_mask(self, plen):
+        mask = [0 for x in xrange(16)]
+        i = 0
+        while plen > 0:
+            if plen >= 8:
+                mask[i] = 0xff
+            else:
+                mask[i] = 2 ** plen - 1
+            i += 1
+            plen -= 8
+        return "".join([chr(x) for x in mask])
+
     def get_src(self):
         src = ""
         if self.entry.ipv6.invflags & ip6t_ip6.IP6T_INV_SRCIP:
@@ -259,12 +279,16 @@ class Rule6(Rule):
         except socket.error as e:
             raise IPTCError("error in internal state: invalid address")
         src = "".join([src, addr, "/"])
-        try:
-            netmask = socket.inet_ntop(socket.AF_INET6,
-                    self.entry.ipv6.smsk.s6_addr)
-        except socket.error as e:
-            raise IPTCError("error in internal state: invalid netmask")
-        src = "".join([src, netmask])
+
+        # create prefix length from mask in smsk
+        plen = 0
+        for x in self.entry.ipv6.smsk.s6_addr:
+            if x == 0xff:
+                plen += 8
+            else:
+                plen += self._count_bits(x)
+                break
+        src = "".join([src, str(plen)])
         return src
 
     def set_src(self, src):
@@ -292,6 +316,16 @@ class Rule6(Rule):
             raise ValueError("invalid address %s" % (addr))
         self.entry.ipv6.src = ina
 
+        # if we got a numeric prefix length
+        if netm.isdigit():
+            plen = int(netm)
+            if plen < 0 or plen > 128:
+                raise ValueError("invalid prefix length %d" % (plen))
+            self.entry.ipv6.smsk.s6_addr = arr.from_buffer_copy(
+                    self._create_mask(plen))
+            return
+
+        # nope, we got an IPv6 address-style prefix
         neta = in6_addr()
         try:
             neta.s6_addr = arr.from_buffer_copy(
@@ -314,12 +348,16 @@ class Rule6(Rule):
         except socket.error as e:
             raise IPTCError("error in internal state: invalid address")
         dst = "".join([dst, addr, "/"])
-        try:
-            netmask = socket.inet_ntop(socket.AF_INET6,
-                    self.entry.ipv6.dmsk.s6_addr)
-        except socket.error as e:
-            raise IPTCError("error in internal state: invalid netmask")
-        dst = "".join([dst, netmask])
+
+        # create prefix length from mask in dmsk
+        plen = 0
+        for x in self.entry.ipv6.dmsk.s6_addr:
+            if x & 0xff == 0xff:
+                plen += 8
+            else:
+                plen += self._count_bits(x)
+                break
+        dst = "".join([dst, str(plen)])
         return dst
 
     def set_dst(self, dst):
@@ -347,6 +385,16 @@ class Rule6(Rule):
             raise ValueError("invalid address %s" % (addr))
         self.entry.ipv6.dst = ina
 
+        # if we got a numeric prefix length
+        if netm.isdigit():
+            plen = int(netm)
+            if plen < 0 or plen > 128:
+                raise ValueError("invalid prefix length %d" % (plen))
+            self.entry.ipv6.dmsk.s6_addr = arr.from_buffer_copy(
+                    self._create_mask(plen))
+            return
+
+        # nope, we got an IPv6 address-style prefix
         neta = in6_addr()
         try:
             neta.s6_addr = arr.from_buffer_copy(

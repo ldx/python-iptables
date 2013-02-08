@@ -253,22 +253,22 @@ class TestRule6(unittest.TestCase):
     def test_rule_address(self):
         # valid addresses
         rule = iptc.Rule6()
-        for addr in ["::/ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
-                "!2000::1/ffff::"]:
+        for addr in ["::/128",
+                "!2000::1/16", "2001::/64", "!2001::1/48"]:
             rule.src = addr
             self.assertEquals(rule.src, addr)
             rule.dst = addr
             self.assertEquals(rule.dst, addr)
         addr = "::1"
         rule.src = addr
-        self.assertEquals("::1/ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+        self.assertEquals("::1/128",
                 rule.src)
         rule.dst = addr
-        self.assertEquals("::1/ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+        self.assertEquals("::1/128",
                 rule.dst)
 
         # invalid addresses
-        for addr in ["2001:fg::/::", "2001/ffff::",
+        for addr in ["2001:fg::/::", "2001/ffff::", "2001::/-1", "2001::/129",
                 "::1/ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
                 "::1/ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff:"]:
             try:
@@ -326,15 +326,15 @@ class TestRule6(unittest.TestCase):
 
     def test_rule_compare(self):
         r1 = iptc.Rule6()
-        r1.src = "::1/ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
-        r1.dst = "2001::/ffff::"
+        r1.src = "::1/128"
+        r1.dst = "2001::/8"
         r1.protocol = "tcp"
         r1.in_interface = "wlan+"
         r1.out_interface = "eth1"
 
         r2 = iptc.Rule6()
-        r2.src = "::1/ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
-        r2.dst = "2001::/ffff::"
+        r2.src = "::1/128"
+        r2.dst = "2001::/8"
         r2.protocol = "tcp"
         r2.in_interface = "wlan+"
         r2.out_interface = "eth1"
