@@ -335,7 +335,7 @@ class Rule6(Rule):
         self.entry.ipv6.smsk = neta
 
     src = property(get_src, set_src)
-    """This is the source network address with an optional network mask in
+    """This is the source network address with an optional prefix length in
     string form."""
 
     def get_dst(self):
@@ -549,9 +549,10 @@ class Table6(Table):
 
     def __init__(self, name, autocommit = True):
         """
-        *name* is the name of the table, if it already exists it is returned.
-        *autocommit* specifies that any iptables operation that changes a
-        rule, chain or table should be committed immediately.
+        Here *name* is the name of the table to instantiate, if it has already
+        been instantiated the existing cached object is returned.
+        *Autocommit* specifies that any low-level iptables operation should be
+        committed immediately, making changes visible in the kernel.
         """
         self._iptc = ip6tc() # to keep references to functions
         self._handle = None
