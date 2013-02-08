@@ -28,9 +28,9 @@ Compiling and installing
 ------------------------
 
 First make sure you have iptables installed (most Linux distributions install
-it by default).  python-iptables needs the shared libraries ``libiptc.so.0``
-and ``libxtables.so.2`` coming with iptables, they are installed in ``/lib``
-on Ubuntu.
+it by default).  Python-iptables needs the shared libraries ``libiptc.so`` and
+``libxtables.so`` coming with iptables, they are installed in ``/lib`` on
+Ubuntu.
 
 You can compile python-iptables in the usual distutils way::
 
@@ -61,9 +61,8 @@ What is supported
 -----------------
 
 The basic iptables framework and all the match/target extensions are supported
-by python-iptables.  One thing we have not worked on yet is IPv6 support, but
-in theory it should not be too hard.  This also means you can't use IPv6-only
-match and target extensions either.
+by python-iptables, including IPv4 and IPv6 ones. All IPv4 and IPv6 tables are
+supported as well.
 
 Contact
 -------
