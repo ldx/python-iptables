@@ -447,8 +447,8 @@ class Target(IPTCModule):
     python as attribute names.  E.g. the *TOS* target has parameters
     *--set-tos*, *--and-tos*, *--or-tos* and *--xor-tos*; they become
     *target.set_tos*, *target.and_tos*, *target.or_tos* and *target.xor_tos*,
-    respectively.  The value of a parameter is always strings, if a parameter
-    does not take any value in the iptables extension, an empty string ""
+    respectively.  The value of a parameter is always a string, if a parameter
+    does not take any value in the iptables extension, an empty string i.e. ""
     should be used.
     """
     def __init__(self, rule, name=None, target=None, revision=None):
