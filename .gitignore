@@ -5,3 +5,5 @@
 *.bak
 
 /build
+
+/doc/_build
