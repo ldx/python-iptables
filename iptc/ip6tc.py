@@ -533,7 +533,26 @@ class Rule6(Rule):
         return ip6t_entry()
 
 class Table6(Table):
-    """The IPv6 version of Table."""
+    """The IPv6 version of Table.
+
+    There are four fixed tables:
+        * **Table.FILTER**, the filter table,
+        * **Table.MANGLE**, the mangle table,
+        * **Table.RAW**, the raw table and
+        * **Table.SECURITY**, the security table.
+
+    The four tables are cached, so if you create a new Table, and it has been
+    instantiated before, then it will be reused. To get access to e.g. the
+    filter table:
+
+    >>> table = iptc.Table6(iptc.Table6.FILTER)
+
+    The interface provided by *Table* is rather low-level, in fact it maps to
+    *libiptc* API calls one by one, and take low-level iptables structs as
+    parameters.  It is encouraged to, when possible, use Chain, Rule, Match
+    and Target to achieve what is wanted instead, since they hide the
+    low-level details from the user.
+    """
 
     FILTER = "filter"
     """This is the constant for the filter table."""
