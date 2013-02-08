@@ -93,7 +93,7 @@ doctest:
 gh-pages:
 	git checkout gh-pages
 	git checkout master $(GH_PAGES_SOURCES)
-	sudo make html && cp -rf _build/html/* _static _templates ../ && sudo rm -rf _build
+	sudo make html && cp -rf _build/html/* ../ && sudo rm -rf _build
 	git add ../*.* ../_*
 	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" && git push origin gh-pages
 	git reset --hard
