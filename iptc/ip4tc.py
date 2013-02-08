@@ -666,7 +666,7 @@ class Rule(object):
         return not self.__eq__(rule)
 
     def _get_tables(self):
-        return TABLES
+        return [Table(t) for t in Table.ALL]
     tables = property(_get_tables)
     """This is the list of tables for our protocol."""
 
@@ -1196,6 +1196,8 @@ class Table(object):
     """This is the constant for the raw table."""
     NAT = "nat"
     """This is the constant for the nat table."""
+    ALL = ["filter", "mangle", "raw", "nat"]
+    """This is the constant for all tables."""
 
     _cache = weakref.WeakValueDictionary()
 

@@ -244,7 +244,7 @@ class Rule6(Rule):
         return self._save(name, self.entry.ipv6)
 
     def _get_tables(self):
-        return TABLES6
+        return [Table6(t) for t in Table6.ALL]
     tables = property(_get_tables)
     """This is the list of tables for our protocol."""
 
@@ -543,6 +543,8 @@ class Table6(Table):
     """This is the constant for the raw table."""
     SECURITY = "security"
     """This is the constant for the security table."""
+    ALL = ["filter", "mangle", "raw", "security"]
+    """This is the constant for all tables."""
 
     _cache = weakref.WeakValueDictionary()
 
