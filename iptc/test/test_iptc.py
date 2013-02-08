@@ -12,13 +12,13 @@ class TestTable6(unittest.TestCase):
 
     def test_table6(self):
         filt = iptc.Table6("filter")
-        self.assertEquals(id(filt), id(iptc.TABLE6_FILTER))
+        self.assertEquals(id(filt), id(iptc.Table6(iptc.Table6.FILTER)))
         security = iptc.Table6("security")
-        self.assertEquals(id(security), id(iptc.TABLE6_SECURITY))
+        self.assertEquals(id(security), id(iptc.Table6(iptc.Table6.SECURITY)))
         mangle = iptc.Table6("mangle")
-        self.assertEquals(id(mangle), id(iptc.TABLE6_MANGLE))
+        self.assertEquals(id(mangle), id(iptc.Table6(iptc.Table6.MANGLE)))
         raw = iptc.Table6("raw")
-        self.assertEquals(id(raw), id(iptc.TABLE6_RAW))
+        self.assertEquals(id(raw), id(iptc.Table6(iptc.Table6.RAW)))
         self.assertNotEquals(id(filt), id(security))
         self.assertNotEquals(id(filt), id(mangle))
         self.assertNotEquals(id(security), id(mangle))
@@ -33,38 +33,38 @@ class TestTable(unittest.TestCase):
 
     def test_table(self):
         filt = iptc.Table("filter")
-        self.assertEquals(id(filt), id(iptc.TABLE_FILTER))
+        self.assertEquals(id(filt), id(iptc.Table(iptc.Table.FILTER)))
         nat = iptc.Table("nat")
-        self.assertEquals(id(nat), id(iptc.TABLE_NAT))
+        self.assertEquals(id(nat), id(iptc.Table(iptc.Table.NAT)))
         mangle = iptc.Table("mangle")
-        self.assertEquals(id(mangle), id(iptc.TABLE_MANGLE))
+        self.assertEquals(id(mangle), id(iptc.Table(iptc.Table.MANGLE)))
         raw = iptc.Table("raw")
-        self.assertEquals(id(raw), id(iptc.TABLE_RAW))
+        self.assertEquals(id(raw), id(iptc.Table(iptc.Table.RAW)))
         self.assertNotEquals(id(filt), id(nat))
         self.assertNotEquals(id(filt), id(mangle))
         self.assertNotEquals(id(nat), id(mangle))
         self.assertNotEquals(id(nat), id(raw))
 
     def test_refresh(self):
-        chain = iptc.Chain(iptc.TABLE_FILTER, "tmp_chain_for_testing")
-        iptc.TABLE_FILTER.create_chain(chain)
+        chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "tmp_chain_for_testing")
+        iptc.Table(iptc.Table.FILTER).create_chain(chain)
         rule = iptc.Rule()
         match = iptc.Match(rule, "tcp")
         match.dport = "1234"
         rule.add_match(match)
         try:
             chain.insert_rule(rule)
-            iptc.TABLE_FILTER.delete_chain(chain)
+            iptc.Table(iptc.Table.FILTER).delete_chain(chain)
             self.fail("inserted invalid rule")
         except:
             pass
-        iptc.TABLE_FILTER.refresh()
+        iptc.Table(iptc.Table.FILTER).refresh()
         target = iptc.Target(rule, "ACCEPT")
         rule.target = target
         rule.protocol = "tcp"
         chain.insert_rule(rule)
         chain.delete_rule(rule)
-        iptc.TABLE_FILTER.delete_chain(chain)
+        iptc.Table(iptc.Table.FILTER).delete_chain(chain)
 
 class TestChain(unittest.TestCase):
     def setUp(self):
@@ -74,7 +74,7 @@ class TestChain(unittest.TestCase):
         pass
 
     def test_chain(self):
-        table = iptc.TABLE_FILTER
+        table = iptc.Table(iptc.Table.FILTER)
         input1 = iptc.Chain(table, "INPUT")
         input2 = iptc.Chain(table, "INPUT")
         forward1 = iptc.Chain(table, "FORWARD")
@@ -98,65 +98,65 @@ class TestChain(unittest.TestCase):
         self.assertNotEquals(id(output2), id(forward2))
 
     def test_is_chain(self):
-        table = iptc.TABLE_FILTER
+        table = iptc.Table(iptc.Table.FILTER)
         self.assertTrue(table.is_chain("INPUT"))
         self.assertTrue(table.is_chain("FORWARD"))
         self.assertTrue(table.is_chain("OUTPUT"))
 
-        table = iptc.TABLE_NAT
+        table = iptc.Table(iptc.Table.NAT)
         self.assertTrue(table.is_chain("PREROUTING"))
         self.assertTrue(table.is_chain("POSTROUTING"))
         self.assertTrue(table.is_chain("OUTPUT"))
 
-        table = iptc.TABLE_MANGLE
+        table = iptc.Table(iptc.Table.MANGLE)
         self.assertTrue(table.is_chain("INPUT"))
         self.assertTrue(table.is_chain("PREROUTING"))
         self.assertTrue(table.is_chain("FORWARD"))
         self.assertTrue(table.is_chain("POSTROUTING"))
         self.assertTrue(table.is_chain("OUTPUT"))
 
-        table = iptc.TABLE_RAW
+        table = iptc.Table(iptc.Table.RAW)
         self.assertTrue(table.is_chain("PREROUTING"))
         self.assertTrue(table.is_chain("OUTPUT"))
 
     def test_builtin_chain(self):
-        table = iptc.TABLE_FILTER
+        table = iptc.Table(iptc.Table.FILTER)
         self.assertTrue(table.builtin_chain("INPUT"))
         self.assertTrue(table.builtin_chain("FORWARD"))
         self.assertTrue(table.builtin_chain("OUTPUT"))
 
-        table = iptc.TABLE_NAT
+        table = iptc.Table(iptc.Table.NAT)
         self.assertTrue(table.builtin_chain("PREROUTING"))
         self.assertTrue(table.builtin_chain("POSTROUTING"))
         self.assertTrue(table.builtin_chain("OUTPUT"))
 
-        table = iptc.TABLE_MANGLE
+        table = iptc.Table(iptc.Table.MANGLE)
         self.assertTrue(table.builtin_chain("INPUT"))
         self.assertTrue(table.builtin_chain("PREROUTING"))
         self.assertTrue(table.builtin_chain("FORWARD"))
         self.assertTrue(table.builtin_chain("POSTROUTING"))
         self.assertTrue(table.builtin_chain("OUTPUT"))
 
-        table = iptc.TABLE_RAW
+        table = iptc.Table(iptc.Table.RAW)
         self.assertTrue(table.builtin_chain("PREROUTING"))
         self.assertTrue(table.builtin_chain("OUTPUT"))
 
     def test_chains(self):
-        table = iptc.TABLE_FILTER
+        table = iptc.Table(iptc.Table.FILTER)
         table.autocommit = True
         self.assertTrue(len(table.chains) >= 3)
         for chain in table.chains:
             if chain.name not in ["INPUT", "FORWARD", "OUTPUT"]:
                 self.failIf(chain.is_builtin())
 
-        table = iptc.TABLE_NAT
+        table = iptc.Table(iptc.Table.NAT)
         table.autocommit = True
         self.assertTrue(len(table.chains) >= 3)
         for chain in table.chains:
             if chain.name not in ["INPUT", "PREROUTING", "POSTROUTING", "OUTPUT"]:
                 self.failIf(chain.is_builtin())
 
-        table = iptc.TABLE_MANGLE
+        table = iptc.Table(iptc.Table.MANGLE)
         table.autocommit = True
         self.assertTrue(len(table.chains) >= 5)
         for chain in table.chains:
@@ -164,7 +164,7 @@ class TestChain(unittest.TestCase):
                   "FORWARD", "OUTPUT"]:
                 self.failIf(chain.is_builtin())
 
-        table = iptc.TABLE_RAW
+        table = iptc.Table(iptc.Table.RAW)
         table.autocommit = True
         self.assertTrue(len(table.chains) >= 2)
         for chain in table.chains:
@@ -172,8 +172,8 @@ class TestChain(unittest.TestCase):
                 self.failIf(chain.is_builtin())
 
     def test_chain_counters(self):
-        for chain in (chain for table in [iptc.TABLE_FILTER, iptc.TABLE_NAT,
-                iptc.TABLE_MANGLE, iptc.TABLE_RAW] for chain in table.chains):
+        for chain in (chain for table in [iptc.Table(iptc.Table.FILTER), iptc.Table(iptc.Table.NAT),
+                iptc.Table(iptc.Table.MANGLE), iptc.Table(iptc.Table.RAW)] for chain in table.chains):
             counters = chain.get_counters()
             chain.zero_counters()
             counters = chain.get_counters()
@@ -182,14 +182,14 @@ class TestChain(unittest.TestCase):
                 self.failUnless(counters[1] == 0)
 
     def test_create_chain(self):
-        chain = iptc.Chain(iptc.TABLE_FILTER, "tmp_chain_for_testing")
-        iptc.TABLE_FILTER.create_chain(chain)
-        self.failUnless(iptc.TABLE_FILTER.is_chain(chain))
-        iptc.TABLE_FILTER.delete_chain(chain)
-        self.failIf(iptc.TABLE_FILTER.is_chain(chain))
+        chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "tmp_chain_for_testing")
+        iptc.Table(iptc.Table.FILTER).create_chain(chain)
+        self.failUnless(iptc.Table(iptc.Table.FILTER).is_chain(chain))
+        iptc.Table(iptc.Table.FILTER).delete_chain(chain)
+        self.failIf(iptc.Table(iptc.Table.FILTER).is_chain(chain))
 
     def test_chain_policy(self):
-        table = iptc.TABLE_FILTER
+        table = iptc.Table(iptc.Table.FILTER)
         input_chain = iptc.Chain(table, "INPUT")
         pol = iptc.Policy("DROP")
         input_chain.set_policy(pol)
@@ -207,7 +207,7 @@ class TestChain(unittest.TestCase):
         else:
             fail("managed to set INPUT policy to RETURN")
 
-        table = iptc.TABLE_NAT
+        table = iptc.Table(iptc.Table.NAT)
         prerouting_chain = iptc.Chain(table, "PREROUTING")
         pol = iptc.Policy("DROP")
         prerouting_chain.set_policy(pol)
@@ -225,7 +225,7 @@ class TestChain(unittest.TestCase):
         else:
             fail("managed to set PREROUTING policy to RETURN")
 
-        table = iptc.TABLE_MANGLE
+        table = iptc.Table(iptc.Table.MANGLE)
         forward_chain = iptc.Chain(table, "FORWARD")
         pol = iptc.Policy("DROP")
         forward_chain.set_policy(pol)
@@ -366,8 +366,8 @@ class TestRule6(unittest.TestCase):
         self.assertEquals(target.name, "ACCEPT")
         self.assertEquals(target.standard_target, "ACCEPT")
 
-        chain = iptc.Chain(iptc.TABLE6_FILTER, "iptc_test_chain")
-        iptc.TABLE6_FILTER.create_chain(chain)
+        chain = iptc.Chain(iptc.Table6(iptc.Table6.FILTER), "iptc_test_chain")
+        iptc.Table6(iptc.Table6.FILTER).create_chain(chain)
         target = iptc.Target(rule, "iptc_test_chain")
         rule.target = target
 
@@ -377,16 +377,16 @@ class TestRule6(unittest.TestCase):
         chain.delete()
 
     def test_rule_iterate(self):
-        for r in (rule for chain in iptc.TABLE6_FILTER.chains
+        for r in (rule for chain in iptc.Table6(iptc.Table6.FILTER).chains
               for rule in chain.rules if rule):
             pass
-        for r in (rule for chain in iptc.TABLE6_RAW.chains
+        for r in (rule for chain in iptc.Table6(iptc.Table6.RAW).chains
               for rule in chain.rules if rule):
             pass
-        for r in (rule for chain in iptc.TABLE_MANGLE.chains
+        for r in (rule for chain in iptc.Table6(iptc.Table6.MANGLE).chains
               for rule in chain.rules if rule):
             pass
-        for r in (rule for chain in iptc.TABLE6_SECURITY.chains
+        for r in (rule for chain in iptc.Table6(iptc.Table6.SECURITY).chains
               for rule in chain.rules if rule):
             pass
 
@@ -518,8 +518,8 @@ class TestRule(unittest.TestCase):
         self.assertEquals(target.name, "ACCEPT")
         self.assertEquals(target.standard_target, "ACCEPT")
 
-        chain = iptc.Chain(iptc.TABLE_FILTER, "iptc_test_chain")
-        iptc.TABLE_FILTER.create_chain(chain)
+        chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_chain")
+        iptc.Table(iptc.Table.FILTER).create_chain(chain)
         target = iptc.Target(rule, "iptc_test_chain")
         rule.target = target
 
@@ -529,13 +529,13 @@ class TestRule(unittest.TestCase):
         chain.delete()
 
     def test_rule_iterate(self):
-        for r in (rule for chain in iptc.TABLE_FILTER.chains
+        for r in (rule for chain in iptc.Table(iptc.Table.FILTER).chains
               for rule in chain.rules if rule):
             pass
-        for r in (rule for chain in iptc.TABLE_NAT.chains
+        for r in (rule for chain in iptc.Table(iptc.Table.NAT).chains
               for rule in chain.rules if rule):
             pass
-        for r in (rule for chain in iptc.TABLE_MANGLE.chains
+        for r in (rule for chain in iptc.Table(iptc.Table.MANGLE).chains
               for rule in chain.rules if rule):
             pass
 

@@ -49,8 +49,8 @@ class TestXTClusteripTarget(unittest.TestCase):
         self.target = iptc.Target(self.rule, "CLUSTERIP")
         self.rule.target = self.target
 
-        self.chain = iptc.Chain(iptc.TABLE_FILTER, "iptc_test_clusterip")
-        iptc.TABLE_FILTER.create_chain(self.chain)
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_clusterip")
+        iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
         self.chain.flush()
@@ -104,8 +104,8 @@ class TestIPTRedirectTarget(unittest.TestCase):
         self.target = iptc.Target(self.rule, "REDIRECT")
         self.rule.target = self.target
 
-        self.chain = iptc.Chain(iptc.TABLE_NAT, "iptc_test_redirect")
-        iptc.TABLE_NAT.create_chain(self.chain)
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.NAT), "iptc_test_redirect")
+        iptc.Table(iptc.Table.NAT).create_chain(self.chain)
 
     def tearDown(self):
         self.chain.flush()
@@ -154,8 +154,8 @@ class TestXTTosTarget(unittest.TestCase):
         self.target = iptc.Target(self.rule, "TOS")
         self.rule.target = self.target
 
-        self.chain = iptc.Chain(iptc.TABLE_MANGLE, "iptc_test_tos")
-        iptc.TABLE_MANGLE.create_chain(self.chain)
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.MANGLE), "iptc_test_tos")
+        iptc.Table(iptc.Table.MANGLE).create_chain(self.chain)
 
     def tearDown(self):
         self.chain.flush()
@@ -231,7 +231,7 @@ class TestIPTMasqueradeTarget(unittest.TestCase):
         self.target = iptc.Target(self.rule, "MASQUERADE")
         self.rule.target = self.target
 
-        self.chain = iptc.Chain(iptc.TABLE_NAT, "POSTROUTING")
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.NAT), "POSTROUTING")
 
     def tearDown(self):
         pass
