@@ -51,8 +51,8 @@ class TestXTUdpMatch(unittest.TestCase):
         self.rule.target = iptc.Target(self.rule, "ACCEPT")
 
         self.match = iptc.Match(self.rule, "udp")
-        self.chain = iptc.Chain(iptc.TABLE_FILTER, "iptc_test_udp")
-        iptc.TABLE_FILTER.create_chain(self.chain)
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_udp")
+        iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
         self.chain.delete()
@@ -102,8 +102,8 @@ class TestXTMarkMatch(unittest.TestCase):
         self.rule.target = iptc.Target(self.rule, "ACCEPT")
 
         self.match = iptc.Match(self.rule, "mark")
-        self.chain = iptc.Chain(iptc.TABLE_FILTER, "iptc_test_mark")
-        iptc.TABLE_FILTER.create_chain(self.chain)
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_mark")
+        iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
         self.chain.delete()
@@ -144,8 +144,8 @@ class TestXTLimitMatch(unittest.TestCase):
         self.rule.target = iptc.Target(self.rule, "ACCEPT")
 
         self.match = iptc.Match(self.rule, "limit")
-        self.chain = iptc.Chain(iptc.TABLE_FILTER, "iptc_test_limit")
-        iptc.TABLE_FILTER.create_chain(self.chain)
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_limit")
+        iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
         self.chain.flush()
@@ -187,8 +187,8 @@ class TestCommentMatch(unittest.TestCase):
         self.rule.target = iptc.Target(self.rule, "ACCEPT")
 
         self.match = iptc.Match(self.rule, "comment")
-        self.chain = iptc.Chain(iptc.TABLE_FILTER, "iptc_test_comment")
-        iptc.TABLE_FILTER.create_chain(self.chain)
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_comment")
+        iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
         self.chain.flush()
@@ -209,8 +209,8 @@ class TestIprangeMatch(unittest.TestCase):
 
         self.match = iptc.Match(self.rule, "iprange")
 
-        self.chain = iptc.Chain(iptc.TABLE_FILTER, "iptc_test_iprange")
-        iptc.TABLE_FILTER.create_chain(self.chain)
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_iprange")
+        iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
         self.chain.flush()

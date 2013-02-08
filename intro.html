@@ -76,9 +76,9 @@ iptables binary and parsing its output.</p>
 <div class="section" id="compiling-and-installing">
 <h2>Compiling and installing<a class="headerlink" href="#compiling-and-installing" title="Permalink to this headline">¶</a></h2>
 <p>First make sure you have iptables installed (most Linux distributions install
-it by default).  python-iptables needs the shared libraries <tt class="docutils literal"><span class="pre">libiptc.so.0</span></tt>
-and <tt class="docutils literal"><span class="pre">libxtables.so.2</span></tt> coming with iptables, they are installed in <tt class="docutils literal"><span class="pre">/lib</span></tt>
-on Ubuntu.</p>
+it by default).  Python-iptables needs the shared libraries <tt class="docutils literal"><span class="pre">libiptc.so</span></tt> and
+<tt class="docutils literal"><span class="pre">libxtables.so</span></tt> coming with iptables, they are installed in <tt class="docutils literal"><span class="pre">/lib</span></tt> on
+Ubuntu.</p>
 <p>You can compile python-iptables in the usual distutils way:</p>
 <div class="highlight-python"><pre>% cd python-iptables
 % python setup.py build</pre>
@@ -103,9 +103,8 @@ package can be imported:</p>
 <div class="section" id="what-is-supported">
 <h2>What is supported<a class="headerlink" href="#what-is-supported" title="Permalink to this headline">¶</a></h2>
 <p>The basic iptables framework and all the match/target extensions are supported
-by python-iptables.  One thing we have not worked on yet is IPv6 support, but
-in theory it should not be too hard.  This also means you can&#8217;t use IPv6-only
-match and target extensions either.</p>
+by python-iptables, including IPv4 and IPv6 ones. All IPv4 and IPv6 tables are
+supported as well.</p>
 </div>
 <div class="section" id="contact">
 <h2>Contact<a class="headerlink" href="#contact" title="Permalink to this headline">¶</a></h2>

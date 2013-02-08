@@ -4,9 +4,11 @@ Usage
 The python API in *python-iptables* tries to mimic the logic of iptables.  You
 have
 
-    * **Tables**, **TABLE_FILTER**, **TABLE_NAT** and **TABLE_MANGLE**.  They
-      can be used to filter packets, do network address translation or modify
-      packets in various ways.
+    * **Tables**, **TABLE_FILTER**, **TABLE_NAT**, **TABLE_MANGLE** and
+      **TABLE_RAW** for IPv4, and **Tables6**, **TABLE6_FILTER**,
+      **TABLE6_SECURITY**, **TABLE6_MANGLE** and **TABLE6_RAW** for IPv6.
+      They can be used to filter packets, do network address translation or
+      modify packets in various ways.
 
     * **Chains** inside tables.  Each table has a few built-in chains, but you
       can also create your own chains and jump into them from other chains.
@@ -16,7 +18,8 @@ have
     * Each chain has zero or more **rules**.  A rule specifies what kind of
       packets to match (matches, each rule can have zero, one or more matches)
       and what to do with them (target, each rule has one of them).  Iptables
-      implements a plethora of match and target extensions.
+      implements a plethora of match and target extensions. For IPv4, the
+      class implementing this is called *Rule*, for IPv6 it is called *Rule6*.
 
     * **Matches**, specifying when a rule needs to be applied to a packet.  To
       create a match object you also has to specify the rule to which it
@@ -37,6 +40,12 @@ Table
 -----
 
 .. autoclass:: Table
+   :members:
+
+Table6
+------
+
+.. autoclass:: Table6
    :members:
 
 Chain
@@ -63,10 +72,10 @@ Target
 .. autoclass:: Target
    :members:
 
-Rule
-----
+Rule6
+-----
 
-.. autoclass:: Rule
+.. autoclass:: Rule6
    :members:
 
 IPTCError

@@ -60,6 +60,7 @@
  | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
+ | <a href="#Q"><strong>Q</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
@@ -71,9 +72,19 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="usage.html#iptc.Rule.add_match">add_match() (iptc.Rule method)</a>
+  <dt><a href="usage.html#iptc.Policy.ACCEPT">ACCEPT (iptc.Policy attribute)</a>
   </dt>
 
+      
+  <dt><a href="usage.html#iptc.Table.ALL">ALL (iptc.Table attribute)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="usage.html#iptc.Table6.ALL">(iptc.Table6 attribute)</a>
+  </dt>
+
+      </dl></dd>
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
@@ -104,22 +115,14 @@
   <dt><a href="usage.html#iptc.Table.chains">chains (iptc.Table attribute)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="usage.html#iptc.Table.close">close() (iptc.Table method)</a>
   </dt>
 
-  </dl></td>
-  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="usage.html#iptc.Table.commit">commit() (iptc.Table method)</a>
-  </dt>
-
-      
-  <dt><a href="usage.html#iptc.Rule.create_match">create_match() (iptc.Rule method)</a>
-  </dt>
-
-      
-  <dt><a href="usage.html#iptc.Rule.create_target">create_target() (iptc.Rule method)</a>
   </dt>
 
   </dl></td>
@@ -139,7 +142,11 @@
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="usage.html#iptc.Rule.dst">dst (iptc.Rule attribute)</a>
+  <dt><a href="usage.html#iptc.Policy.DROP">DROP (iptc.Policy attribute)</a>
+  </dt>
+
+      
+  <dt><a href="usage.html#iptc.Rule6.dst">dst (iptc.Rule6 attribute)</a>
   </dt>
 
   </dl></td>
@@ -149,9 +156,21 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
+  <dt><a href="usage.html#iptc.Table.FILTER">FILTER (iptc.Table attribute)</a>
+  </dt>
+
+      <dd><dl>
+        
+  <dt><a href="usage.html#iptc.Table6.FILTER">(iptc.Table6 attribute)</a>
+  </dt>
+
+      </dl></dd>
+      
   <dt><a href="usage.html#iptc.Table.first_rule">first_rule() (iptc.Table method)</a>
   </dt>
 
+  </dl></td>
+  <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="usage.html#iptc.Chain.flush">flush() (iptc.Chain method)</a>
   </dt>
@@ -163,12 +182,6 @@
 
       </dl></dd>
   </dl></td>
-  <td style="width: 33%" valign="top"><dl>
-      
-  <dt><a href="usage.html#iptc.Rule.fragment">fragment (iptc.Rule attribute)</a>
-  </dt>
-
-  </dl></td>
 </tr></table>
 
 <h2 id="G">G</h2>
@@ -178,12 +191,6 @@
   <dt><a href="usage.html#iptc.Chain.get_counters">get_counters() (iptc.Chain method)</a>
   </dt>
 
-      <dd><dl>
-        
-  <dt><a href="usage.html#iptc.Rule.get_counters">(iptc.Rule method)</a>
-  </dt>
-
-      </dl></dd>
       
   <dt><a href="usage.html#iptc.Chain.get_policy">get_policy() (iptc.Chain method)</a>
   </dt>
@@ -207,7 +214,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="usage.html#iptc.Rule.in_interface">in_interface (iptc.Rule attribute)</a>
+  <dt><a href="usage.html#iptc.Rule6.in_interface">in_interface (iptc.Rule6 attribute)</a>
   </dt>
 
       
@@ -235,25 +242,27 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="usage.html#iptc.Rule.mask">mask (iptc.Rule attribute)</a>
+  <dt><a href="usage.html#iptc.Table.MANGLE">MANGLE (iptc.Table attribute)</a>
   </dt>
 
+      <dd><dl>
+        
+  <dt><a href="usage.html#iptc.Table6.MANGLE">(iptc.Table6 attribute)</a>
+  </dt>
+
+      </dl></dd>
       
   <dt><a href="usage.html#iptc.Match">Match (class in iptc)</a>
-  </dt>
-
-      
-  <dt><a href="usage.html#iptc.Match.match">match (iptc.Match attribute)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="usage.html#iptc.Match.match_buf">match_buf (iptc.Match attribute)</a>
+  <dt><a href="usage.html#iptc.Match.match">match (iptc.Match attribute)</a>
   </dt>
 
       
-  <dt><a href="usage.html#iptc.Rule.matches">matches (iptc.Rule attribute)</a>
+  <dt><a href="usage.html#iptc.Match.match_buf">match_buf (iptc.Match attribute)</a>
   </dt>
 
   </dl></td>
@@ -261,6 +270,12 @@
 
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="usage.html#iptc.Table.NAT">NAT (iptc.Table attribute)</a>
+  </dt>
+
+  </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
   <dt><a href="usage.html#iptc.Table.next_rule">next_rule() (iptc.Table method)</a>
@@ -273,7 +288,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="usage.html#iptc.Rule.out_interface">out_interface (iptc.Rule attribute)</a>
+  <dt><a href="usage.html#iptc.Rule6.out_interface">out_interface (iptc.Rule6 attribute)</a>
   </dt>
 
   </dl></td>
@@ -289,7 +304,17 @@
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="usage.html#iptc.Rule.protocol">protocol (iptc.Rule attribute)</a>
+  <dt><a href="usage.html#iptc.Rule6.protocol">protocol (iptc.Rule6 attribute)</a>
+  </dt>
+
+  </dl></td>
+</tr></table>
+
+<h2 id="Q">Q</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="usage.html#iptc.Policy.QUEUE">QUEUE (iptc.Policy attribute)</a>
   </dt>
 
   </dl></td>
@@ -299,11 +324,17 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="usage.html#iptc.Table.refresh">refresh() (iptc.Table method)</a>
+  <dt><a href="usage.html#iptc.Table.RAW">RAW (iptc.Table attribute)</a>
   </dt>
 
+      <dd><dl>
+        
+  <dt><a href="usage.html#iptc.Table6.RAW">(iptc.Table6 attribute)</a>
+  </dt>
+
+      </dl></dd>
       
-  <dt><a href="usage.html#iptc.Rule.remove_match">remove_match() (iptc.Rule method)</a>
+  <dt><a href="usage.html#iptc.Table.refresh">refresh() (iptc.Table method)</a>
   </dt>
 
       
@@ -323,11 +354,11 @@
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="usage.html#iptc.Rule">Rule (class in iptc)</a>
+  <dt><a href="usage.html#iptc.Policy.RETURN">RETURN (iptc.Policy attribute)</a>
   </dt>
 
       
-  <dt><a href="usage.html#iptc.Rule.rule">rule (iptc.Rule attribute)</a>
+  <dt><a href="usage.html#iptc.Rule6">Rule6 (class in iptc)</a>
   </dt>
 
       
@@ -340,6 +371,10 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="usage.html#iptc.Table6.SECURITY">SECURITY (iptc.Table6 attribute)</a>
+  </dt>
+
       
   <dt><a href="usage.html#iptc.Chain.set_policy">set_policy() (iptc.Chain method)</a>
   </dt>
@@ -354,12 +389,12 @@
   </dt>
 
       </dl></dd>
-      
-  <dt><a href="usage.html#iptc.Rule.src">src (iptc.Rule attribute)</a>
-  </dt>
-
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
+      
+  <dt><a href="usage.html#iptc.Rule6.src">src (iptc.Rule6 attribute)</a>
+  </dt>
+
       
   <dt><a href="usage.html#iptc.Target.standard_target">standard_target (iptc.Target attribute)</a>
   </dt>
@@ -379,25 +414,23 @@
   </dt>
 
       
-  <dt><a href="usage.html#iptc.Rule.tables">tables (iptc.Rule attribute)</a>
+  <dt><a href="usage.html#iptc.Table6">Table6 (class in iptc)</a>
   </dt>
 
       
-  <dt><a href="usage.html#iptc.Target">Target (class in iptc)</a>
+  <dt><a href="usage.html#iptc.Rule6.tables">tables (iptc.Rule6 attribute)</a>
   </dt>
 
   </dl></td>
   <td style="width: 33%" valign="top"><dl>
       
-  <dt><a href="usage.html#iptc.Rule.target">target (iptc.Rule attribute)</a>
+  <dt><a href="usage.html#iptc.Target">Target (class in iptc)</a>
   </dt>
 
-      <dd><dl>
-        
-  <dt><a href="usage.html#iptc.Target.target">(iptc.Target attribute)</a>
+      
+  <dt><a href="usage.html#iptc.Target.target">target (iptc.Target attribute)</a>
   </dt>
 
-      </dl></dd>
       
   <dt><a href="usage.html#iptc.Target.target_buf">target_buf (iptc.Target attribute)</a>
   </dt>

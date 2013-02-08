@@ -12,8 +12,7 @@ from ip4tc import Rule, Table
 from xtables import XT_INV_PROTO, NFPROTO_IPV6, XTF_TRY_LOAD, XTablesError, xtables, xt_align, xt_counters, xt_entry_target, xt_entry_match
 from util import load_kernel
 
-__all__ = ["Table6", "Rule6", "TABLE6_FILTER", "TABLE6_MANGLE", "TABLE6_RAW",
-"TABLE6_SECURITY", "TABLES6"]
+__all__ = ["Table6", "Rule6"]
 
 load_kernel("ip6_tables")
 
@@ -245,9 +244,29 @@ class Rule6(Rule):
         return self._save(name, self.entry.ipv6)
 
     def _get_tables(self):
-        return TABLES6
+        return [Table6(t) for t in Table6.ALL]
     tables = property(_get_tables)
     """This is the list of tables for our protocol."""
+
+    def _count_bits(self, n):
+        bits = 0
+        while n > 0:
+            if n & 1:
+                bits += 1
+            n = n >> 1
+        return bits
+
+    def _create_mask(self, plen):
+        mask = [0 for x in xrange(16)]
+        i = 0
+        while plen > 0:
+            if plen >= 8:
+                mask[i] = 0xff
+            else:
+                mask[i] = 2 ** plen - 1
+            i += 1
+            plen -= 8
+        return "".join([chr(x) for x in mask])
 
     def get_src(self):
         src = ""
@@ -259,12 +278,16 @@ class Rule6(Rule):
         except socket.error as e:
             raise IPTCError("error in internal state: invalid address")
         src = "".join([src, addr, "/"])
-        try:
-            netmask = socket.inet_ntop(socket.AF_INET6,
-                    self.entry.ipv6.smsk.s6_addr)
-        except socket.error as e:
-            raise IPTCError("error in internal state: invalid netmask")
-        src = "".join([src, netmask])
+
+        # create prefix length from mask in smsk
+        plen = 0
+        for x in self.entry.ipv6.smsk.s6_addr:
+            if x == 0xff:
+                plen += 8
+            else:
+                plen += self._count_bits(x)
+                break
+        src = "".join([src, str(plen)])
         return src
 
     def set_src(self, src):
@@ -292,6 +315,16 @@ class Rule6(Rule):
             raise ValueError("invalid address %s" % (addr))
         self.entry.ipv6.src = ina
 
+        # if we got a numeric prefix length
+        if netm.isdigit():
+            plen = int(netm)
+            if plen < 0 or plen > 128:
+                raise ValueError("invalid prefix length %d" % (plen))
+            self.entry.ipv6.smsk.s6_addr = arr.from_buffer_copy(
+                    self._create_mask(plen))
+            return
+
+        # nope, we got an IPv6 address-style prefix
         neta = in6_addr()
         try:
             neta.s6_addr = arr.from_buffer_copy(
@@ -301,7 +334,7 @@ class Rule6(Rule):
         self.entry.ipv6.smsk = neta
 
     src = property(get_src, set_src)
-    """This is the source network address with an optional network mask in
+    """This is the source network address with an optional prefix length in
     string form."""
 
     def get_dst(self):
@@ -314,12 +347,16 @@ class Rule6(Rule):
         except socket.error as e:
             raise IPTCError("error in internal state: invalid address")
         dst = "".join([dst, addr, "/"])
-        try:
-            netmask = socket.inet_ntop(socket.AF_INET6,
-                    self.entry.ipv6.dmsk.s6_addr)
-        except socket.error as e:
-            raise IPTCError("error in internal state: invalid netmask")
-        dst = "".join([dst, netmask])
+
+        # create prefix length from mask in dmsk
+        plen = 0
+        for x in self.entry.ipv6.dmsk.s6_addr:
+            if x & 0xff == 0xff:
+                plen += 8
+            else:
+                plen += self._count_bits(x)
+                break
+        dst = "".join([dst, str(plen)])
         return dst
 
     def set_dst(self, dst):
@@ -347,6 +384,16 @@ class Rule6(Rule):
             raise ValueError("invalid address %s" % (addr))
         self.entry.ipv6.dst = ina
 
+        # if we got a numeric prefix length
+        if netm.isdigit():
+            plen = int(netm)
+            if plen < 0 or plen > 128:
+                raise ValueError("invalid prefix length %d" % (plen))
+            self.entry.ipv6.dmsk.s6_addr = arr.from_buffer_copy(
+                    self._create_mask(plen))
+            return
+
+        # nope, we got an IPv6 address-style prefix
         neta = in6_addr()
         try:
             neta.s6_addr = arr.from_buffer_copy(
@@ -486,7 +533,37 @@ class Rule6(Rule):
         return ip6t_entry()
 
 class Table6(Table):
-    """The IPv6 version of Table."""
+    """The IPv6 version of Table.
+
+    There are four fixed tables:
+        * **Table.FILTER**, the filter table,
+        * **Table.MANGLE**, the mangle table,
+        * **Table.RAW**, the raw table and
+        * **Table.SECURITY**, the security table.
+
+    The four tables are cached, so if you create a new Table, and it has been
+    instantiated before, then it will be reused. To get access to e.g. the
+    filter table:
+
+    >>> table = iptc.Table6(iptc.Table6.FILTER)
+
+    The interface provided by *Table* is rather low-level, in fact it maps to
+    *libiptc* API calls one by one, and take low-level iptables structs as
+    parameters.  It is encouraged to, when possible, use Chain, Rule, Match
+    and Target to achieve what is wanted instead, since they hide the
+    low-level details from the user.
+    """
+
+    FILTER = "filter"
+    """This is the constant for the filter table."""
+    MANGLE = "mangle"
+    """This is the constant for the mangle table."""
+    RAW = "raw"
+    """This is the constant for the raw table."""
+    SECURITY = "security"
+    """This is the constant for the security table."""
+    ALL = ["filter", "mangle", "raw", "security"]
+    """This is the constant for all tables."""
 
     _cache = weakref.WeakValueDictionary()
 
@@ -501,24 +578,13 @@ class Table6(Table):
 
     def __init__(self, name, autocommit = True):
         """
-        *name* is the name of the table, if it already exists it is returned.
-        *autocommit* specifies that any iptables operation that changes a
-        rule, chain or table should be committed immediately.
+        Here *name* is the name of the table to instantiate, if it has already
+        been instantiated the existing cached object is returned.
+        *Autocommit* specifies that any low-level iptables operation should be
+        committed immediately, making changes visible in the kernel.
         """
         self._iptc = ip6tc() # to keep references to functions
         self._handle = None
         self.name = name
         self.autocommit = autocommit
         self.refresh()
-
-TABLE6_FILTER = Table6("filter")
-"""This is the constant for the IPv6 filter table."""
-TABLE6_MANGLE = Table6("mangle")
-"""This is the constant for the IPv6 mangle table."""
-TABLE6_RAW = Table6("raw")
-"""This is the constant for the IPv6 raw table."""
-TABLE6_SECURITY = Table6("security")
-"""This is the constant for the IPv6 security table."""
-
-TABLES6 = [TABLE6_FILTER, TABLE6_MANGLE, TABLE6_RAW, TABLE6_SECURITY]
-"""This is a list of the fixed ip6tables tables"""
