@@ -296,6 +296,27 @@ class IPTCModule(object):
         except KeyError:
             return None
 
+    def get_all_parameters(self):
+        params = {}
+        ip =  self.rule.get_ip()
+        if self._module and self._module.save:
+            # redirect C stdout to a pipe and read back the output of m->save
+            pipes = os.pipe()
+            saved_out = os.dup(1)
+            os.dup2(pipes[1], 1)
+            self._xt.save(self._module, ip, self._ptr)
+            buf = os.read(pipes[0], 1024)
+            os.dup2(saved_out, 1)
+            os.close(pipes[0])
+            os.close(pipes[1])
+            os.close(saved_out)
+
+            res = re.findall(IPTCModule.pattern, buf)
+            for x in res:
+                 params[x[1]] = "%s%s" % ((x[0] or x[2]) and "!" or "", x[3])
+
+        return params
+
     def __setattr__(self, name, value):
         if not name.startswith('_') and name not in dir(self):
             self.parse(name.replace("_", "-"), value)
