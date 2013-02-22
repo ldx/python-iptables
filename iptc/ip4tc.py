@@ -321,10 +321,14 @@ class IPTCModule(object):
     def _get_parameters(self):
         return self.save(None)
     parameters = property(_get_parameters)
+    """Dictionary with all parameters in the form of name -> value. A match or
+    target might have default parameters as well, so this dictionary will
+    contain those set by the module by default too."""
 
     def _get_name(self):
         return self._name
     name = property(_get_name)
+    """Name of this target or match."""
 
     def _get_rule(self):
         return self._rule
@@ -332,6 +336,7 @@ class IPTCModule(object):
     def _set_rule(self, rule):
         self._rule = rule
     rule = property(_get_rule, _set_rule)
+    """The rule this target or match belong to."""
 
 class Match(IPTCModule):
     """Matches are extensions which can match for special header fields or
