@@ -46,7 +46,7 @@ class TestTable(unittest.TestCase):
         self.assertNotEquals(id(nat), id(raw))
 
     def test_refresh(self):
-        chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "tmp_chain_for_testing")
+        chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_chain")
         iptc.Table(iptc.Table.FILTER).create_chain(chain)
         rule = iptc.Rule()
         match = iptc.Match(rule, "tcp")
@@ -182,7 +182,7 @@ class TestChain(unittest.TestCase):
                 self.failUnless(counters[1] == 0)
 
     def test_create_chain(self):
-        chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "tmp_chain_for_testing")
+        chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_chain")
         iptc.Table(iptc.Table.FILTER).create_chain(chain)
         self.failUnless(iptc.Table(iptc.Table.FILTER).is_chain(chain))
         iptc.Table(iptc.Table.FILTER).delete_chain(chain)
