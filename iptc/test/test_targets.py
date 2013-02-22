@@ -250,10 +250,13 @@ class TestIPTMasqueradeTarget(unittest.TestCase):
         self.target = iptc.Target(self.rule, "MASQUERADE")
         self.rule.target = self.target
 
-        self.chain = iptc.Chain(iptc.Table(iptc.Table.NAT), "POSTROUTING")
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.NAT),
+                                "iptc_test_masquerade")
+        iptc.Table(iptc.Table.NAT).create_chain(self.chain)
 
     def tearDown(self):
-        pass
+        self.chain.flush()
+        self.chain.delete()
 
     def test_mode(self):
         for port in ["1234", "1234-2345"]:
