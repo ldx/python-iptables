@@ -281,9 +281,21 @@ class IPTCModule(object):
             os.close(pipes[0])
             os.close(pipes[1])
             os.close(saved_out)
-            return self._get_value(buf, name)
+            if name:
+                return self._get_value(buf, name)
+            else:
+                return self._get_all_values(buf)
         else:
             return None
+
+    def _get_all_values(self, buf):
+        table = {} # variable -> (value, inverted)
+        res = re.findall(IPTCModule.pattern, buf)
+        for x in res:
+            value, invert = (x[3], x[0] or x[2])
+            table[x[1].replace("-", "_")] = "%s%s" % (invert and "!" or "",
+                                                      value)
+        return table
 
     def _get_value(self, buf, name):
         table = {} # variable -> (value, inverted)
@@ -305,6 +317,10 @@ class IPTCModule(object):
     def __getattr__(self, name):
         if not name.startswith('_'):
             return self.save(name.replace("_", "-"))
+
+    def _get_parameters(self):
+        return self.save(None)
+    parameters = property(_get_parameters)
 
     def _get_name(self):
         return self._name
