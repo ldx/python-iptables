@@ -274,6 +274,66 @@ committed immediately, making changes visible in the kernel.</p>
 <dd><p>This is the constant for the security table.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="iptc.Table6.builtin_chain">
+<tt class="descname">builtin_chain</tt><big>(</big><em>chain</em><big>)</big><a class="headerlink" href="#iptc.Table6.builtin_chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <em>True</em> if <em>chain</em> is a built-in chain.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table6.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Table6.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the underlying connection handle to iptables.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table6.commit">
+<tt class="descname">commit</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Table6.commit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commit any pending operation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table6.first_rule">
+<tt class="descname">first_rule</tt><big>(</big><em>chain</em><big>)</big><a class="headerlink" href="#iptc.Table6.first_rule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the first rule in <em>chain</em> or <em>None</em> if it is empty.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table6.flush">
+<tt class="descname">flush</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Table6.flush" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flush and delete all non-builtin chains the table.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table6.get_target">
+<tt class="descname">get_target</tt><big>(</big><em>entry</em><big>)</big><a class="headerlink" href="#iptc.Table6.get_target" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the standard target in <em>entry</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table6.is_chain">
+<tt class="descname">is_chain</tt><big>(</big><em>chain</em><big>)</big><a class="headerlink" href="#iptc.Table6.is_chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <em>True</em> if <em>chain</em> exists as a chain.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table6.next_rule">
+<tt class="descname">next_rule</tt><big>(</big><em>prev_rule</em><big>)</big><a class="headerlink" href="#iptc.Table6.next_rule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the next rule after <em>prev_rule</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table6.refresh">
+<tt class="descname">refresh</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Table6.refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commit any pending operation and refresh the status of iptables.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table6.strerror">
+<tt class="descname">strerror</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Table6.strerror" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns any pending iptables error from the previous operation.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -547,11 +607,40 @@ in userspace.</p>
 <dt id="iptc.Rule6">
 <em class="property">class </em><tt class="descclassname">iptc.</tt><tt class="descname">Rule6</tt><big>(</big><em>entry=None</em>, <em>chain=None</em><big>)</big><a class="headerlink" href="#iptc.Rule6" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is an IPv6 rule.</p>
+<dl class="method">
+<dt id="iptc.Rule6.add_match">
+<tt class="descname">add_match</tt><big>(</big><em>match</em><big>)</big><a class="headerlink" href="#iptc.Rule6.add_match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a match to the rule.  One can add any number of matches.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Rule6.create_match">
+<tt class="descname">create_match</tt><big>(</big><em>name</em>, <em>revision=None</em><big>)</big><a class="headerlink" href="#iptc.Rule6.create_match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a <em>match</em>, and add it to the list of matches in this rule.
+<em>name</em> is the name of the match extension, <em>revision</em> is the revision
+to use.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Rule6.create_target">
+<tt class="descname">create_target</tt><big>(</big><em>name</em>, <em>revision=None</em><big>)</big><a class="headerlink" href="#iptc.Rule6.create_target" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new <em>target</em>, and set it as this rule&#8217;s target. <em>name</em> is
+the name of the target extension, <em>revision</em> is the revision to
+use.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="iptc.Rule6.dst">
 <tt class="descname">dst</tt><a class="headerlink" href="#iptc.Rule6.dst" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the destination network address with an optional network mask
 in string form.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Rule6.get_counters">
+<tt class="descname">get_counters</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Rule6.get_counters" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method returns a tuple pair of the packet and byte counters of
+the rule.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -572,6 +661,12 @@ be achieved via <em>+</em> e.g. <em>ppp+</em> matches any <em>ppp</em> interface
 <dt id="iptc.Rule6.protocol">
 <tt class="descname">protocol</tt><a class="headerlink" href="#iptc.Rule6.protocol" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the transport layer protocol.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Rule6.remove_match">
+<tt class="descname">remove_match</tt><big>(</big><em>match</em><big>)</big><a class="headerlink" href="#iptc.Rule6.remove_match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes <em>match</em> from the list of matches.</p>
 </dd></dl>
 
 <dl class="attribute">

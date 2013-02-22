@@ -48,6 +48,7 @@ Table6
 
 .. autoclass:: Table6
    :members:
+   :inherited-members:
 
 Chain
 -----
@@ -66,18 +67,21 @@ Match
 
 .. autoclass:: Match
    :members:
+   :inherited-members:
 
 Target
 ------
 
 .. autoclass:: Target
    :members:
+   :inherited-members:
 
 Rule6
 -----
 
 .. autoclass:: Rule6
    :members:
+   :inherited-members:
 
 IPTCError
 ---------
