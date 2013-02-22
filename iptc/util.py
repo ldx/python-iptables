@@ -14,11 +14,12 @@ def _load_ko(modname):
     return _insert_ko(modprobe, modname)
 
 # Load a kernel module. If it is already loaded modprobe will just return 0.
-def load_kernel(name):
+def load_kernel(name, exc_if_failed=False):
     rc, err = _load_ko(name)
     if rc:
         if not err:
             err = "Failed to load the %s kernel module." % (name)
         if err[-1] == "\n":
             err = err[:-1]
-        raise Exception(err)
+        if exc_if_failed:
+            raise Exception(err)
