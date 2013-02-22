@@ -1,8 +1,8 @@
 Usage
 =====
 
-The python API in *python-iptables* tries to mimic the logic of iptables.  You
-have
+The python API in ``python-iptables`` tries to mimic the logic of iptables.
+You have
 
     * **Tables**, **Table.FILTER**, **Table.NAT**, **Table.MANGLE** and
       **Table.RAW** for IPv4; **Table6.FILTER**, **Table6.SECURITY**,

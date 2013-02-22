@@ -4,7 +4,7 @@ Examples
 Introduction
 ------------
 
-In python-iptables, you usually first create a rule, and set any
+In ``python-iptables``, you usually first create a rule, and set any
 source/destination address, in/out interface and protocol specifiers, for
 example:
 
@@ -113,8 +113,8 @@ Mark packets going to ``192.168.1.2`` UDP port ``1234`` with ``0xffff``:
 Multiple matches with iprange
 -----------------------------
 
-Now we will add multiple matches to a rule. This one is the python-iptables
-equivalent of the following iptables command:
+Now we will add multiple matches to a rule. This one is the
+``python-iptables`` equivalent of the following iptables command:
 
 # iptables -A INPUT -p tcp –destination-port 22 -m iprange –src-range 192.168.1.100-192.168.1.200 –dst-range 172.22.33.106 -j DROP
 
