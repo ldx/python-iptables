@@ -36,6 +36,25 @@ class TestTarget(unittest.TestCase):
         t2.set_mark = "0x124"
         self.failIf(t1 == t2)
 
+    def test_target_parameters(self):
+        t = iptc.Target(iptc.Rule(), "CONNMARK")
+        t.nfmask = "0xdeadbeef"
+        t.ctmask = "0xfefefefe"
+        t.save_mark = ""
+
+        self.failUnless(len(t.parameters) == 3)
+
+        for p in t.parameters:
+            self.failUnless(p == "ctmask" or p == "nfmask" or
+                            p == "save_mark")
+
+        self.failUnless(t.parameters["save_mark"] == "")
+        self.failUnless(t.parameters["nfmask"] == "0xdeadbeef")
+        self.failUnless(t.parameters["ctmask"] == "0xfefefefe")
+
+        t.reset()
+        self.failUnless(len(t.parameters) == 1)
+
 class TestXTClusteripTarget(unittest.TestCase):
     def setUp(self):
         self.rule = iptc.Rule()
