@@ -248,15 +248,33 @@ _optarg = ct.c_char_p.in_dll(_libc, "optarg")
 
 _lib_xtables = ct.CDLL(ctypes.util.find_library("xtables"), mode=ct.RTLD_GLOBAL)
 
-from distutils.sysconfig import get_python_lib
-import sys
-for _p in sys.path:
+def _get_library(name):
+    p = ctypes.util.find_library(name)
+    if p:
+        lib = ct.CDLL(p, mode=ct.RTLD_GLOBAL)
+        return lib
+
+    # probably we have been installed in a virtualenv
+    import os
+    from distutils.sysconfig import get_python_lib
     try:
-        _lib_xtwrapper = ct.CDLL('/'.join([_p, 'libxtwrapper.so']), mode=ct.RTLD_GLOBAL)
+        lib = ct.CDLL(os.path.join(get_python_lib(), 'lib%s.so' % (name)),
+                      mode=ct.RTLD_GLOBAL)
+        return lib
     except:
         pass
-    else:
-        break
+
+    import sys
+    for p in sys.path:
+        try:
+            lib = ct.CDLL(os.path.join(p, 'lib%s.so' % (name)),
+                          mode=ct.RTLD_GLOBAL)
+            return lib
+        except:
+            pass
+    return None
+
+_lib_xtwrapper = _get_library("xtwrapper")
 _throw = _lib_xtwrapper.throw_exception
 
 _wrap_parse = _lib_xtwrapper.wrap_parse
