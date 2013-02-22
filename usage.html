@@ -86,27 +86,520 @@ virtually anything can be achieved that you can do with iptables from the
 command line.</p>
 <div class="section" id="table">
 <h2>Table<a class="headerlink" href="#table" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="iptc.Table">
+<em class="property">class </em><tt class="descclassname">iptc.</tt><tt class="descname">Table</tt><big>(</big><em>name</em>, <em>autocommit=True</em><big>)</big><a class="headerlink" href="#iptc.Table" title="Permalink to this definition">¶</a></dt>
+<dd><p>A table is the most basic building block in iptables.</p>
+<dl class="docutils">
+<dt>There are four fixed tables:</dt>
+<dd><ul class="first last simple">
+<li><strong>Table.FILTER</strong>, the filter table,</li>
+<li><strong>Table.NAT</strong>, the NAT table,</li>
+<li><strong>Table.MANGLE</strong>, the mangle table and</li>
+<li><strong>Table.RAW</strong>, the raw table.</li>
+</ul>
+</dd>
+</dl>
+<p>The four tables are cached, so if you create a new Table, and it has been
+instantiated before, then it will be reused. To get access to e.g. the
+filter table:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">FILTER</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The interface provided by <em>Table</em> is rather low-level, in fact it maps to
+<em>libiptc</em> API calls one by one, and take low-level iptables structs as
+parameters.  It is encouraged to, when possible, use Chain, Rule, Match
+and Target to achieve what is wanted instead, since they hide the
+low-level details from the user.</p>
+<p><em>name</em> is the name of the table, if it already exists it is returned.
+<em>autocommit</em> specifies that any iptables operation that changes a
+rule, chain or table should be committed immediately.</p>
+<dl class="attribute">
+<dt id="iptc.Table.ALL">
+<tt class="descname">ALL</tt><em class="property"> = ['filter', 'mangle', 'raw', 'nat']</em><a class="headerlink" href="#iptc.Table.ALL" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the constant for all tables.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Table.FILTER">
+<tt class="descname">FILTER</tt><em class="property"> = 'filter'</em><a class="headerlink" href="#iptc.Table.FILTER" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the constant for the filter table.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Table.MANGLE">
+<tt class="descname">MANGLE</tt><em class="property"> = 'mangle'</em><a class="headerlink" href="#iptc.Table.MANGLE" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the constant for the mangle table.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Table.NAT">
+<tt class="descname">NAT</tt><em class="property"> = 'nat'</em><a class="headerlink" href="#iptc.Table.NAT" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the constant for the nat table.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Table.RAW">
+<tt class="descname">RAW</tt><em class="property"> = 'raw'</em><a class="headerlink" href="#iptc.Table.RAW" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the constant for the raw table.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table.builtin_chain">
+<tt class="descname">builtin_chain</tt><big>(</big><em>chain</em><big>)</big><a class="headerlink" href="#iptc.Table.builtin_chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <em>True</em> if <em>chain</em> is a built-in chain.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Table.chains">
+<tt class="descname">chains</tt><a class="headerlink" href="#iptc.Table.chains" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of chains in the table.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Table.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the underlying connection handle to iptables.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table.commit">
+<tt class="descname">commit</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Table.commit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commit any pending operation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table.first_rule">
+<tt class="descname">first_rule</tt><big>(</big><em>chain</em><big>)</big><a class="headerlink" href="#iptc.Table.first_rule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the first rule in <em>chain</em> or <em>None</em> if it is empty.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table.flush">
+<tt class="descname">flush</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Table.flush" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flush and delete all non-builtin chains the table.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table.get_target">
+<tt class="descname">get_target</tt><big>(</big><em>entry</em><big>)</big><a class="headerlink" href="#iptc.Table.get_target" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the standard target in <em>entry</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table.is_chain">
+<tt class="descname">is_chain</tt><big>(</big><em>chain</em><big>)</big><a class="headerlink" href="#iptc.Table.is_chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <em>True</em> if <em>chain</em> exists as a chain.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table.next_rule">
+<tt class="descname">next_rule</tt><big>(</big><em>prev_rule</em><big>)</big><a class="headerlink" href="#iptc.Table.next_rule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the next rule after <em>prev_rule</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table.refresh">
+<tt class="descname">refresh</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Table.refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commit any pending operation and refresh the status of iptables.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Table.strerror">
+<tt class="descname">strerror</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Table.strerror" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns any pending iptables error from the previous operation.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="table6">
 <h2>Table6<a class="headerlink" href="#table6" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="iptc.Table6">
+<em class="property">class </em><tt class="descclassname">iptc.</tt><tt class="descname">Table6</tt><big>(</big><em>name</em>, <em>autocommit=True</em><big>)</big><a class="headerlink" href="#iptc.Table6" title="Permalink to this definition">¶</a></dt>
+<dd><p>The IPv6 version of Table.</p>
+<dl class="docutils">
+<dt>There are four fixed tables:</dt>
+<dd><ul class="first last simple">
+<li><strong>Table.FILTER</strong>, the filter table,</li>
+<li><strong>Table.MANGLE</strong>, the mangle table,</li>
+<li><strong>Table.RAW</strong>, the raw table and</li>
+<li><strong>Table.SECURITY</strong>, the security table.</li>
+</ul>
+</dd>
+</dl>
+<p>The four tables are cached, so if you create a new Table, and it has been
+instantiated before, then it will be reused. To get access to e.g. the
+filter table:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Table6</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table6</span><span class="o">.</span><span class="n">FILTER</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The interface provided by <em>Table</em> is rather low-level, in fact it maps to
+<em>libiptc</em> API calls one by one, and take low-level iptables structs as
+parameters.  It is encouraged to, when possible, use Chain, Rule, Match
+and Target to achieve what is wanted instead, since they hide the
+low-level details from the user.</p>
+<p>Here <em>name</em> is the name of the table to instantiate, if it has already
+been instantiated the existing cached object is returned.
+<em>Autocommit</em> specifies that any low-level iptables operation should be
+committed immediately, making changes visible in the kernel.</p>
+<dl class="attribute">
+<dt id="iptc.Table6.ALL">
+<tt class="descname">ALL</tt><em class="property"> = ['filter', 'mangle', 'raw', 'security']</em><a class="headerlink" href="#iptc.Table6.ALL" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the constant for all tables.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Table6.FILTER">
+<tt class="descname">FILTER</tt><em class="property"> = 'filter'</em><a class="headerlink" href="#iptc.Table6.FILTER" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the constant for the filter table.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Table6.MANGLE">
+<tt class="descname">MANGLE</tt><em class="property"> = 'mangle'</em><a class="headerlink" href="#iptc.Table6.MANGLE" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the constant for the mangle table.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Table6.RAW">
+<tt class="descname">RAW</tt><em class="property"> = 'raw'</em><a class="headerlink" href="#iptc.Table6.RAW" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the constant for the raw table.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Table6.SECURITY">
+<tt class="descname">SECURITY</tt><em class="property"> = 'security'</em><a class="headerlink" href="#iptc.Table6.SECURITY" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the constant for the security table.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="chain">
 <h2>Chain<a class="headerlink" href="#chain" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="iptc.Chain">
+<em class="property">class </em><tt class="descclassname">iptc.</tt><tt class="descname">Chain</tt><big>(</big><em>table</em>, <em>name</em><big>)</big><a class="headerlink" href="#iptc.Chain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rules are contained by chains.</p>
+<p><em>iptables</em> has built-in chains for every table, and users can also create
+additional chains.  Rule targets can specify to jump into another chain
+and continue processing its rules, or return to the caller chain.</p>
+<p><em>table</em> is the table this chain belongs to, <em>name</em> is the chain&#8217;s
+name.</p>
+<p>If a chain already exists with <em>name</em> in <em>table</em> it is returned.</p>
+<dl class="method">
+<dt id="iptc.Chain.append_rule">
+<tt class="descname">append_rule</tt><big>(</big><em>rule</em><big>)</big><a class="headerlink" href="#iptc.Chain.append_rule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append <em>rule</em> to the end of the chain.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Chain.delete">
+<tt class="descname">delete</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Chain.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete chain from its table.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Chain.delete_rule">
+<tt class="descname">delete_rule</tt><big>(</big><em>rule</em><big>)</big><a class="headerlink" href="#iptc.Chain.delete_rule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes <em>rule</em> from the chain.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Chain.flush">
+<tt class="descname">flush</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Chain.flush" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flush all rules from the chain.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Chain.get_counters">
+<tt class="descname">get_counters</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Chain.get_counters" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method returns a tuple pair of the packet and byte counters of
+the chain.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Chain.get_policy">
+<tt class="descname">get_policy</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Chain.get_policy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the policy of the chain as a Policy object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Chain.get_target">
+<tt class="descname">get_target</tt><big>(</big><em>rule</em><big>)</big><a class="headerlink" href="#iptc.Chain.get_target" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method returns the target of <em>rule</em> if it is a standard
+target, or <em>None</em> if it is not.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Chain.insert_rule">
+<tt class="descname">insert_rule</tt><big>(</big><em>rule</em>, <em>position=0</em><big>)</big><a class="headerlink" href="#iptc.Chain.insert_rule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert <em>rule</em> as the first entry in the chain if <em>position</em> is 0 or
+not specified, else <em>rule</em> is inserted in the given position.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Chain.is_builtin">
+<tt class="descname">is_builtin</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Chain.is_builtin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether the chain is a built-in one.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Chain.rename">
+<tt class="descname">rename</tt><big>(</big><em>new_name</em><big>)</big><a class="headerlink" href="#iptc.Chain.rename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rename chain to <em>new_name</em>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Chain.rules">
+<tt class="descname">rules</tt><a class="headerlink" href="#iptc.Chain.rules" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the list of rules currently in the chain.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Chain.set_policy">
+<tt class="descname">set_policy</tt><big>(</big><em>policy</em>, <em>counters=None</em><big>)</big><a class="headerlink" href="#iptc.Chain.set_policy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the chain policy to <em>policy</em>, which should either be a string
+or a Policy object.  If <em>counters</em> is not <em>None</em>, the chain counters
+are also adjusted. <em>Counters</em> is a list or tuple with two elements.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Chain.zero_counters">
+<tt class="descname">zero_counters</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Chain.zero_counters" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method zeroes the packet and byte counters of the chain.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="policy">
 <h2>Policy<a class="headerlink" href="#policy" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="iptc.Policy">
+<em class="property">class </em><tt class="descclassname">iptc.</tt><tt class="descname">Policy</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#iptc.Policy" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the end of a built-in chain is reached or a rule in a built-in chain
+with target RETURN is matched, the target specified by the chain policy
+determines the fate of the packet.</p>
+<dl class="attribute">
+<dt id="iptc.Policy.ACCEPT">
+<tt class="descname">ACCEPT</tt><em class="property"> = 'ACCEPT'</em><a class="headerlink" href="#iptc.Policy.ACCEPT" title="Permalink to this definition">¶</a></dt>
+<dd><p>If no matching rule has been found so far then accept the packet.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Policy.DROP">
+<tt class="descname">DROP</tt><em class="property"> = 'DROP'</em><a class="headerlink" href="#iptc.Policy.DROP" title="Permalink to this definition">¶</a></dt>
+<dd><p>If no matching rule has been found so far then drop the packet.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Policy.QUEUE">
+<tt class="descname">QUEUE</tt><em class="property"> = 'QUEUE'</em><a class="headerlink" href="#iptc.Policy.QUEUE" title="Permalink to this definition">¶</a></dt>
+<dd><p>If no matching rule has been found so far then queue the packet to
+userspace.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Policy.RETURN">
+<tt class="descname">RETURN</tt><em class="property"> = 'RETURN'</em><a class="headerlink" href="#iptc.Policy.RETURN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return to calling chain.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="match">
 <h2>Match<a class="headerlink" href="#match" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="iptc.Match">
+<em class="property">class </em><tt class="descclassname">iptc.</tt><tt class="descname">Match</tt><big>(</big><em>rule</em>, <em>name=None</em>, <em>match=None</em>, <em>revision=None</em><big>)</big><a class="headerlink" href="#iptc.Match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matches are extensions which can match for special header fields or
+other attributes of a packet.</p>
+<p>Target and match extensions in iptables have parameters.  These parameters
+are implemented as instance attributes in python.  However, to make the
+names of parameters legal attribute names they have to be converted.  The
+rule is to cut the leading double dash from the name, and replace
+dashes in parameter names with underscores so they are accepted by
+python as attribute names.  E.g. the <em>TOS</em> target has parameters
+<em>&#8211;set-tos</em>, <em>&#8211;and-tos</em>, <em>&#8211;or-tos</em> and <em>&#8211;xor-tos</em>; they become
+<em>target.set_tos</em>, <em>target.and_tos</em>, <em>target.or_tos</em> and <em>target.xor_tos</em>,
+respectively.  The value of a parameter is always a string, if a parameter
+does not take any value in the iptables extension, an empty string <em>&#8220;&#8221;</em>
+should be used.</p>
+<p><em>rule</em> is the Rule object this match belongs to; it can be changed
+later via <em>set_rule()</em>.  <em>name</em> is the name of the iptables match
+extension (in lower case), <em>match</em> is the raw buffer of the match
+structure if the caller has it.  Either <em>name</em> or <em>match</em> must be
+provided.  <em>revision</em> is the revision number of the extension that
+should be used; different revisions use different structures in C and
+they usually only work with certain kernel versions. Python-iptables
+by default will use the latest revision available.</p>
+<dl class="attribute">
+<dt id="iptc.Match.match">
+<tt class="descname">match</tt><a class="headerlink" href="#iptc.Match.match" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the C structure used by the extension.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Match.match_buf">
+<tt class="descname">match_buf</tt><a class="headerlink" href="#iptc.Match.match_buf" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the buffer holding the C structure used by the extension.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Match.reset">
+<tt class="descname">reset</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Match.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the match.</p>
+<p>Parameters are set to their default values, any flags are cleared.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Match.size">
+<tt class="descname">size</tt><a class="headerlink" href="#iptc.Match.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the full size of the underlying C structure.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Match.usersize">
+<tt class="descname">usersize</tt><a class="headerlink" href="#iptc.Match.usersize" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the size of the part of the underlying C structure that is used
+in userspace.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="target">
 <h2>Target<a class="headerlink" href="#target" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="iptc.Target">
+<em class="property">class </em><tt class="descclassname">iptc.</tt><tt class="descname">Target</tt><big>(</big><em>rule</em>, <em>name=None</em>, <em>target=None</em>, <em>revision=None</em><big>)</big><a class="headerlink" href="#iptc.Target" title="Permalink to this definition">¶</a></dt>
+<dd><p>Targets specify what to do with a packet when a match is found while
+traversing the list of rule entries in a chain.</p>
+<p>Target and match extensions in iptables have parameters.  These parameters
+are implemented as instance attributes in python.  However, to make the
+names of parameters legal attribute names they have to be converted.  The
+rule is to cut the leading double dash from the name, and replace
+dashes in parameter names with underscores so they are accepted by
+python as attribute names.  E.g. the <em>TOS</em> target has parameters
+<em>&#8211;set-tos</em>, <em>&#8211;and-tos</em>, <em>&#8211;or-tos</em> and <em>&#8211;xor-tos</em>; they become
+<em>target.set_tos</em>, <em>target.and_tos</em>, <em>target.or_tos</em> and <em>target.xor_tos</em>,
+respectively.  The value of a parameter is always a string, if a parameter
+does not take any value in the iptables extension, an empty string i.e. &#8220;&#8221;
+should be used.</p>
+<p><em>rule</em> is the Rule object this match belongs to; it can be changed
+later via <em>set_rule()</em>.  <em>name</em> is the name of the iptables target
+extension (in upper case), <em>target</em> is the raw buffer of the target
+structure if the caller has it.  Either <em>name</em> or <em>target</em> must be
+provided.  <em>revision</em> is the revision number of the extension that
+should be used; different revisions use different structures in C and
+they usually only work with certain kernel versions. Python-iptables
+by default will use the latest revision available.</p>
+<dl class="method">
+<dt id="iptc.Target.reset">
+<tt class="descname">reset</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Target.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the target.  Parameters are set to their default values, any
+flags are cleared.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Target.size">
+<tt class="descname">size</tt><a class="headerlink" href="#iptc.Target.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the full size of the underlying C structure.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Target.standard_target">
+<tt class="descname">standard_target</tt><a class="headerlink" href="#iptc.Target.standard_target" title="Permalink to this definition">¶</a></dt>
+<dd><p>This attribute is used for standard targets.  It can be set to
+<em>ACCEPT</em>, <em>DROP</em>, <em>RETURN</em> or to a name of a chain the rule should jump
+into.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Target.target">
+<tt class="descname">target</tt><a class="headerlink" href="#iptc.Target.target" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the C structure used by the extension.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Target.target_buf">
+<tt class="descname">target_buf</tt><a class="headerlink" href="#iptc.Target.target_buf" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the buffer holding the C structure used by the extension.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Target.usersize">
+<tt class="descname">usersize</tt><a class="headerlink" href="#iptc.Target.usersize" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the size of the part of the underlying C structure that is used
+in userspace.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="rule6">
 <h2>Rule6<a class="headerlink" href="#rule6" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="iptc.Rule6">
+<em class="property">class </em><tt class="descclassname">iptc.</tt><tt class="descname">Rule6</tt><big>(</big><em>entry=None</em>, <em>chain=None</em><big>)</big><a class="headerlink" href="#iptc.Rule6" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is an IPv6 rule.</p>
+<dl class="attribute">
+<dt id="iptc.Rule6.dst">
+<tt class="descname">dst</tt><a class="headerlink" href="#iptc.Rule6.dst" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the destination network address with an optional network mask
+in string form.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Rule6.in_interface">
+<tt class="descname">in_interface</tt><a class="headerlink" href="#iptc.Rule6.in_interface" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the input network interface e.g. <em>eth0</em>.  A wildcard match can
+be achieved via <em>+</em> e.g. <em>ppp+</em> matches any <em>ppp</em> interface.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Rule6.out_interface">
+<tt class="descname">out_interface</tt><a class="headerlink" href="#iptc.Rule6.out_interface" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the output network interface e.g. <em>eth0</em>.  A wildcard match can
+be achieved via <em>+</em> e.g. <em>ppp+</em> matches any <em>ppp</em> interface.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Rule6.protocol">
+<tt class="descname">protocol</tt><a class="headerlink" href="#iptc.Rule6.protocol" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the transport layer protocol.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Rule6.src">
+<tt class="descname">src</tt><a class="headerlink" href="#iptc.Rule6.src" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the source network address with an optional prefix length in
+string form.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Rule6.tables">
+<tt class="descname">tables</tt><a class="headerlink" href="#iptc.Rule6.tables" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the list of tables for our protocol.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="iptcerror">
 <h2>IPTCError<a class="headerlink" href="#iptcerror" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="iptc.IPTCError">
+<em class="property">exception </em><tt class="descclassname">iptc.</tt><tt class="descname">IPTCError</tt><a class="headerlink" href="#iptc.IPTCError" title="Permalink to this definition">¶</a></dt>
+<dd><p>This exception is raised when a low-level libiptc error occurs.</p>
+<p>It contains a short description about the error that occured while
+executing an iptables operation.</p>
+</dd></dl>
+
 </div>
 </div>
 
