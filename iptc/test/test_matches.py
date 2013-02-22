@@ -3,6 +3,7 @@
 import unittest
 import iptc
 
+
 class TestMatch(unittest.TestCase):
     def setUp(self):
         pass
@@ -59,6 +60,7 @@ class TestMatch(unittest.TestCase):
         m.reset()
         self.failUnless(len(m.parameters) == 0)
 
+
 class TestXTUdpMatch(unittest.TestCase):
     def setUp(self):
         self.rule = iptc.Rule()
@@ -75,7 +77,8 @@ class TestXTUdpMatch(unittest.TestCase):
 
     def test_udp_port(self):
         for port in ["12345", "12345:65535", "!12345", "12345:12346",
-                "!12345:12346", "0:1234", "! 1234", "!0:12345", "!1234:65535"]:
+                     "!12345:12346", "0:1234", "! 1234", "!0:12345",
+                     "!1234:65535"]:
             self.match.sport = port
             self.assertEquals(self.match.sport, port.replace(" ", ""))
             self.match.dport = port
@@ -84,13 +87,13 @@ class TestXTUdpMatch(unittest.TestCase):
         for port in ["-1", "asdf", "!asdf"]:
             try:
                 self.match.sport = port
-            except Exception, e:
+            except Exception:
                 pass
             else:
                 self.fail("udp accepted invalid source port %s" % (port))
             try:
                 self.match.dport = port
-            except Exception, e:
+            except Exception:
                 pass
             else:
                 self.fail("udp accepted invalid destination port %s" % (port))
@@ -110,6 +113,7 @@ class TestXTUdpMatch(unittest.TestCase):
 
         self.chain.delete_rule(self.rule)
 
+
 class TestXTMarkMatch(unittest.TestCase):
     def setUp(self):
         self.rule = iptc.Rule()
@@ -118,7 +122,8 @@ class TestXTMarkMatch(unittest.TestCase):
         self.rule.target = iptc.Target(self.rule, "ACCEPT")
 
         self.match = iptc.Match(self.rule, "mark")
-        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_mark")
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER),
+                                "iptc_test_mark")
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
@@ -132,7 +137,7 @@ class TestXTMarkMatch(unittest.TestCase):
         for mark in ["0xffffffffff", "123/0xffffffff1", "!asdf", "1234:1233"]:
             try:
                 self.match.mark = mark
-            except Exception, e:
+            except Exception:
                 pass
             else:
                 self.fail("mark accepted invalid value %s" % (mark))
@@ -152,6 +157,7 @@ class TestXTMarkMatch(unittest.TestCase):
 
         self.chain.delete_rule(self.rule)
 
+
 class TestXTLimitMatch(unittest.TestCase):
     def setUp(self):
         self.rule = iptc.Rule()
@@ -160,7 +166,8 @@ class TestXTLimitMatch(unittest.TestCase):
         self.rule.target = iptc.Target(self.rule, "ACCEPT")
 
         self.match = iptc.Match(self.rule, "limit")
-        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_limit")
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER),
+                                "iptc_test_limit")
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
@@ -175,7 +182,7 @@ class TestXTLimitMatch(unittest.TestCase):
         for limit in ["asdf", "123/1", "!1", "!1/second"]:
             try:
                 self.match.limit = limit
-            except Exception, e:
+            except Exception:
                 pass
             else:
                 self.fail("limit accepted invalid value %s" % (limit))
@@ -195,6 +202,7 @@ class TestXTLimitMatch(unittest.TestCase):
 
         self.chain.delete_rule(self.rule)
 
+
 class TestCommentMatch(unittest.TestCase):
     def setUp(self):
         self.rule = iptc.Rule()
@@ -203,7 +211,8 @@ class TestCommentMatch(unittest.TestCase):
         self.rule.target = iptc.Target(self.rule, "ACCEPT")
 
         self.match = iptc.Match(self.rule, "comment")
-        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_comment")
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER),
+                                "iptc_test_comment")
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
@@ -217,6 +226,7 @@ class TestCommentMatch(unittest.TestCase):
         self.chain.insert_rule(self.rule)
         self.assertEquals(self.match.comment.replace('"', ''), comment)
 
+
 class TestIprangeMatch(unittest.TestCase):
     def setUp(self):
         self.rule = iptc.Rule()
@@ -225,7 +235,8 @@ class TestIprangeMatch(unittest.TestCase):
 
         self.match = iptc.Match(self.rule, "iprange")
 
-        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_iprange")
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER),
+                                "iptc_test_iprange")
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
@@ -264,15 +275,19 @@ class TestIprangeMatch(unittest.TestCase):
 
         self.chain.delete_rule(self.rule)
 
+
 def suite():
     suite_match = unittest.TestLoader().loadTestsFromTestCase(TestMatch)
     suite_udp = unittest.TestLoader().loadTestsFromTestCase(TestXTUdpMatch)
     suite_mark = unittest.TestLoader().loadTestsFromTestCase(TestXTMarkMatch)
     suite_limit = unittest.TestLoader().loadTestsFromTestCase(TestXTLimitMatch)
-    suite_comment = unittest.TestLoader().loadTestsFromTestCase(TestCommentMatch)
-    suite_iprange = unittest.TestLoader().loadTestsFromTestCase(TestIprangeMatch)
+    suite_comment = unittest.TestLoader().loadTestsFromTestCase(
+        TestCommentMatch)
+    suite_iprange = unittest.TestLoader().loadTestsFromTestCase(
+        TestIprangeMatch)
     return unittest.TestSuite([suite_match, suite_udp, suite_mark,
-        suite_limit, suite_comment, suite_iprange])
+                               suite_limit, suite_comment, suite_iprange])
+
 
 def run_tests():
     unittest.TextTestRunner(verbosity=2).run(suite())

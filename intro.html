@@ -68,7 +68,7 @@ user- defined chains.</p>
 rule specifies what to do with a packet that matches.  This is called a
 <cite>target</cite>, which may be a jump to a user-defined chain in the same table.</p>
 </div></blockquote>
-<p>Python-iptables provides python bindings to iptables under Linux.
+<p><tt class="docutils literal"><span class="pre">Python-iptables</span></tt> provides python bindings to iptables under Linux.
 Interoperability with iptables is achieved via using the iptables C libraries
 (<tt class="docutils literal"><span class="pre">libiptc</span></tt>, <tt class="docutils literal"><span class="pre">libxtables</span></tt>, and the iptables extensions), not calling the
 iptables binary and parsing its output.</p>
@@ -76,22 +76,22 @@ iptables binary and parsing its output.</p>
 <div class="section" id="compiling-and-installing">
 <h2>Compiling and installing<a class="headerlink" href="#compiling-and-installing" title="Permalink to this headline">¶</a></h2>
 <p>First make sure you have iptables installed (most Linux distributions install
-it by default).  Python-iptables needs the shared libraries <tt class="docutils literal"><span class="pre">libiptc.so</span></tt> and
-<tt class="docutils literal"><span class="pre">libxtables.so</span></tt> coming with iptables, they are installed in <tt class="docutils literal"><span class="pre">/lib</span></tt> on
+it by default). <tt class="docutils literal"><span class="pre">Python-iptables</span></tt> needs the shared libraries <tt class="docutils literal"><span class="pre">libiptc.so</span></tt>
+and <tt class="docutils literal"><span class="pre">libxtables.so</span></tt> coming with iptables, they are installed in <tt class="docutils literal"><span class="pre">/lib</span></tt> on
 Ubuntu.</p>
-<p>You can compile python-iptables in the usual distutils way:</p>
+<p>You can compile <tt class="docutils literal"><span class="pre">python-iptables</span></tt> in the usual distutils way:</p>
 <div class="highlight-python"><pre>% cd python-iptables
 % python setup.py build</pre>
 </div>
-<p>You can install <tt class="docutils literal"><span class="pre">python-iptables</span></tt> into a <tt class="docutils literal"><span class="pre">virtualenv</span></tt>:</p>
+<p>If you like, <tt class="docutils literal"><span class="pre">python-iptables</span></tt> can also be installed into a <tt class="docutils literal"><span class="pre">virtualenv</span></tt>:</p>
 <div class="highlight-python"><pre>% mkvirtualenv python-iptables
 % python setup.py install</pre>
 </div>
-<p>If you install python-iptables as a system package, make sure the directory
-where <tt class="docutils literal"><span class="pre">distutils</span></tt> installs shared libraries is in the dynamic linker&#8217;s
-search path (it&#8217;s in <tt class="docutils literal"><span class="pre">/etc/ld.so.conf</span></tt> or in one of the files in the folder
-<tt class="docutils literal"><span class="pre">/etc/ld.co.conf.d</span></tt>).  Under Ubuntu <tt class="docutils literal"><span class="pre">distutils</span></tt> by default installs into
-<tt class="docutils literal"><span class="pre">/usr/local/lib</span></tt>.</p>
+<p>If you install <tt class="docutils literal"><span class="pre">python-iptables</span></tt> as a system package, make sure the
+directory where <tt class="docutils literal"><span class="pre">distutils</span></tt> installs shared libraries is in the dynamic
+linker&#8217;s search path (it&#8217;s in <tt class="docutils literal"><span class="pre">/etc/ld.so.conf</span></tt> or in one of the files in
+the folder <tt class="docutils literal"><span class="pre">/etc/ld.co.conf.d</span></tt>).  Under Ubuntu <tt class="docutils literal"><span class="pre">distutils</span></tt> by default
+installs into <tt class="docutils literal"><span class="pre">/usr/local/lib</span></tt>.</p>
 <p>Now you can run the tests:</p>
 <div class="highlight-python"><pre>% sudo PATH=$PATH ./test.py
 WARNING: this test will manipulate iptables rules.
@@ -173,8 +173,8 @@ package can be imported:</p>
 <div class="section" id="what-is-supported">
 <h2>What is supported<a class="headerlink" href="#what-is-supported" title="Permalink to this headline">¶</a></h2>
 <p>The basic iptables framework and all the match/target extensions are supported
-by python-iptables, including IPv4 and IPv6 ones. All IPv4 and IPv6 tables are
-supported as well.</p>
+by <tt class="docutils literal"><span class="pre">python-iptables</span></tt>, including IPv4 and IPv6 ones. All IPv4 and IPv6 tables
+are supported as well.</p>
 </div>
 <div class="section" id="contact">
 <h2>Contact<a class="headerlink" href="#contact" title="Permalink to this headline">¶</a></h2>

@@ -51,7 +51,7 @@
 <h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>In python-iptables, you usually first create a rule, and set any
+<p>In <tt class="docutils literal"><span class="pre">python-iptables</span></tt>, you usually first create a rule, and set any
 source/destination address, in/out interface and protocol specifiers, for
 example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">iptc</span>
@@ -101,7 +101,7 @@ the object. To set the destination port for a TCP match:</p>
 <p>Parameters are always strings.</p>
 <p>When you are ready constructing your rule, add them to the chain you want it
 to show up in:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">TABLE_FILTER</span><span class="p">,</span> <span class="s">&quot;INPUT&quot;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">TABLE_FILTER</span><span class="p">),</span> <span class="s">&quot;INPUT&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span><span class="o">.</span><span class="n">insert_rule</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -112,7 +112,7 @@ to show up in:</p>
 <p>Reject packets with source address <tt class="docutils literal"><span class="pre">127.0.0.1/255.0.0.0</span></tt> coming in on any of
 the eth interfaces:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">iptc</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">TABLE_FILTER</span><span class="p">,</span> <span class="s">&quot;INPUT&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">TABLE_FILTER</span><span class="p">),</span> <span class="s">&quot;INPUT&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Rule</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">in_interface</span> <span class="o">=</span> <span class="s">&quot;eth+&quot;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">src</span> <span class="o">=</span> <span class="s">&quot;127.0.0.1/255.0.0.0&quot;</span>
@@ -126,7 +126,7 @@ the eth interfaces:</p>
 <h2>Simple rule not using any match extensions<a class="headerlink" href="#simple-rule-not-using-any-match-extensions" title="Permalink to this headline">¶</a></h2>
 <p>Inserting a rule to NAT TCP packets going out via <tt class="docutils literal"><span class="pre">eth0</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">iptc</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">TABLE_NAT</span><span class="p">,</span> <span class="s">&quot;POSTROUTING&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">TABLE_NAT</span><span class="p">),</span> <span class="s">&quot;POSTROUTING&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Rule</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="s">&quot;tcp&quot;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">out_interface</span> <span class="o">=</span> <span class="s">&quot;eth0&quot;</span>
@@ -141,7 +141,7 @@ the eth interfaces:</p>
 <h2>Rule using the udp match extension<a class="headerlink" href="#rule-using-the-udp-match-extension" title="Permalink to this headline">¶</a></h2>
 <p>Mark packets going to <tt class="docutils literal"><span class="pre">192.168.1.2</span></tt> UDP port <tt class="docutils literal"><span class="pre">1234</span></tt> with <tt class="docutils literal"><span class="pre">0xffff</span></tt>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">iptc</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">TABLE_MANGLE</span><span class="p">,</span> <span class="s">&quot;PREROUTING&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">TABLE_MANGLE</span><span class="p">),</span> <span class="s">&quot;PREROUTING&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Rule</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">dst</span> <span class="o">=</span> <span class="s">&quot;192.168.1.2&quot;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="s">&quot;udp&quot;</span>
@@ -157,8 +157,8 @@ the eth interfaces:</p>
 </div>
 <div class="section" id="multiple-matches-with-iprange">
 <h2>Multiple matches with iprange<a class="headerlink" href="#multiple-matches-with-iprange" title="Permalink to this headline">¶</a></h2>
-<p>Now we will add multiple matches to a rule. This one is the python-iptables
-equivalent of the following iptables command:</p>
+<p>Now we will add multiple matches to a rule. This one is the
+<tt class="docutils literal"><span class="pre">python-iptables</span></tt> equivalent of the following iptables command:</p>
 <p># iptables -A INPUT -p tcp –destination-port 22 -m iprange –src-range 192.168.1.100-192.168.1.200 –dst-range 172.22.33.106 -j DROP</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">iptc</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Rule</span><span class="p">()</span>
@@ -171,7 +171,7 @@ equivalent of the following iptables command:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">match</span><span class="o">.</span><span class="n">dst_range</span> <span class="o">=</span> <span class="s">&quot;172.22.33.106&quot;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">add_match</span><span class="p">(</span><span class="n">match</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Target</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="s">&quot;DROP&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">TABLE_FILTER</span><span class="p">,</span> <span class="s">&quot;INPUT&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">TABLE_FILTER</span><span class="p">),</span> <span class="s">&quot;INPUT&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span><span class="o">.</span><span class="n">insert_rule</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span>
 </pre></div>
 </div>

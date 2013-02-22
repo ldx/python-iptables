@@ -19,7 +19,7 @@ manpage puts it:
     rule specifies what to do with a packet that matches.  This is called a
     `target`, which may be a jump to a user-defined chain in the same table.
 
-Python-iptables provides python bindings to iptables under Linux.
+``Python-iptables`` provides python bindings to iptables under Linux.
 Interoperability with iptables is achieved via using the iptables C libraries
 (``libiptc``, ``libxtables``, and the iptables extensions), not calling the
 iptables binary and parsing its output.
@@ -28,25 +28,25 @@ Compiling and installing
 ------------------------
 
 First make sure you have iptables installed (most Linux distributions install
-it by default).  Python-iptables needs the shared libraries ``libiptc.so`` and
-``libxtables.so`` coming with iptables, they are installed in ``/lib`` on
+it by default). ``Python-iptables`` needs the shared libraries ``libiptc.so``
+and ``libxtables.so`` coming with iptables, they are installed in ``/lib`` on
 Ubuntu.
 
-You can compile python-iptables in the usual distutils way::
+You can compile ``python-iptables`` in the usual distutils way::
 
     % cd python-iptables
     % python setup.py build
 
-You can install ``python-iptables`` into a ``virtualenv``::
+If you like, ``python-iptables`` can also be installed into a ``virtualenv``::
 
     % mkvirtualenv python-iptables
     % python setup.py install
 
-If you install python-iptables as a system package, make sure the directory
-where ``distutils`` installs shared libraries is in the dynamic linker's
-search path (it's in ``/etc/ld.so.conf`` or in one of the files in the folder
-``/etc/ld.co.conf.d``).  Under Ubuntu ``distutils`` by default installs into
-``/usr/local/lib``.
+If you install ``python-iptables`` as a system package, make sure the
+directory where ``distutils`` installs shared libraries is in the dynamic
+linker's search path (it's in ``/etc/ld.so.conf`` or in one of the files in
+the folder ``/etc/ld.co.conf.d``).  Under Ubuntu ``distutils`` by default
+installs into ``/usr/local/lib``.
 
 Now you can run the tests::
 
@@ -133,8 +133,8 @@ What is supported
 -----------------
 
 The basic iptables framework and all the match/target extensions are supported
-by python-iptables, including IPv4 and IPv6 ones. All IPv4 and IPv6 tables are
-supported as well.
+by ``python-iptables``, including IPv4 and IPv6 ones. All IPv4 and IPv6 tables
+are supported as well.
 
 Contact
 -------
