@@ -1,9 +1,11 @@
 from subprocess import Popen, PIPE
 
+
 def _insert_ko(modprobe, modname):
     p = Popen([modprobe, modname], stderr=PIPE)
     p.wait()
     return (p.returncode, p.stderr.read(1024))
+
 
 def _load_ko(modname):
     # this will return the full path for the modprobe binary
@@ -12,6 +14,7 @@ def _load_ko(modname):
     if modprobe[-1] == '\n':
         modprobe = modprobe[:-1]
     return _insert_ko(modprobe, modname)
+
 
 # Load a kernel module. If it is already loaded modprobe will just return 0.
 def load_kernel(name, exc_if_failed=False):

@@ -8,68 +8,79 @@ import struct
 import weakref
 import ctypes.util
 
-from xtables import XT_INV_PROTO, NFPROTO_IPV4, XTF_TRY_LOAD, XTablesError, xtables, xt_align, xt_counters, xt_entry_target, xt_entry_match
-from util import load_kernel
+from xtables import (XT_INV_PROTO, NFPROTO_IPV4, XTablesError, xtables,
+                     xt_align, xt_counters, xt_entry_target, xt_entry_match)
 
 __all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError"]
 
 _IFNAMSIZ = 16
 
+
 class in_addr(ct.Structure):
     """This class is a representation of the C struct in_addr."""
     _fields_ = [("s_addr", ct.c_uint32)]
 
+
 class ipt_ip(ct.Structure):
     """This class is a representation of the C struct ipt_ip."""
     _fields_ = [("src", in_addr),
-          ("dst", in_addr),
-          ("smsk", in_addr),
-          ("dmsk", in_addr),
-          ("iniface", ct.c_char * _IFNAMSIZ),
-          ("outiface", ct.c_char * _IFNAMSIZ),
-          ("iniface_mask", ct.c_char * _IFNAMSIZ),
-          ("outiface_mask", ct.c_char * _IFNAMSIZ),
-          ("proto", ct.c_uint16),
-          ("flags", ct.c_uint8),
-          ("invflags", ct.c_uint8)]
+                ("dst", in_addr),
+                ("smsk", in_addr),
+                ("dmsk", in_addr),
+                ("iniface", ct.c_char * _IFNAMSIZ),
+                ("outiface", ct.c_char * _IFNAMSIZ),
+                ("iniface_mask", ct.c_char * _IFNAMSIZ),
+                ("outiface_mask", ct.c_char * _IFNAMSIZ),
+                ("proto", ct.c_uint16),
+                ("flags", ct.c_uint8),
+                ("invflags", ct.c_uint8)]
 
     # flags
-    IPT_F_FRAG = 0x01    # Set if rule is a fragment rule
-    IPT_F_GOTO = 0x02    # Set if jump is a goto
-    IPT_F_MASK = 0x03    # All possible flag bits mask
+    IPT_F_FRAG = 0x01    # set if rule is a fragment rule
+    IPT_F_GOTO = 0x02    # set if jump is a goto
+    IPT_F_MASK = 0x03    # all possible flag bits mask
 
     # invflags
-    IPT_INV_VIA_IN  = 0x01          # Invert the sense of IN IFACE
-    IPT_INV_VIA_OUT = 0x02          # Invert the sense of OUT IFACE
-    IPT_INV_TOS     = 0x04          # Invert the sense of TOS
-    IPT_INV_SRCIP   = 0x08          # Invert the sense of SRC IP
-    IPT_INV_DSTIP   = 0x10          # Invert the sense of DST OP
-    IPT_INV_FRAG    = 0x20          # Invert the sense of FRAG
-    IPT_INV_PROTO   = XT_INV_PROTO  # Invert the sense of PROTO (XT_INV_PROTO)
-    IPT_INV_MASK    = 0x7F          # All possible flag bits mask
+    IPT_INV_VIA_IN = 0x01  # invert the sense of IN IFACE
+    IPT_INV_VIA_OUT = 0x02  # invert the sense of OUT IFACE
+    IPT_INV_TOS = 0x04  # invert the sense of TOS
+    IPT_INV_SRCIP = 0x08  # invert the sense of SRC IP
+    IPT_INV_DSTIP = 0x10  # invert the sense of DST OP
+    IPT_INV_FRAG = 0x20  # invert the sense of FRAG
+    IPT_INV_PROTO = XT_INV_PROTO  # invert the sense of PROTO (XT_INV_PROTO)
+    IPT_INV_MASK = 0x7F  # all possible flag bits mask
 
     def __init__(self):
-        self.smsk.s_addr = self.dmsk.s_addr = 0xffffffff # default: full netmask
+        # default: full netmask
+        self.smsk.s_addr = self.dmsk.s_addr = 0xffffffff
+
 
 class ipt_entry(ct.Structure):
     """This class is a representation of the C struct ipt_entry."""
     _fields_ = [("ip", ipt_ip),
-          ("nfcache", ct.c_uint),         # Mark with fields that we care about
-          ("target_offset", ct.c_uint16), # Size of ipt_entry + matches
-          ("next_offset", ct.c_uint16),   # Size of ipt_entry + matches + target
-          ("comefrom", ct.c_uint),        # Back pointer
-          ("counters", xt_counters),     # Packet and byte counters
-          ("elems", ct.c_ubyte * 0)]      # The matches (if any) then the target
+                ("nfcache", ct.c_uint),  # mark with fields that we care about
+                ("target_offset", ct.c_uint16),  # size of ipt_entry + matches
+                ("next_offset", ct.c_uint16),  # size of e + matches + target
+                ("comefrom", ct.c_uint),  # back pointer
+                ("counters", xt_counters),  # packet and byte counters
+                ("elems", ct.c_ubyte * 0)]  # any matches then the target
+
+
+class IPTCError(Exception):
+    """This exception is raised when a low-level libiptc error occurs.
+
+    It contains a short description about the error that occured while
+    executing an iptables operation.
+    """
+
 
 _libiptc_file = ctypes.util.find_library("ip4tc")
-
 if not _libiptc_file:
     _libiptc_file = ctypes.util.find_library("iptc")
-
 if not _libiptc_file:
     raise IPTCError("error: libiptc/libip4tc not found")
+_libiptc = ct.CDLL(_libiptc_file, use_errno=True)
 
-_libiptc = ct.CDLL(_libiptc_file, use_errno = True)
 
 class iptc(object):
     """This class contains all libiptc API calls."""
@@ -121,17 +132,17 @@ class iptc(object):
     iptc_zero_entries.restype = ct.c_int
     iptc_zero_entries.argstype = [ct.c_char_p, ct.c_void_p]
 
-    # Get the policy of a given built-in chain
+    # get the policy of a given built-in chain
     iptc_get_policy = _libiptc.iptc_get_policy
     iptc_get_policy.restype = ct.c_char_p
     iptc_get_policy.argstype = [ct.c_char_p, ct.POINTER(xt_counters),
-          ct.c_void_p]
+                                ct.c_void_p]
 
     # Set the policy of a chain
     iptc_set_policy = _libiptc.iptc_set_policy
     iptc_set_policy.restype = ct.c_int
     iptc_set_policy.argstype = [ct.c_char_p, ct.c_char_p,
-          ct.POINTER(xt_counters), ct.c_void_p]
+                                ct.POINTER(xt_counters), ct.c_void_p]
 
     # Get first rule in the given chain: NULL for empty chain.
     iptc_first_rule = _libiptc.iptc_first_rule
@@ -155,28 +166,28 @@ class iptc(object):
     # Insert the entry `e' in chain `chain' into position `rulenum'.
     iptc_insert_entry = _libiptc.iptc_insert_entry
     iptc_insert_entry.restype = ct.c_int
-    iptc_insert_entry.argstype = [ct.c_char_p, ct.POINTER(ipt_entry), ct.c_int,
-          ct.c_void_p]
+    iptc_insert_entry.argstype = [ct.c_char_p, ct.POINTER(ipt_entry),
+                                  ct.c_int, ct.c_void_p]
 
     # Atomically replace rule `rulenum' in `chain' with `e'.
     iptc_replace_entry = _libiptc.iptc_replace_entry
     iptc_replace_entry.restype = ct.c_int
-    iptc_replace_entry.argstype = [ct.c_char_p, ct.POINTER(ipt_entry), ct.c_int,
-          ct.c_void_p]
+    iptc_replace_entry.argstype = [ct.c_char_p, ct.POINTER(ipt_entry),
+                                   ct.c_int, ct.c_void_p]
 
     # Append entry `e' to chain `chain'.  Equivalent to insert with
     #   rulenum = length of chain.
     iptc_append_entry = _libiptc.iptc_append_entry
     iptc_append_entry.restype = ct.c_int
     iptc_append_entry.argstype = [ct.c_char_p, ct.POINTER(ipt_entry),
-          ct.c_void_p]
+                                  ct.c_void_p]
 
     # Delete the first rule in `chain' which matches `e', subject to
     #   matchmask (array of length == origfw)
     iptc_delete_entry = _libiptc.iptc_delete_entry
     iptc_delete_entry.restype = ct.c_int
     iptc_delete_entry.argstype = [ct.c_char_p, ct.POINTER(ipt_entry),
-          ct.POINTER(ct.c_ubyte), ct.c_void_p]
+                                  ct.POINTER(ct.c_ubyte), ct.c_void_p]
 
     # Delete the rule in position `rulenum' in `chain'.
     iptc_delete_num_entry = _libiptc.iptc_delete_num_entry
@@ -208,23 +219,18 @@ class iptc(object):
     iptc_set_counter = _libiptc.iptc_set_counter
     iptc_set_counter.restype = ct.c_int
     iptc_set_counter.argstype = [ct.c_char_p, ct.c_uint,
-          ct.POINTER(xt_counters), ct.c_void_p]
+                                 ct.POINTER(xt_counters), ct.c_void_p]
 
     # Translates errno numbers into more human-readable form than strerror.
     iptc_strerror = _libiptc.iptc_strerror
     iptc_strerror.restype = ct.c_char_p
     iptc_strerror.argstype = [ct.c_int]
 
-class IPTCError(Exception):
-    """This exception is raised when a low-level libiptc error occurs.
-
-    It contains a short description about the error that occured while
-    executing an iptables operation.
-    """
 
 class IPTCModule(object):
     """Superclass for Match and Target."""
-    pattern = re.compile('\s*(!)?\s*--([-\w]+)\s+(!)?\s*"?([^"]*?)"?(?=\s*(?:!?\s*--|$))')
+    pattern = re.compile(
+        '\s*(!)?\s*--([-\w]+)\s+(!)?\s*"?([^"]*?)"?(?=\s*(?:!?\s*--|$))')
 
     def __init__(self):
         self._name = None
@@ -238,7 +244,7 @@ class IPTCModule(object):
     def parse(self, parameter, value):
         if not self._module.extra_opts and not self._module.x6_options:
             raise AttributeError("%s: invalid parameter %s" %
-                    (self._module.name, parameter))
+                                 (self._module.name, parameter))
 
         parameter = parameter.rstrip().lstrip()
         value = value.rstrip().lstrip()
@@ -261,7 +267,7 @@ class IPTCModule(object):
 
     def final_check(self):
         if self._module and self._module.final_check:
-            self._final_check() # subclasses override this
+            self._final_check()  # subclasses override this
 
     def _final_check(self):
         raise NotImplementedError()
@@ -289,7 +295,7 @@ class IPTCModule(object):
             return None
 
     def _get_all_values(self, buf):
-        table = {} # variable -> (value, inverted)
+        table = {}  # variable -> (value, inverted)
         res = re.findall(IPTCModule.pattern, buf)
         for x in res:
             value, invert = (x[3], x[0] or x[2])
@@ -298,7 +304,7 @@ class IPTCModule(object):
         return table
 
     def _get_value(self, buf, name):
-        table = {} # variable -> (value, inverted)
+        table = {}  # variable -> (value, inverted)
         res = re.findall(IPTCModule.pattern, buf)
         for x in res:
             table[x[1]] = (x[3], x[0] or x[2])
@@ -337,6 +343,7 @@ class IPTCModule(object):
         self._rule = rule
     rule = property(_get_rule, _set_rule)
     """The rule this target or match belong to."""
+
 
 class Match(IPTCModule):
     """Matches are extensions which can match for special header fields or
@@ -380,7 +387,7 @@ class Match(IPTCModule):
             raise XTablesError("can't find match %s" % (name))
         self._module = module[0]
         self._module.mflags = 0
-        if revision != None:
+        if revision is not None:
             self._revision = revision
         else:
             self._revision = self._module.revision
@@ -394,11 +401,11 @@ class Match(IPTCModule):
 
     def __eq__(self, match):
         basesz = ct.sizeof(xt_entry_match)
-        if self.match.u.match_size == match.match.u.match_size and \
-                self.match.u.user.name == match.match.u.user.name and \
-                self.match.u.user.revision == match.match.u.user.revision and \
-                self.match_buf[basesz:self.usersize] == \
-                        match.match_buf[basesz:match.usersize]:
+        if (self.match.u.match_size == match.match.u.match_size and
+            self.match.u.user.name == match.match.u.user.name and
+            self.match.u.user.revision == match.match.u.user.revision and
+            self.match_buf[basesz:self.usersize] ==
+            match.match_buf[basesz:match.usersize]):
             return True
         return False
 
@@ -410,7 +417,7 @@ class Match(IPTCModule):
 
     def _parse(self, argv, inv, entry):
         self._xt.parse_match(argv, inv, self._module, entry,
-                ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
+                             ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
 
     def _get_size(self):
         return xt_align(self._module.size + ct.sizeof(xt_entry_match))
@@ -425,9 +432,9 @@ class Match(IPTCModule):
 
     def _update_pointers(self):
         self._ptr = ct.cast(ct.byref(self._match_buf),
-                ct.POINTER(xt_entry_match))
+                            ct.POINTER(xt_entry_match))
         self._ptrptr = ct.cast(ct.pointer(self._ptr),
-                ct.POINTER(ct.POINTER(xt_entry_match)))
+                               ct.POINTER(ct.POINTER(xt_entry_match)))
 
     def reset(self):
         """Reset the match.
@@ -453,6 +460,7 @@ class Match(IPTCModule):
         return self._match_buf
     match_buf = property(_get_match_buf)
     """This is the buffer holding the C structure used by the extension."""
+
 
 class Target(IPTCModule):
     """Targets specify what to do with a packet when a match is found while
@@ -481,9 +489,9 @@ class Target(IPTCModule):
         they usually only work with certain kernel versions. Python-iptables
         by default will use the latest revision available.
         """
-        if name == None and target == None:
+        if name is None and target is None:
             raise ValueError("can't create target based on nothing")
-        if name == None:
+        if name is None:
             name = target.u.user.name
         self._name = name
         self._rule = rule
@@ -503,7 +511,7 @@ class Target(IPTCModule):
                 raise XTablesError("can't find target %s" % (name))
         self._module = module[0]
         self._module.tflags = 0
-        if revision != None:
+        if revision is not None:
             self._revision = revision
         else:
             self._revision = self._module.revision
@@ -544,7 +552,7 @@ class Target(IPTCModule):
 
     def _parse(self, argv, inv, entry):
         self._xt.parse_target(argv, inv, self._module, entry,
-                ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
+                              ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
 
     def _get_size(self):
         return xt_align(self._module.size + ct.sizeof(xt_entry_target))
@@ -572,9 +580,9 @@ class Target(IPTCModule):
 
     def _update_pointers(self):
         self._ptr = ct.cast(ct.byref(self._target_buf),
-                ct.POINTER(xt_entry_target))
+                            ct.POINTER(xt_entry_target))
         self._ptrptr = ct.cast(ct.pointer(self._ptr),
-                ct.POINTER(ct.POINTER(xt_entry_target)))
+                               ct.POINTER(ct.POINTER(xt_entry_target)))
 
     def reset(self):
         """Reset the target.  Parameters are set to their default values, any
@@ -592,7 +600,7 @@ class Target(IPTCModule):
 
     def _get_target(self):
         return ct.cast(ct.byref(self.target_buf),
-                ct.POINTER(xt_entry_target))[0]
+                       ct.POINTER(xt_entry_target))[0]
     target = property(_get_target)
     """This is the C structure used by the extension."""
 
@@ -600,6 +608,7 @@ class Target(IPTCModule):
         return self._target_buf
     target_buf = property(_get_target_buf)
     """This is the buffer holding the C structure used by the extension."""
+
 
 class Policy(object):
     """
@@ -630,11 +639,14 @@ class Policy(object):
     def __init__(self, name):
         self.name = name
 
+
 def _a_to_i(addr):
     return struct.unpack("I", addr)[0]
 
+
 def _i_to_a(ip):
     return struct.pack("I", int(ip.s_addr))
+
 
 class Rule(object):
     """Rules are entries in chains.
@@ -649,12 +661,12 @@ class Rule(object):
         * One target.  This determines what happens with the packet if it is
           matched.
     """
-    protocols = { 0: "all",
-          socket.IPPROTO_TCP: "tcp",
-          socket.IPPROTO_UDP: "udp",
-          socket.IPPROTO_ICMP: "icmp",
-          socket.IPPROTO_ESP: "esp",
-          socket.IPPROTO_AH: "ah" }
+    protocols = {0: "all",
+                 socket.IPPROTO_TCP: "tcp",
+                 socket.IPPROTO_UDP: "udp",
+                 socket.IPPROTO_ICMP: "icmp",
+                 socket.IPPROTO_ESP: "esp",
+                 socket.IPPROTO_AH: "ah"}
 
     def __init__(self, entry=None, chain=None):
         """
@@ -673,13 +685,13 @@ class Rule(object):
         if len(self._matches) != len(rule._matches):
             return False
         if set(rule._matches) != set([x for x in rule._matches if x in
-                self._matches]):
+                                      self._matches]):
             return False
-        if self.src == rule.src and self.dst == rule.dst and \
-                self.protocol == rule.protocol and \
-                self.fragment == rule.fragment and \
-                self.in_interface == rule.in_interface and \
-                self.out_interface == rule.out_interface:
+        if (self.src == rule.src and self.dst == rule.dst and
+            self.protocol == rule.protocol and
+            self.fragment == rule.fragment and
+            self.in_interface == rule.in_interface and
+            self.out_interface == rule.out_interface):
             return True
         return False
 
@@ -720,7 +732,7 @@ class Rule(object):
         return self.entry.ip
 
     def _get_matches(self):
-        return self._matches[:] # return a copy
+        return self._matches[:]  # return a copy
     matches = property(_get_matches)
     """This is the list of matches held in this rule."""
 
@@ -740,13 +752,13 @@ class Rule(object):
         paddr = _i_to_a(self.entry.ip.src)
         try:
             addr = socket.inet_ntop(socket.AF_INET, paddr)
-        except socket.error as e:
+        except socket.error:
             raise IPTCError("error in internal state: invalid address")
         src = "".join([src, addr, "/"])
         paddr = _i_to_a(self.entry.ip.smsk)
         try:
             netmask = socket.inet_ntop(socket.AF_INET, paddr)
-        except socket.error as e:
+        except socket.error:
             raise IPTCError("error in internal state: invalid netmask")
         src = "".join([src, netmask])
         return src
@@ -756,8 +768,8 @@ class Rule(object):
             self.entry.ip.invflags |= ipt_ip.IPT_INV_SRCIP
             src = src[1:]
         else:
-            self.entry.ip.invflags &= ~ipt_ip.IPT_INV_SRCIP & \
-                  ipt_ip.IPT_INV_MASK
+            self.entry.ip.invflags &= (~ipt_ip.IPT_INV_SRCIP &
+                                       ipt_ip.IPT_INV_MASK)
 
         slash = src.find("/")
         if slash == -1:
@@ -769,7 +781,7 @@ class Rule(object):
 
         try:
             saddr = _a_to_i(socket.inet_pton(socket.AF_INET, addr))
-        except socket.error as e:
+        except socket.error:
             raise ValueError("invalid address %s" % (addr))
         ina = in_addr()
         ina.s_addr = ct.c_uint32(saddr)
@@ -777,7 +789,7 @@ class Rule(object):
 
         try:
             nmask = _a_to_i(socket.inet_pton(socket.AF_INET, netm))
-        except socket.error as e:
+        except socket.error:
             raise ValueError("invalid netmask %s" % (netm))
         neta = in_addr()
         neta.s_addr = ct.c_uint32(nmask)
@@ -794,13 +806,13 @@ class Rule(object):
         paddr = _i_to_a(self.entry.ip.dst)
         try:
             addr = socket.inet_ntop(socket.AF_INET, paddr)
-        except socket.error as e:
+        except socket.error:
             raise IPTCError("error in internal state: invalid address")
         dst = "".join([dst, addr, "/"])
         paddr = _i_to_a(self.entry.ip.dmsk)
         try:
             netmask = socket.inet_ntop(socket.AF_INET, paddr)
-        except socket.error as e:
+        except socket.error:
             raise IPTCError("error in internal state: invalid netmask")
         dst = "".join([dst, netmask])
         return dst
@@ -810,8 +822,8 @@ class Rule(object):
             self.entry.ip.invflags |= ipt_ip.IPT_INV_DSTIP
             dst = dst[1:]
         else:
-            self.entry.ip.invflags &= ~ipt_ip.IPT_INV_DSTIP & \
-                  ipt_ip.IPT_INV_MASK
+            self.entry.ip.invflags &= (~ipt_ip.IPT_INV_DSTIP &
+                                       ipt_ip.IPT_INV_MASK)
 
         slash = dst.find("/")
         if slash == -1:
@@ -823,7 +835,7 @@ class Rule(object):
 
         try:
             daddr = _a_to_i(socket.inet_pton(socket.AF_INET, addr))
-        except socket.error as e:
+        except socket.error:
             raise ValueError("invalid address %s" % (addr))
         ina = in_addr()
         ina.s_addr = ct.c_uint32(daddr)
@@ -831,7 +843,7 @@ class Rule(object):
 
         try:
             nmask = _a_to_i(socket.inet_pton(socket.AF_INET, netm))
-        except socket.error as e:
+        except socket.error:
             raise ValueError("invalid netmask %s" % (netm))
         neta = in_addr()
         neta.s_addr = ct.c_uint32(nmask)
@@ -867,8 +879,8 @@ class Rule(object):
             self.entry.ip.invflags |= ipt_ip.IPT_INV_VIA_IN
             intf = intf[1:]
         else:
-            self.entry.ip.invflags &= ~ipt_ip.IPT_INV_VIA_IN & \
-                  ipt_ip.IPT_INV_MASK
+            self.entry.ip.invflags &= (~ipt_ip.IPT_INV_VIA_IN &
+                                       ipt_ip.IPT_INV_MASK)
         if len(intf) >= _IFNAMSIZ:
             raise ValueError("interface name %s too long" % (intf))
         masklen = len(intf) + 1
@@ -876,10 +888,10 @@ class Rule(object):
             intf = intf[:-1]
             masklen -= 2
 
-        self.entry.ip.iniface = \
-              "".join([intf, '\x00' * (_IFNAMSIZ - len(intf))])
-        self.entry.ip.iniface_mask = \
-              "".join(['\x01' * masklen, '\x00' * (_IFNAMSIZ - masklen)])
+        self.entry.ip.iniface = "".join([intf, '\x00' * (_IFNAMSIZ -
+                                                         len(intf))])
+        self.entry.ip.iniface_mask = "".join(['\x01' * masklen, '\x00' *
+                                              (_IFNAMSIZ - masklen)])
 
     in_interface = property(get_in_interface, set_in_interface)
     """This is the input network interface e.g. *eth0*.  A wildcard match can
@@ -890,11 +902,9 @@ class Rule(object):
         if self.entry.ip.invflags & ipt_ip.IPT_INV_VIA_OUT:
             intf = "".join(["!", intf])
         iface = bytearray(_IFNAMSIZ)
-        iface[:len(self.entry.ip.outiface)] = \
-              self.entry.ip.outiface
+        iface[:len(self.entry.ip.outiface)] = self.entry.ip.outiface
         mask = bytearray(_IFNAMSIZ)
-        mask[:len(self.entry.ip.outiface_mask)] = \
-              self.entry.ip.outiface_mask
+        mask[:len(self.entry.ip.outiface_mask)] = self.entry.ip.outiface_mask
         if mask[0] == 0:
             return None
         for i in xrange(_IFNAMSIZ):
@@ -913,8 +923,8 @@ class Rule(object):
             self.entry.ip.invflags |= ipt_ip.IPT_INV_VIA_OUT
             intf = intf[1:]
         else:
-            self.entry.ip.invflags &= ~ipt_ip.IPT_INV_VIA_OUT & \
-                  ipt_ip.IPT_INV_MASK
+            self.entry.ip.invflags &= (~ipt_ip.IPT_INV_VIA_OUT &
+                                       ipt_ip.IPT_INV_MASK)
         if len(intf) >= _IFNAMSIZ:
             raise ValueError("interface name %s too long" % (intf))
         masklen = len(intf) + 1
@@ -922,10 +932,10 @@ class Rule(object):
             intf = intf[:-1]
             masklen -= 2
 
-        self.entry.ip.outiface = \
-              "".join([intf, '\x00' * (_IFNAMSIZ - len(intf))])
-        self.entry.ip.outiface_mask = \
-              "".join(['\x01' * masklen, '\x00' * (_IFNAMSIZ - masklen)])
+        self.entry.ip.outiface = "".join([intf, '\x00' * (_IFNAMSIZ -
+                                                          len(intf))])
+        self.entry.ip.outiface_mask = "".join(['\x01' * masklen, '\x00' *
+                                               (_IFNAMSIZ - masklen)])
 
     out_interface = property(get_out_interface, set_out_interface)
     """This is the output network interface e.g. *eth0*.  A wildcard match can
@@ -958,8 +968,8 @@ class Rule(object):
             self.entry.ip.invflags |= ipt_ip.IPT_INV_PROTO
             proto = proto[1:]
         else:
-            self.entry.ip.invflags &= \
-                  ~ipt_ip.IPT_INV_PROTO & ipt_ip.IPT_INV_MASK
+            self.entry.ip.invflags &= (~ipt_ip.IPT_INV_PROTO &
+                                       ipt_ip.IPT_INV_MASK)
         for p in self.protocols.items():
             if proto.lower() == p[1]:
                 self.entry.ip.proto = p[0]
@@ -1009,12 +1019,12 @@ class Rule(object):
         offset = 0
         for m in self._matches:
             sz = xt_align(m.size)
-            buf[entrysz+offset:entrysz+offset+sz] = m.match_buf[:sz]
+            buf[entrysz + offset:entrysz + offset + sz] = m.match_buf[:sz]
             offset += sz
 
         # copy target to buf at offset of entrysz + matchsz
         ptr = ct.cast(ct.pointer(self._target.target), ct.POINTER(ct.c_ubyte))
-        buf[entrysz+matchsz:entrysz+matchsz+targetsz] = ptr[:targetsz]
+        buf[entrysz + matchsz:entrysz + matchsz + targetsz] = ptr[:targetsz]
 
         return buf
 
@@ -1024,29 +1034,29 @@ class Rule(object):
             return
         else:
             self.entry = ct.cast(ct.pointer(entry),
-                    ct.POINTER(self._entry_type()))[0]
+                                 ct.POINTER(self._entry_type()))[0]
 
         if not isinstance(entry, self._entry_type()):
             raise TypeError()
 
         entrysz = self._entry_size()
         matchsz = entry.target_offset - entrysz
-        targetsz = entry.next_offset - entry.target_offset
+        #targetsz = entry.next_offset - entry.target_offset
 
         # iterate over matches to create blob
         if matchsz:
             off = 0
             while entrysz + off < entry.target_offset:
                 match = ct.cast(ct.byref(entry.elems, off),
-                        ct.POINTER(xt_entry_match))[0]
+                                ct.POINTER(xt_entry_match))[0]
                 m = Match(self, match=match)
                 self.add_match(m)
                 off += m.size
 
         target = ct.cast(ct.byref(entry, entry.target_offset),
-              ct.POINTER(xt_entry_target))[0]
+                         ct.POINTER(xt_entry_target))[0]
         self.target = Target(self, target=target)
-        jump = self.chain.table.get_target(entry) # standard target is special
+        jump = self.chain.table.get_target(entry)  # standard target is special
         if jump:
             self._target.standard_target = jump
 
@@ -1080,6 +1090,7 @@ class Rule(object):
 
     mask = property(_get_mask)
     """This is the raw mask buffer as iptables uses it when removing rules."""
+
 
 class Chain(object):
     """Rules are contained by chains.
@@ -1186,6 +1197,7 @@ class Chain(object):
     rules = property(_get_rules)
     """This is the list of rules currently in the chain."""
 
+
 def autocommit(fn):
     def new(*args):
         obj = args[0]
@@ -1194,6 +1206,7 @@ def autocommit(fn):
             obj.refresh()
         return ret
     return new
+
 
 class Table(object):
     """A table is the most basic building block in iptables.
@@ -1230,7 +1243,7 @@ class Table(object):
 
     _cache = weakref.WeakValueDictionary()
 
-    def __new__(cls, name, autocommit = True):
+    def __new__(cls, name, autocommit=True):
         obj = Table._cache.get(name, None)
         if not obj:
             obj = object.__new__(cls)
@@ -1239,7 +1252,7 @@ class Table(object):
             obj.autocommit = autocommit
         return obj
 
-    def __init__(self, name, autocommit = True):
+    def __init__(self, name, autocommit=True):
         """
         *name* is the name of the table, if it already exists it is returned.
         *autocommit* specifies that any iptables operation that changes a
@@ -1247,7 +1260,7 @@ class Table(object):
         """
         self.name = name
         self.autocommit = autocommit
-        self._iptc = iptc() # to keep references to functions
+        self._iptc = iptc()  # to keep references to functions
         self._handle = None
         self.refresh()
 
@@ -1266,7 +1279,7 @@ class Table(object):
             raise IPTCError("can't commit: %s" % (self.strerror()))
 
     def _free(self, ignore_exc=True):
-        if self._handle == None:
+        if self._handle is None:
             raise IPTCError("table is not initialized")
         try:
             self.commit()
@@ -1285,7 +1298,7 @@ class Table(object):
         handle = self._iptc.iptc_init(self.name)
         if not handle:
             raise IPTCError("can't initialize %s: %s" % (self.name,
-                self.strerror()))
+                                                         self.strerror()))
         self._handle = handle
 
     def is_chain(self, chain):
@@ -1322,7 +1335,7 @@ class Table(object):
         rv = self._iptc.iptc_create_chain(chain, self._handle)
         if rv != 1:
             raise IPTCError("can't create chain %s: %s" % (chain,
-                self.strerror()))
+                                                           self.strerror()))
         return Chain(self, chain)
 
     @autocommit
@@ -1333,7 +1346,7 @@ class Table(object):
         rv = self._iptc.iptc_delete_chain(chain, self._handle)
         if rv != 1:
             raise IPTCError("can't delete chain %s: %s" % (chain,
-                self.strerror()))
+                                                           self.strerror()))
 
     @autocommit
     def rename_chain(self, chain, new_name):
@@ -1343,7 +1356,7 @@ class Table(object):
         rv = self._iptc.iptc_rename_chain(chain, new_name, self._handle)
         if rv != 1:
             raise IPTCError("can't rename chain %s: %s" % (chain,
-                self.strerror()))
+                                                           self.strerror()))
 
     @autocommit
     def flush_entries(self, chain):
@@ -1353,7 +1366,7 @@ class Table(object):
         rv = self._iptc.iptc_flush_entries(chain, self._handle)
         if rv != 1:
             raise IPTCError("can't flush chain %s: %s" % (chain,
-                self.strerror()))
+                                                          self.strerror()))
 
     @autocommit
     def zero_entries(self, chain):
@@ -1362,11 +1375,11 @@ class Table(object):
             chain = chain.name
         rv = self._iptc.iptc_zero_entries(chain, self._handle)
         if rv != 1:
-            raise IPTCError("can't zero chain %s counters: %s" % (chain,
-                self.strerror()))
+            raise IPTCError("can't zero chain %s counters: %s" %
+                            (chain, self.strerror()))
 
     @autocommit
-    def set_policy(self, chain, policy, counters = None):
+    def set_policy(self, chain, policy, counters=None):
         """Set the policy of *chain* to *policy*, and also update chain
         counters if *counters* is specified."""
         if isinstance(chain, Chain):
@@ -1382,8 +1395,8 @@ class Table(object):
             cntrs = None
         rv = self._iptc.iptc_set_policy(chain, policy, cntrs, self._handle)
         if rv != 1:
-            raise IPTCError("can't set policy %s on chain %s: %s)" % (policy,
-                chain, self.strerror()))
+            raise IPTCError("can't set policy %s on chain %s: %s)" %
+                            (policy, chain, self.strerror()))
 
     @autocommit
     def get_policy(self, chain):
@@ -1393,38 +1406,39 @@ class Table(object):
         if not self.builtin_chain(chain):
             return None, None
         cntrs = xt_counters()
-        pol = self._iptc.iptc_get_policy(chain, ct.pointer(cntrs), self._handle)
+        pol = self._iptc.iptc_get_policy(chain, ct.pointer(cntrs),
+                                         self._handle)
         if not pol:
-            raise IPTCError("can't get policy on chain %s: %s" % (chain,
-                self.strerror()))
+            raise IPTCError("can't get policy on chain %s: %s" %
+                            (chain, self.strerror()))
         return Policy(pol), (cntrs.pcnt, cntrs.bcnt)
 
     @autocommit
     def append_entry(self, chain, entry):
         """Appends rule *entry* to *chain*."""
         rv = self._iptc.iptc_append_entry(chain, ct.cast(entry, ct.c_void_p),
-              self._handle)
+                                          self._handle)
         if rv != 1:
-            raise IPTCError("can't append entry to chain %s: %s)" % (chain,
-                self.strerror()))
+            raise IPTCError("can't append entry to chain %s: %s)" %
+                            (chain, self.strerror()))
 
     @autocommit
     def insert_entry(self, chain, entry, position):
         """Inserts rule *entry* into *chain* at position *position*."""
         rv = self._iptc.iptc_insert_entry(chain, ct.cast(entry, ct.c_void_p),
-              position, self._handle)
+                                          position, self._handle)
         if rv != 1:
-            raise IPTCError("can't insert entry into chain %s: %s)" % (chain,
-                self.strerror()))
+            raise IPTCError("can't insert entry into chain %s: %s)" %
+                            (chain, self.strerror()))
 
     @autocommit
     def delete_entry(self, chain, entry, mask):
         """Removes rule *entry* with *mask* from *chain*."""
         rv = self._iptc.iptc_delete_entry(chain, ct.cast(entry, ct.c_void_p),
-              mask, self._handle)
+                                          mask, self._handle)
         if rv != 1:
-            raise IPTCError("can't delete entry from chain %s: %s)" % (chain,
-                self.strerror()))
+            raise IPTCError("can't delete entry from chain %s: %s)" %
+                            (chain, self.strerror()))
 
     def first_rule(self, chain):
         """Returns the first rule in *chain* or *None* if it is empty."""
