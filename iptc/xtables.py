@@ -474,6 +474,8 @@ class xtables(object):
     # replaces ->final_check of the older API.
     def _options_fcheck(self, name, xflags, table):
         for entry in table:
+            if entry.name is None:
+                break
             if entry.flags & XTOPT_MAND and not xflags & (1 << entry.id):
                 raise XTablesError("%s: --%s must be specified" % (name,
                                                                    entry.name))
@@ -487,7 +489,7 @@ class xtables(object):
         if target.x6_fcheck:
             cb = xt_fcheck_call()
             cb.ext_name = target.name
-            cb.data = target.t.data
+            cb.data = ct.cast(target.t[0].data, ct.c_void_p)
             cb.xflags = target.tflags
             cb.udata = target.udata
             target.x6_fcheck(ct.pointer(cb))
@@ -503,7 +505,7 @@ class xtables(object):
         if match.x6_fcheck:
             cb = xt_fcheck_call()
             cb.ext_name = match.name
-            cb.data = match.m.data
+            cb.data = ct.cast(match.m[0].data, ct.c_void_p)
             cb.xflags = match.mflags
             cb.udata = match.udata
             match.x6_fcheck(ct.pointer(cb))
