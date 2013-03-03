@@ -16,6 +16,15 @@ __all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError"]
 _IFNAMSIZ = 16
 
 
+def is_table_available(name):
+    try:
+        Table(name)
+        return True
+    except IPTCError:
+        pass
+    return False
+
+
 class in_addr(ct.Structure):
     """This class is a representation of the C struct in_addr."""
     _fields_ = [("s_addr", ct.c_uint32)]
@@ -699,7 +708,7 @@ class Rule(object):
         return not self.__eq__(rule)
 
     def _get_tables(self):
-        return [Table(t) for t in Table.ALL]
+        return [Table(t) for t in Table.ALL if is_table_available(t)]
     tables = property(_get_tables)
     """This is the list of tables for our protocol."""
 

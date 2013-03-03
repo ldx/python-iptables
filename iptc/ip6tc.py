@@ -16,6 +16,20 @@ load_kernel("ip6_tables")
 _IFNAMSIZ = 16
 
 
+def is_table_available(name):
+    try:
+        Table(name)
+        return True
+    except IPTCError:
+        pass
+    try:
+        Table6(name)
+        return True
+    except IPTCError:
+        pass
+    return False
+
+
 class in6_addr(ct.Structure):
     """This class is a representation of the C struct in6_addr."""
     _fields_ = [("s6_addr", ct.c_uint8 * 16)]  # IPv6 address
@@ -248,7 +262,7 @@ class Rule6(Rule):
         return self._save(name, self.entry.ipv6)
 
     def _get_tables(self):
-        return [Table6(t) for t in Table6.ALL]
+        return [Table6(t) for t in Table6.ALL if is_table_available(t)]
     tables = property(_get_tables)
     """This is the list of tables for our protocol."""
 

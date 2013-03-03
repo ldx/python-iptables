@@ -4,18 +4,7 @@ import unittest
 import iptc
 
 
-def is_table_available(name):
-    try:
-        iptc.Table(name)
-        return True
-    except iptc.IPTCError:
-        pass
-    try:
-        iptc.Table6(name)
-        return True
-    except iptc.IPTCError:
-        pass
-    return False
+is_table_available = iptc.is_table_available
 
 
 class TestTarget(unittest.TestCase):
