@@ -73,6 +73,7 @@ class TestXTUdpMatch(unittest.TestCase):
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
+        self.chain.flush()
         self.chain.delete()
 
     def test_udp_port(self):
@@ -122,11 +123,13 @@ class TestXTMarkMatch(unittest.TestCase):
         self.rule.target = iptc.Target(self.rule, "ACCEPT")
 
         self.match = iptc.Match(self.rule, "mark")
+
         self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER),
                                 "iptc_test_mark")
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
+        self.chain.flush()
         self.chain.delete()
 
     def test_mark(self):
@@ -152,10 +155,7 @@ class TestXTMarkMatch(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
-
-        self.chain.delete_rule(self.rule)
 
 
 class TestXTLimitMatch(unittest.TestCase):
