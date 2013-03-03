@@ -1187,12 +1187,12 @@ class Chain(object):
         return self.table.get_target(rbuf)
 
     def _get_rules(self):
-        rules = []
-        rule = self.table.first_rule(self.name)
-        while rule:
-            rules.append(Rule(rule, self))
-            rule = self.table.next_rule(rule)
-        return rules
+        entries = []
+        entry = self.table.first_rule(self.name)
+        while entry:
+            entries.append(entry)
+            entry = self.table.next_rule(entry)
+        return [Rule(e, self) for e in entries]
 
     rules = property(_get_rules)
     """This is the list of rules currently in the chain."""
