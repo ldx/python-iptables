@@ -109,10 +109,7 @@ class TestXTUdpMatch(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
-
-        self.chain.delete_rule(self.rule)
 
 
 class TestXTMarkMatch(unittest.TestCase):
@@ -197,10 +194,7 @@ class TestXTLimitMatch(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
-
-        self.chain.delete_rule(self.rule)
 
 
 class TestCommentMatch(unittest.TestCase):
@@ -252,10 +246,7 @@ class TestIprangeMatch(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
-
-        self.chain.delete_rule(self.rule)
 
     def test_iprange_tcpdport(self):
         self.match.src_range = "192.168.1.100-192.168.1.200"
@@ -270,10 +261,7 @@ class TestIprangeMatch(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
-
-        self.chain.delete_rule(self.rule)
 
 
 def suite():
