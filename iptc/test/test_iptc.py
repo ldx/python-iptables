@@ -545,6 +545,41 @@ class TestRule(unittest.TestCase):
                   for rule in chain.rules if rule):
             pass
 
+        chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_chain")
+        iptc.Table(iptc.Table.FILTER).create_chain(chain)
+
+        rules = []
+
+        rule = iptc.Rule()
+        rule.protocol = "tcp"
+        rule.src = "127.0.0.1"
+        target = iptc.Target(rule, "ACCEPT")
+        rule.target = target
+        chain.insert_rule(rule)
+        rules.append(rule)
+
+        rule = iptc.Rule()
+        rule.protocol = "udp"
+        rule.src = "127.0.0.1"
+        target = iptc.Target(rule, "REJECT")
+        rule.target = target
+        chain.insert_rule(rule)
+        rules.append(rule)
+
+        rule = iptc.Rule()
+        rule.protocol = "tcp"
+        rule.dst = "10.1.1.0/255.255.255.0"
+        target = iptc.Target(rule, "RETURN")
+        rule.target = target
+        chain.insert_rule(rule)
+        rules.append(rule)
+
+        crules = chain.rules
+        self.failUnless(rules[::-1] == crules)
+
+        chain.flush()
+        chain.delete()
+
 
 def suite():
     suite_table6 = unittest.TestLoader().loadTestsFromTestCase(TestTable6)
