@@ -22,8 +22,10 @@ class TestTable6(unittest.TestCase):
         self.assertEquals(id(raw), id(iptc.Table6(iptc.Table6.RAW)))
         self.assertNotEquals(id(filt), id(security))
         self.assertNotEquals(id(filt), id(mangle))
+        self.assertNotEquals(id(filt), id(raw))
         self.assertNotEquals(id(security), id(mangle))
         self.assertNotEquals(id(security), id(raw))
+        self.assertNotEquals(id(mangle), id(raw))
 
 
 class TestTable(unittest.TestCase):
