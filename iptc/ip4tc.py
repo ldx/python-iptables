@@ -528,19 +528,19 @@ class Target(IPTCModule):
 
     def __eq__(self, targ):
         basesz = ct.sizeof(xt_entry_target)
-        if self.target.u.target_size != targ.target.u.target_size or \
-                self.target.u.user.name != targ.target.u.user.name or \
-                self.target.u.user.revision != targ.target.u.user.revision:
+        if (self.target.u.target_size != targ.target.u.target_size or
+            self.target.u.user.name != targ.target.u.user.name or
+            self.target.u.user.revision != targ.target.u.user.revision):
             return False
-        if self.target.u.user.name == "" or \
-                self.target.u.user.name == "standard" or \
-                self.target.u.user.name == "ACCEPT" or \
-                self.target.u.user.name == "DROP" or \
-                self.target.u.user.name == "RETURN" or \
-                self.target.u.user.name == "ERROR":
+        if (self.target.u.user.name == "" or
+            self.target.u.user.name == "standard" or
+            self.target.u.user.name == "ACCEPT" or
+            self.target.u.user.name == "DROP" or
+            self.target.u.user.name == "RETURN" or
+            self.target.u.user.name == "ERROR"):
             return True
-        if self.target_buf[basesz:self.usersize] == \
-                targ.target_buf[basesz:targ.usersize]:
+        if (self.target_buf[basesz:self.usersize] ==
+            targ.target_buf[basesz:targ.usersize]):
             return True
         return False
 
