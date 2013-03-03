@@ -398,10 +398,12 @@ class TestRule6(unittest.TestCase):
 
 class TestRule(unittest.TestCase):
     def setUp(self):
-        pass
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_chain")
+        iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
-        pass
+        self.chain.flush()
+        self.chain.delete()
 
     def test_rule_address(self):
         # valid addresses
@@ -524,15 +526,11 @@ class TestRule(unittest.TestCase):
         self.assertEquals(target.name, "ACCEPT")
         self.assertEquals(target.standard_target, "ACCEPT")
 
-        chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_chain")
-        iptc.Table(iptc.Table.FILTER).create_chain(chain)
-        target = iptc.Target(rule, "iptc_test_chain")
+        target = iptc.Target(rule, self.chain.name)
         rule.target = target
 
-        chain.insert_rule(rule)
-        chain.delete_rule(rule)
-
-        chain.delete()
+        self.chain.insert_rule(rule)
+        self.chain.delete_rule(rule)
 
     def test_rule_iterate(self):
         for r in (rule for chain in iptc.Table(iptc.Table.FILTER).chains
@@ -545,9 +543,6 @@ class TestRule(unittest.TestCase):
                   for rule in chain.rules if rule):
             pass
 
-        chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_chain")
-        iptc.Table(iptc.Table.FILTER).create_chain(chain)
-
         rules = []
 
         rule = iptc.Rule()
@@ -555,7 +550,7 @@ class TestRule(unittest.TestCase):
         rule.src = "127.0.0.1"
         target = iptc.Target(rule, "ACCEPT")
         rule.target = target
-        chain.insert_rule(rule)
+        self.chain.insert_rule(rule)
         rules.append(rule)
 
         rule = iptc.Rule()
@@ -563,7 +558,7 @@ class TestRule(unittest.TestCase):
         rule.src = "127.0.0.1"
         target = iptc.Target(rule, "REJECT")
         rule.target = target
-        chain.insert_rule(rule)
+        self.chain.insert_rule(rule)
         rules.append(rule)
 
         rule = iptc.Rule()
@@ -571,14 +566,11 @@ class TestRule(unittest.TestCase):
         rule.dst = "10.1.1.0/255.255.255.0"
         target = iptc.Target(rule, "RETURN")
         rule.target = target
-        chain.insert_rule(rule)
+        self.chain.insert_rule(rule)
         rules.append(rule)
 
-        crules = chain.rules
+        crules = self.chain.rules
         self.failUnless(rules[::-1] == crules)
-
-        chain.flush()
-        chain.delete()
 
 
 def suite():
