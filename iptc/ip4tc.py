@@ -275,7 +275,7 @@ class IPTCModule(object):
         raise NotImplementedError()
 
     def final_check(self):
-        if self._module and self._module.final_check:
+        if self._module:
             self._final_check()  # subclasses override this
 
     def _final_check(self):
@@ -711,6 +711,13 @@ class Rule(object):
         return [Table(t) for t in Table.ALL if is_table_available(t)]
     tables = property(_get_tables)
     """This is the list of tables for our protocol."""
+
+    def final_check(self):
+        """Do a final check on the target and the matches."""
+        if self.target:
+            self.target.final_check()
+        for match in self.matches:
+            match.final_check()
 
     def create_match(self, name, revision=None):
         """Create a *match*, and add it to the list of matches in this rule.
@@ -1167,6 +1174,7 @@ class Chain(object):
 
     def append_rule(self, rule):
         """Append *rule* to the end of the chain."""
+        rule.final_check()
         rbuf = rule.rule
         if not rbuf:
             raise ValueError("invalid rule")
@@ -1175,6 +1183,7 @@ class Chain(object):
     def insert_rule(self, rule, position=0):
         """Insert *rule* as the first entry in the chain if *position* is 0 or
         not specified, else *rule* is inserted in the given position."""
+        rule.final_check()
         rbuf = rule.rule
         if not rbuf:
             raise ValueError("invalid rule")
@@ -1182,6 +1191,7 @@ class Chain(object):
 
     def delete_rule(self, rule):
         """Removes *rule* from the chain."""
+        rule.final_check()
         rbuf = rule.rule
         if not rbuf:
             raise ValueError("invalid rule")
