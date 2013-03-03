@@ -6,4 +6,5 @@ python:
 install:
   - python setup.py build
   - python setup.py install
-#script: echo "y"|sudo PATH=$PATH ./test.py
+script:
+  - echo "y"|sudo PATH=$PATH ./test.py
