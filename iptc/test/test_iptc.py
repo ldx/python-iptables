@@ -28,10 +28,12 @@ class TestTable6(unittest.TestCase):
 
 class TestTable(unittest.TestCase):
     def setUp(self):
-        pass
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER),
+                                "iptc_test_chain")
+        iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
-        pass
+        iptc.Table(iptc.Table.FILTER).delete_chain(self.chain)
 
     def test_table(self):
         filt = iptc.Table("filter")
@@ -48,15 +50,13 @@ class TestTable(unittest.TestCase):
         self.assertNotEquals(id(nat), id(raw))
 
     def test_refresh(self):
-        chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_chain")
-        iptc.Table(iptc.Table.FILTER).create_chain(chain)
         rule = iptc.Rule()
         match = iptc.Match(rule, "tcp")
         match.dport = "1234"
         rule.add_match(match)
         try:
-            chain.insert_rule(rule)
-            iptc.Table(iptc.Table.FILTER).delete_chain(chain)
+            self.chain.insert_rule(rule)
+            iptc.Table(iptc.Table.FILTER).delete_chain(self.chain)
             self.fail("inserted invalid rule")
         except:
             pass
@@ -64,9 +64,8 @@ class TestTable(unittest.TestCase):
         target = iptc.Target(rule, "ACCEPT")
         rule.target = target
         rule.protocol = "tcp"
-        chain.insert_rule(rule)
-        chain.delete_rule(rule)
-        iptc.Table(iptc.Table.FILTER).delete_chain(chain)
+        self.chain.insert_rule(rule)
+        self.chain.delete_rule(rule)
 
 
 class TestChain(unittest.TestCase):
@@ -253,10 +252,12 @@ class TestChain(unittest.TestCase):
 
 class TestRule6(unittest.TestCase):
     def setUp(self):
-        pass
+        self.chain = iptc.Chain(iptc.Table6(iptc.Table6.FILTER),
+                                "iptc_test_chain")
+        iptc.Table6(iptc.Table6.FILTER).create_chain(self.chain)
 
     def tearDown(self):
-        pass
+        self.chain.delete()
 
     def test_rule_address(self):
         # valid addresses
@@ -371,15 +372,11 @@ class TestRule6(unittest.TestCase):
         self.assertEquals(target.name, "ACCEPT")
         self.assertEquals(target.standard_target, "ACCEPT")
 
-        chain = iptc.Chain(iptc.Table6(iptc.Table6.FILTER), "iptc_test_chain")
-        iptc.Table6(iptc.Table6.FILTER).create_chain(chain)
-        target = iptc.Target(rule, "iptc_test_chain")
+        target = iptc.Target(rule, self.chain.name)
         rule.target = target
 
-        chain.insert_rule(rule)
-        chain.delete_rule(rule)
-
-        chain.delete()
+        self.chain.insert_rule(rule)
+        self.chain.delete_rule(rule)
 
     def test_rule_iterate(self):
         for r in (rule for chain in iptc.Table6(iptc.Table6.FILTER).chains
@@ -398,7 +395,8 @@ class TestRule6(unittest.TestCase):
 
 class TestRule(unittest.TestCase):
     def setUp(self):
-        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_chain")
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER),
+                                "iptc_test_chain")
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
