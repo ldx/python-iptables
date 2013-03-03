@@ -111,10 +111,7 @@ class TestXTClusteripTarget(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
-
-        self.chain.delete_rule(self.rule)
 
 
 class TestIPTRedirectTarget(unittest.TestCase):
@@ -163,10 +160,7 @@ class TestIPTRedirectTarget(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
-
-        self.chain.delete_rule(self.rule)
 
 
 class TestXTTosTarget(unittest.TestCase):
@@ -244,10 +238,7 @@ class TestXTTosTarget(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
-
-        self.chain.delete_rule(self.rule)
 
 
 class TestIPTMasqueradeTarget(unittest.TestCase):
@@ -296,8 +287,6 @@ class TestIPTMasqueradeTarget(unittest.TestCase):
             if r == self.rule:
                 found = True
                 break
-
-        self.chain.delete_rule(self.rule)
 
         if not found:
             self.fail("inserted rule does not match original")
