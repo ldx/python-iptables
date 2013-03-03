@@ -4,6 +4,20 @@ import unittest
 import iptc
 
 
+def is_table_available(name):
+    try:
+        iptc.Table(name)
+        return True
+    except iptc.IPTCError:
+        pass
+    try:
+        iptc.Table6(name)
+        return True
+    except iptc.IPTCError:
+        pass
+    return False
+
+
 class TestTarget(unittest.TestCase):
     def setUp(self):
         pass
@@ -302,13 +316,14 @@ class TestIPTMasqueradeTarget(unittest.TestCase):
 
 def suite():
     suite_target = unittest.TestLoader().loadTestsFromTestCase(TestTarget)
+    suite_tos = unittest.TestLoader().loadTestsFromTestCase(TestXTTosTarget)
     suite_cluster = unittest.TestLoader().loadTestsFromTestCase(
         TestXTClusteripTarget)
-    suite_redir = unittest.TestLoader().loadTestsFromTestCase(
-        TestIPTRedirectTarget)
-    suite_tos = unittest.TestLoader().loadTestsFromTestCase(TestXTTosTarget)
-    suite_masq = unittest.TestLoader().loadTestsFromTestCase(
-        TestIPTMasqueradeTarget)
+    if is_table_available(iptc.Table.NAT):
+        suite_redir = unittest.TestLoader().loadTestsFromTestCase(
+            TestIPTRedirectTarget)
+        suite_masq = unittest.TestLoader().loadTestsFromTestCase(
+            TestIPTMasqueradeTarget)
     return unittest.TestSuite([suite_target, suite_cluster, suite_redir,
                                suite_tos, suite_masq])
 
