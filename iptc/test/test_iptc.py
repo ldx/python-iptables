@@ -48,8 +48,10 @@ class TestTable(unittest.TestCase):
         self.assertEquals(id(raw), id(iptc.Table(iptc.Table.RAW)))
         self.assertNotEquals(id(filt), id(nat))
         self.assertNotEquals(id(filt), id(mangle))
+        self.assertNotEquals(id(filt), id(raw))
         self.assertNotEquals(id(nat), id(mangle))
         self.assertNotEquals(id(nat), id(raw))
+        self.assertNotEquals(id(mangle), id(raw))
 
     def test_refresh(self):
         rule = iptc.Rule()
