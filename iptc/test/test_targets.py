@@ -324,8 +324,10 @@ def suite():
             TestIPTRedirectTarget)
         suite_masq = unittest.TestLoader().loadTestsFromTestCase(
             TestIPTMasqueradeTarget)
-    return unittest.TestSuite([suite_target, suite_cluster, suite_redir,
-                               suite_tos, suite_masq])
+        return unittest.TestSuite([suite_target, suite_cluster, suite_redir,
+                                   suite_tos, suite_masq])
+    else:
+        return unittest.TestSuite([suite_target, suite_cluster, suite_tos])
 
 
 def run_tests():
