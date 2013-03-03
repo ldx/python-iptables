@@ -15,6 +15,8 @@ if answer in "nN":
 
 from iptc.test import test_iptc, test_matches, test_targets
 
-test_iptc.run_tests()
-test_matches.run_tests()
-test_targets.run_tests()
+results = [rv for rv in [test_iptc.run_tests(), test_matches.run_tests(),
+                         test_targets.run_tests()]]
+for res in results:
+    if res:
+        sys.exit(1)

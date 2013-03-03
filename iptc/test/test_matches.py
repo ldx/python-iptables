@@ -278,7 +278,10 @@ def suite():
 
 
 def run_tests():
-    unittest.TextTestRunner(verbosity=2).run(suite())
+    result = unittest.TextTestRunner(verbosity=2).run(suite())
+    if result.errors or result.failures:
+        return 1
+    return 0
 
 if __name__ == "__main__":
     unittest.main()
