@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import ctypes as ct
-import ctypes.util
 import weakref
 import version
+
+from util import find_library
 
 XT_INV_PROTO = 0x40  # invert the sense of PROTO
 
@@ -274,42 +275,14 @@ class XTablesError(Exception):
     """Raised when an xtables call fails for some reason."""
 
 
-_libc = ct.CDLL(ctypes.util.find_library("c"))
+_libc = find_library("c")
 _optind = ct.c_long.in_dll(_libc, "optind")
 _optarg = ct.c_char_p.in_dll(_libc, "optarg")
 
+_lib_xtables = find_library("xtables")
 
-_lib_xtables = ct.CDLL(ctypes.util.find_library("xtables"),
-                       mode=ct.RTLD_GLOBAL)
+_lib_xtwrapper = find_library("xtwrapper")
 
-
-def _get_library(name):
-    p = ctypes.util.find_library(name)
-    if p:
-        lib = ct.CDLL(p, mode=ct.RTLD_GLOBAL)
-        return lib
-
-    # probably we have been installed in a virtualenv
-    import os
-    from distutils.sysconfig import get_python_lib
-    try:
-        lib = ct.CDLL(os.path.join(get_python_lib(), 'lib%s.so' % (name)),
-                      mode=ct.RTLD_GLOBAL)
-        return lib
-    except:
-        pass
-
-    import sys
-    for p in sys.path:
-        try:
-            lib = ct.CDLL(os.path.join(p, 'lib%s.so' % (name)),
-                          mode=ct.RTLD_GLOBAL)
-            return lib
-        except:
-            pass
-    return None
-
-_lib_xtwrapper = _get_library("xtwrapper")
 _throw = _lib_xtwrapper.throw_exception
 
 _wrap_parse = _lib_xtwrapper.wrap_parse

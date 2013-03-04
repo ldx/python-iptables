@@ -6,8 +6,8 @@ import ctypes as ct
 import socket
 import struct
 import weakref
-import ctypes.util
 
+from util import find_library
 from xtables import (XT_INV_PROTO, NFPROTO_IPV4, XTablesError, xtables,
                      xt_align, xt_counters, xt_entry_target, xt_entry_match)
 
@@ -83,12 +83,7 @@ class IPTCError(Exception):
     """
 
 
-_libiptc_file = ctypes.util.find_library("ip4tc")
-if not _libiptc_file:
-    _libiptc_file = ctypes.util.find_library("iptc")
-if not _libiptc_file:
-    raise IPTCError("error: libiptc/libip4tc not found")
-_libiptc = ct.CDLL(_libiptc_file, use_errno=True)
+_libiptc = find_library("ip4tc", "iptc")  # old iptables versions use iptc
 
 
 class iptc(object):

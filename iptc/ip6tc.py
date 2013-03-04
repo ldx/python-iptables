@@ -3,11 +3,10 @@
 import ctypes as ct
 import socket
 import weakref
-import ctypes.util
 
 from ip4tc import Rule, Table, IPTCError
+from util import find_library, load_kernel
 from xtables import (XT_INV_PROTO, NFPROTO_IPV6, xt_align, xt_counters)
-from util import load_kernel
 
 __all__ = ["Table6", "Rule6"]
 
@@ -82,10 +81,7 @@ class ip6t_entry(ct.Structure):
                 ("elems", ct.c_ubyte * 0)]       # the matches then the target
 
 
-_libiptc_file = ctypes.util.find_library("ip6tc")
-if not _libiptc_file:
-    raise IPTCError("error: libip6tc not found")
-_libiptc = ct.CDLL(_libiptc_file, use_errno=True)
+_libiptc = find_library("ip6tc", "iptc")  # old iptables versions use iptc
 
 
 class ip6tc(object):
