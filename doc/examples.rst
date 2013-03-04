@@ -4,7 +4,7 @@ Examples
 Introduction
 ------------
 
-In python-iptables, you usually first create a rule, and set any
+In ``python-iptables``, you usually first create a rule, and set any
 source/destination address, in/out interface and protocol specifiers, for
 example:
 
@@ -57,7 +57,7 @@ Parameters are always strings.
 When you are ready constructing your rule, add them to the chain you want it
 to show up in:
 
-    >>> chain = iptc.Chain(iptc.TABLE_FILTER, "INPUT")
+    >>> chain = iptc.Chain(iptc.Table(iptc.Table.TABLE_FILTER), "INPUT")
     >>> chain.insert_rule(rule)
 
 This will put your rule into the INPUT chain in the filter table.
@@ -69,7 +69,7 @@ Reject packets with source address ``127.0.0.1/255.0.0.0`` coming in on any of
 the eth interfaces:
 
     >>> import iptc
-    >>> chain = iptc.Chain(iptc.TABLE_FILTER, "INPUT")
+    >>> chain = iptc.Chain(iptc.Table(iptc.Table.TABLE_FILTER), "INPUT")
     >>> rule = iptc.Rule()
     >>> rule.in_interface = "eth+"
     >>> rule.src = "127.0.0.1/255.0.0.0"
@@ -83,7 +83,7 @@ Simple rule not using any match extensions
 Inserting a rule to NAT TCP packets going out via ``eth0``:
 
     >>> import iptc
-    >>> chain = iptc.Chain(iptc.TABLE_NAT, "POSTROUTING")
+    >>> chain = iptc.Chain(iptc.Table(iptc.Table.TABLE_NAT), "POSTROUTING")
     >>> rule = iptc.Rule()
     >>> rule.protocol = "tcp"
     >>> rule.out_interface = "eth0"
@@ -98,7 +98,7 @@ Rule using the udp match extension
 Mark packets going to ``192.168.1.2`` UDP port ``1234`` with ``0xffff``:
 
     >>> import iptc
-    >>> chain = iptc.Chain(iptc.TABLE_MANGLE, "PREROUTING")
+    >>> chain = iptc.Chain(iptc.Table(iptc.Table.TABLE_MANGLE), "PREROUTING")
     >>> rule = iptc.Rule()
     >>> rule.dst = "192.168.1.2"
     >>> rule.protocol = "udp"
@@ -113,8 +113,8 @@ Mark packets going to ``192.168.1.2`` UDP port ``1234`` with ``0xffff``:
 Multiple matches with iprange
 -----------------------------
 
-Now we will add multiple matches to a rule. This one is the python-iptables
-equivalent of the following iptables command:
+Now we will add multiple matches to a rule. This one is the
+``python-iptables`` equivalent of the following iptables command:
 
 # iptables -A INPUT -p tcp –destination-port 22 -m iprange –src-range 192.168.1.100-192.168.1.200 –dst-range 172.22.33.106 -j DROP
 
@@ -129,5 +129,5 @@ equivalent of the following iptables command:
     >>> match.dst_range = "172.22.33.106"
     >>> rule.add_match(match)
     >>> rule.target = iptc.Target(rule, "DROP")
-    >>> chain = iptc.Chain(iptc.TABLE_FILTER, "INPUT")
+    >>> chain = iptc.Chain(iptc.Table.(iptc.Table.TABLE_FILTER), "INPUT")
     >>> chain.insert_rule(rule)

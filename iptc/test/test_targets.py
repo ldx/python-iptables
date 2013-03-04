@@ -3,6 +3,10 @@
 import unittest
 import iptc
 
+
+is_table_available = iptc.is_table_available
+
+
 class TestTarget(unittest.TestCase):
     def setUp(self):
         pass
@@ -36,6 +40,26 @@ class TestTarget(unittest.TestCase):
         t2.set_mark = "0x124"
         self.failIf(t1 == t2)
 
+    def test_target_parameters(self):
+        t = iptc.Target(iptc.Rule(), "CONNMARK")
+        t.nfmask = "0xdeadbeef"
+        t.ctmask = "0xfefefefe"
+        t.save_mark = ""
+
+        self.failUnless(len(t.parameters) == 3)
+
+        for p in t.parameters:
+            self.failUnless(p == "ctmask" or p == "nfmask" or
+                            p == "save_mark")
+
+        self.failUnless(t.parameters["save_mark"] == "")
+        self.failUnless(t.parameters["nfmask"] == "0xdeadbeef")
+        self.failUnless(t.parameters["ctmask"] == "0xfefefefe")
+
+        t.reset()
+        self.failUnless(len(t.parameters) == 1)
+
+
 class TestXTClusteripTarget(unittest.TestCase):
     def setUp(self):
         self.rule = iptc.Rule()
@@ -49,7 +73,8 @@ class TestXTClusteripTarget(unittest.TestCase):
         self.target = iptc.Target(self.rule, "CLUSTERIP")
         self.rule.target = self.target
 
-        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "iptc_test_clusterip")
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER),
+                                "iptc_test_clusterip")
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
@@ -58,7 +83,7 @@ class TestXTClusteripTarget(unittest.TestCase):
 
     def test_mode(self):
         for hashmode in ["sourceip", "sourceip-sourceport",
-                "sourceip-sourceport-destport"]:
+                         "sourceip-sourceport-destport"]:
             self.target.new = ""
             self.target.hashmode = hashmode
             self.assertEquals(self.target.hashmode, hashmode)
@@ -67,7 +92,7 @@ class TestXTClusteripTarget(unittest.TestCase):
             self.target.new = ""
             try:
                 self.target.hashmode = hashmode
-            except Exception, e:
+            except Exception:
                 pass
             else:
                 self.fail("CLUSTERIP accepted invalid value %s" % (hashmode))
@@ -86,10 +111,8 @@ class TestXTClusteripTarget(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
 
-        self.chain.delete_rule(self.rule)
 
 class TestIPTRedirectTarget(unittest.TestCase):
     def setUp(self):
@@ -104,7 +127,8 @@ class TestIPTRedirectTarget(unittest.TestCase):
         self.target = iptc.Target(self.rule, "REDIRECT")
         self.rule.target = self.target
 
-        self.chain = iptc.Chain(iptc.Table(iptc.Table.NAT), "iptc_test_redirect")
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.NAT),
+                                "iptc_test_redirect")
         iptc.Table(iptc.Table.NAT).create_chain(self.chain)
 
     def tearDown(self):
@@ -118,10 +142,10 @@ class TestIPTRedirectTarget(unittest.TestCase):
             self.target.reset()
         self.target.random = ""
         self.target.reset()
-        for port in ["1234567", "2345-1234"]: # ipt bug: it accepts strings
+        for port in ["1234567", "2345-1234"]:  # ipt bug: it accepts strings
             try:
                 self.target.to_ports = port
-            except Exception, e:
+            except Exception:
                 pass
             else:
                 self.fail("REDIRECT accepted invalid value %s" % (port))
@@ -136,10 +160,8 @@ class TestIPTRedirectTarget(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
 
-        self.chain.delete_rule(self.rule)
 
 class TestXTTosTarget(unittest.TestCase):
     def setUp(self):
@@ -187,21 +209,21 @@ class TestXTTosTarget(unittest.TestCase):
         for tos in ["0x1234", "0x12/0xfff", "asdf", "Minimize-Bullshit"]:
             try:
                 self.target.and_tos = tos
-            except Exception, e:
+            except Exception:
                 pass
             else:
                 self.fail("TOS accepted invalid value %s" % (tos))
             self.target.reset()
             try:
                 self.target.or_tos = tos
-            except Exception, e:
+            except Exception:
                 pass
             else:
                 self.fail("TOS accepted invalid value %s" % (tos))
             self.target.reset()
             try:
                 self.target.xor_tos = tos
-            except Exception, e:
+            except Exception:
                 pass
             else:
                 self.fail("TOS accepted invalid value %s" % (tos))
@@ -216,10 +238,8 @@ class TestXTTosTarget(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
 
-        self.chain.delete_rule(self.rule)
 
 class TestIPTMasqueradeTarget(unittest.TestCase):
     def setUp(self):
@@ -231,10 +251,13 @@ class TestIPTMasqueradeTarget(unittest.TestCase):
         self.target = iptc.Target(self.rule, "MASQUERADE")
         self.rule.target = self.target
 
-        self.chain = iptc.Chain(iptc.Table(iptc.Table.NAT), "POSTROUTING")
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.NAT),
+                                "iptc_test_masquerade")
+        iptc.Table(iptc.Table.NAT).create_chain(self.chain)
 
     def tearDown(self):
-        pass
+        self.chain.flush()
+        self.chain.delete()
 
     def test_mode(self):
         for port in ["1234", "1234-2345"]:
@@ -246,7 +269,7 @@ class TestIPTMasqueradeTarget(unittest.TestCase):
         for port in ["123456", "1234-1233", "asdf"]:
             try:
                 self.target.to_ports = port
-            except Exception, e:
+            except Exception:
                 pass
             else:
                 self.fail("MASQUERADE accepted invalid value %s" % (port))
@@ -265,25 +288,31 @@ class TestIPTMasqueradeTarget(unittest.TestCase):
                 found = True
                 break
 
-        self.chain.delete_rule(self.rule)
-
         if not found:
             self.fail("inserted rule does not match original")
 
+
 def suite():
     suite_target = unittest.TestLoader().loadTestsFromTestCase(TestTarget)
-    suite_cluster = \
-            unittest.TestLoader().loadTestsFromTestCase(TestXTClusteripTarget)
-    suite_redir = \
-            unittest.TestLoader().loadTestsFromTestCase(TestIPTRedirectTarget)
     suite_tos = unittest.TestLoader().loadTestsFromTestCase(TestXTTosTarget)
-    suite_masq = \
-            unittest.TestLoader().loadTestsFromTestCase(TestIPTMasqueradeTarget)
-    return unittest.TestSuite([suite_target, suite_cluster, suite_redir,
-        suite_tos, suite_masq])
+    suite_cluster = unittest.TestLoader().loadTestsFromTestCase(
+        TestXTClusteripTarget)
+    if is_table_available(iptc.Table.NAT):
+        suite_redir = unittest.TestLoader().loadTestsFromTestCase(
+            TestIPTRedirectTarget)
+        suite_masq = unittest.TestLoader().loadTestsFromTestCase(
+            TestIPTMasqueradeTarget)
+        return unittest.TestSuite([suite_target, suite_cluster, suite_redir,
+                                   suite_tos, suite_masq])
+    else:
+        return unittest.TestSuite([suite_target, suite_cluster, suite_tos])
+
 
 def run_tests():
-    unittest.TextTestRunner(verbosity=2).run(suite())
+    result = unittest.TextTestRunner(verbosity=2).run(suite())
+    if result.errors or result.failures:
+        return 1
+    return 0
 
 if __name__ == "__main__":
     unittest.main()

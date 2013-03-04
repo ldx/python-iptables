@@ -1,8 +1,8 @@
 Usage
 =====
 
-The python API in *python-iptables* tries to mimic the logic of iptables.  You
-have
+The python API in ``python-iptables`` tries to mimic the logic of iptables.
+You have
 
     * **Tables**, **Table.FILTER**, **Table.NAT**, **Table.MANGLE** and
       **Table.RAW** for IPv4; **Table6.FILTER**, **Table6.SECURITY**,
@@ -48,6 +48,7 @@ Table6
 
 .. autoclass:: Table6
    :members:
+   :inherited-members:
 
 Chain
 -----
@@ -66,18 +67,21 @@ Match
 
 .. autoclass:: Match
    :members:
+   :inherited-members:
 
 Target
 ------
 
 .. autoclass:: Target
    :members:
+   :inherited-members:
 
 Rule6
 -----
 
 .. autoclass:: Rule6
    :members:
+   :inherited-members:
 
 IPTCError
 ---------
