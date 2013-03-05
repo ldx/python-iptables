@@ -316,6 +316,7 @@ class TestRule6(unittest.TestCase):
         iptc.Table6(iptc.Table6.FILTER).create_chain(self.chain)
 
     def tearDown(self):
+        self.chain.flush()
         self.chain.delete()
 
     def test_rule_address(self):
