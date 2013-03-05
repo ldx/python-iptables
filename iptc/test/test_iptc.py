@@ -457,6 +457,38 @@ class TestRule6(unittest.TestCase):
                       for rule in chain.rules if rule):
                 pass
 
+        rules = []
+
+        rule = iptc.Rule6()
+        rule.protocol = "tcp"
+        rule.src = "::1"
+        target = iptc.Target(rule, "ACCEPT")
+        rule.target = target
+        self.chain.insert_rule(rule)
+        rules.append(rule)
+
+        rule = iptc.Rule6()
+        rule.protocol = "udp"
+        rule.src = "::1"
+        target = iptc.Target(rule, "ACCEPT")
+        rule.target = target
+        self.chain.insert_rule(rule)
+        rules.append(rule)
+
+        rule = iptc.Rule6()
+        rule.protocol = "tcp"
+        rule.dst = "2001::/16"
+        target = iptc.Target(rule, "RETURN")
+        rule.target = target
+        self.chain.insert_rule(rule)
+        rules.append(rule)
+
+        crules = self.chain.rules
+        self.failUnless(len(rules) == len(crules))
+        for rule in rules:
+            self.failUnless(rule in crules)
+            crules.remove(rule)
+
 
 class TestRule(unittest.TestCase):
     def setUp(self):
