@@ -636,7 +636,10 @@ class TestRule(unittest.TestCase):
         rules.append(rule)
 
         crules = self.chain.rules
-        self.failUnless(rules[::-1] == crules)
+        self.failUnless(len(rules) == len(crules))
+        for rule in rules:
+            self.failUnless(rule in crules)
+            crules.remove(rule)
 
 
 def suite():
