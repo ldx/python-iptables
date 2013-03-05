@@ -1206,7 +1206,7 @@ class Chain(object):
         while entry:
             entries.append(entry)
             entry = self.table.next_rule(entry)
-        return [Rule(e, self) for e in entries]
+        return [self.table.create_rule(e, self) for e in entries]
 
     rules = property(_get_rules)
     """This is the list of rules currently in the chain."""
@@ -1493,3 +1493,6 @@ class Table(object):
             if not self.builtin_chain(chain):
                 chain.flush()
                 chain.delete()
+
+    def create_rule(self, entry=None, chain=None):
+        return Rule(entry, chain)
