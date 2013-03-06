@@ -824,29 +824,34 @@ class xtables(object):
 
         # new API
         try:
-            entry = self._option_lookup(t.x6_options, argv[0])
-            if not entry:
-                raise XTablesError("%s: no such parameter %s" % (t.name, argv[0]))
+            if t.x6_options and t.x6_parse:
+                entry = self._option_lookup(t.x6_options, argv[0])
+                if not entry:
+                    raise XTablesError("%s: no such parameter %s" % (t.name, argv[0]))
 
-            cb = xt_option_call()
-            cb.entry = ct.pointer(entry)
-            cb.arg = _optarg
-            cb.invert = ct.c_uint8(invert.value)
-            cb.ext_name = t.name
-            cb.data = ct.cast(t.t[0].data, ct.c_void_p)
-            cb.xflags = 0
-            cb.target = ct.pointer(t.t)
-            cb.xt_entry = ct.cast(fw, ct.c_void_p)
-            cb.udata = t.udata
-            rv = _wrap_x6parse(t.x6_parse, ct.pointer(cb))
-            if rv != 0:
-                raise XTablesError("%s: parameter error %d (%s)" % (t.name, rv,
-                                                                    argv[1]))
-            t.tflags |= cb.xflags
+                cb = xt_option_call()
+                cb.entry = ct.pointer(entry)
+                cb.arg = _optarg
+                cb.invert = ct.c_uint8(invert.value)
+                cb.ext_name = t.name
+                cb.data = ct.cast(t.t[0].data, ct.c_void_p)
+                cb.xflags = 0
+                cb.target = ct.pointer(t.t)
+                cb.xt_entry = ct.cast(fw, ct.c_void_p)
+                cb.udata = t.udata
+                rv = _wrap_x6parse(t.x6_parse, ct.pointer(cb))
+                if rv != 0:
+                    raise XTablesError("%s: parameter error %d (%s)" % (t.name, rv,
+                                                                        argv[1]))
+                t.tflags |= cb.xflags
+                return
         except AttributeError:
-            flags = ct.pointer(ct.c_uint(0))
-            self._parse(t, argv, invert, flags, fw, ptr)
-            t.tflags |= flags[0]
+            pass
+
+        # Here because either x6_options/x6_parse didn't exist or one was "None"
+        flags = ct.pointer(ct.c_uint(0))
+        self._parse(t, argv, invert, flags, fw, ptr)
+        t.tflags |= flags[0]
 
 
     # Dispatch arguments to the appropriate parse function, based upon the
@@ -857,29 +862,34 @@ class xtables(object):
 
         # new API
         try:
-            entry = self._option_lookup(m.x6_options, argv[0])
-            if not entry:
-                raise XTablesError("%s: no such parameter %s" % (m.name, argv[0]))
+            if m.x6_options and m.x6_parse:
+                entry = self._option_lookup(m.x6_options, argv[0])
+                if not entry:
+                    raise XTablesError("%s: no such parameter %s" % (m.name, argv[0]))
 
-            cb = xt_option_call()
-            cb.entry = ct.pointer(entry)
-            cb.arg = _optarg
-            cb.invert = ct.c_uint8(invert.value)
-            cb.ext_name = m.name
-            cb.data = ct.cast(m.m[0].data, ct.c_void_p)
-            cb.xflags = 0
-            cb.match = ct.pointer(m.m)
-            cb.xt_entry = ct.cast(fw, ct.c_void_p)
-            cb.udata = m.udata
-            rv = _wrap_x6parse(m.x6_parse, ct.pointer(cb))
-            if rv != 0:
-                raise XTablesError("%s: parameter error %d (%s)" % (m.name, rv,
-                                                                    argv[1]))
-            m.mflags |= cb.xflags
+                cb = xt_option_call()
+                cb.entry = ct.pointer(entry)
+                cb.arg = _optarg
+                cb.invert = ct.c_uint8(invert.value)
+                cb.ext_name = m.name
+                cb.data = ct.cast(m.m[0].data, ct.c_void_p)
+                cb.xflags = 0
+                cb.match = ct.pointer(m.m)
+                cb.xt_entry = ct.cast(fw, ct.c_void_p)
+                cb.udata = m.udata
+                rv = _wrap_x6parse(m.x6_parse, ct.pointer(cb))
+                if rv != 0:
+                    raise XTablesError("%s: parameter error %d (%s)" % (m.name, rv,
+                                                                        argv[1]))
+                m.mflags |= cb.xflags
+                return
         except AttributeError:
-            flags = ct.pointer(ct.c_uint(0))
-            self._parse(m, argv, invert, flags, fw, ptr)
-            m.mflags |= flags[0]
+            pass
+            
+        # Here because either x6_options/x6_parse didn't exist or one was "None"
+        flags = ct.pointer(ct.c_uint(0))
+        self._parse(m, argv, invert, flags, fw, ptr)
+        m.mflags |= flags[0]
 
     # Check that all option constraints have been met. This effectively
     # replaces ->final_check of the older API.
