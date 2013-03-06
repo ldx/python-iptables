@@ -177,6 +177,7 @@ class xt_fcheck_call(ct.Structure):
                 ("udata", ct.c_void_p),
                 ("xflags", ct.c_uint)]
 
+
 class _xtables_match_v1(ct.Structure):
     _fields_ = [("version", ct.c_char_p),
                 ("next", ct.c_void_p),
@@ -210,12 +211,12 @@ class _xtables_match_v1(ct.Structure):
                 ("option_offset", ct.c_uint),
                 ("m", ct.POINTER(xt_entry_match)),
                 ("mflags", ct.c_uint),
-                # Depending on how xtables was compiled, loaded may or may not be present
                 ("loaded", ct.c_uint)]
 
 _xtables_match_v2 = _xtables_match_v1
 _xtables_match_v4 = _xtables_match_v1
 _xtables_match_v5 = _xtables_match_v1
+
 
 class _xtables_match_v6(ct.Structure):
     _fields_ = [("version", ct.c_char_p),
@@ -256,6 +257,7 @@ class _xtables_match_v6(ct.Structure):
                 ("m", ct.POINTER(xt_entry_match)),
                 ("mflags", ct.c_uint),
                 ("loaded", ct.c_uint)]
+
 
 class _xtables_match_v7(ct.Structure):
     _fields_ = [("version", ct.c_char_p),
@@ -302,6 +304,7 @@ class _xtables_match_v7(ct.Structure):
                 ("mflags", ct.c_uint),
                 ("loaded", ct.c_uint)]
 
+
 class _xtables_match_v9(ct.Structure):
     _fields_ = [("version", ct.c_char_p),
                 ("next", ct.c_void_p),
@@ -347,6 +350,7 @@ class _xtables_match_v9(ct.Structure):
                 ("m", ct.POINTER(xt_entry_match)),
                 ("mflags", ct.c_uint),
                 ("loaded", ct.c_uint)]
+
 
 class _xtables_match_v10(ct.Structure):
     _fields_ = [("version", ct.c_char_p),
@@ -398,6 +402,7 @@ class _xtables_match_v10(ct.Structure):
                 ("mflags", ct.c_uint),
                 ("loaded", ct.c_uint)]
 
+
 class xtables_match(ct.Union):
     _fields_ = [("v1", _xtables_match_v1),
                 ("v2", _xtables_match_v2),
@@ -409,6 +414,7 @@ class xtables_match(ct.Union):
                 # Apparently v8 was skipped
                 ("v9", _xtables_match_v9),
                 ("v10", _xtables_match_v10)]
+
 
 class _xtables_target_v1(ct.Structure):
     _fields_ = [("version", ct.c_char_p),
@@ -445,12 +451,12 @@ class _xtables_target_v1(ct.Structure):
                 ("t", ct.POINTER(xt_entry_target)),
                 ("tflags", ct.c_uint),
                 ("used", ct.c_uint),
-                # Depending on how xtables was compiled, loaded may or may not be present
                 ("loaded", ct.c_uint)]
 
 _xtables_target_v2 = _xtables_target_v1
 _xtables_target_v4 = _xtables_target_v1
 _xtables_target_v5 = _xtables_target_v1
+
 
 class _xtables_target_v6(ct.Structure):
     _fields_ = [("version", ct.c_char_p),
@@ -493,6 +499,7 @@ class _xtables_target_v6(ct.Structure):
                 ("tflags", ct.c_uint),
                 ("used", ct.c_uint),
                 ("loaded", ct.c_uint)]
+
 
 class _xtables_target_v7(ct.Structure):
     _fields_ = [("version", ct.c_char_p),
@@ -541,6 +548,7 @@ class _xtables_target_v7(ct.Structure):
                 ("used", ct.c_uint),
                 ("loaded", ct.c_uint)]
 
+
 class _xtables_target_v9(ct.Structure):
     _fields_ = [("version", ct.c_char_p),
                 ("next", ct.c_void_p),
@@ -588,6 +596,7 @@ class _xtables_target_v9(ct.Structure):
                 ("tflags", ct.c_uint),
                 ("used", ct.c_uint),
                 ("loaded", ct.c_uint)]
+
 
 class _xtables_target_v10(ct.Structure):
     _fields_ = [("version", ct.c_char_p),
@@ -641,6 +650,7 @@ class _xtables_target_v10(ct.Structure):
                 ("used", ct.c_uint),
                 ("loaded", ct.c_uint)]
 
+
 class xtables_target(ct.Union):
     _fields_ = [("v1", _xtables_target_v1),
                 ("v2", _xtables_target_v2),
@@ -652,6 +662,7 @@ class xtables_target(ct.Union):
                 # Apparently v8 was skipped
                 ("v9", _xtables_target_v9),
                 ("v10", _xtables_target_v10)]
+
 
 class XTablesError(Exception):
     """Raised when an xtables call fails for some reason."""
@@ -845,7 +856,6 @@ class xtables(object):
         self._parse(t, argv, invert, flags, fw, ptr)
         t.tflags |= flags[0]
 
-
     # Dispatch arguments to the appropriate parse function, based upon the
     # extension's choice of API.
     def parse_match(self, argv, invert, m, fw, ptr):
@@ -877,7 +887,7 @@ class xtables(object):
                 return
         except AttributeError:
             pass
-            
+
         # Here because either x6_options/x6_parse didn't exist or one was "None"
         flags = ct.pointer(ct.c_uint(0))
         self._parse(m, argv, invert, flags, fw, ptr)
@@ -907,7 +917,7 @@ class xtables(object):
                 cb.xflags = target.tflags
                 cb.udata = target.udata
                 target.x6_fcheck(ct.pointer(cb))
-        except AttributeError: # x6_fcheck doesn't exist
+        except AttributeError:  # x6_fcheck doesn't exist
             if target.final_check:
                 target.final_check(target.tflags)
 
@@ -928,12 +938,12 @@ class xtables(object):
                 cb.xflags = match.mflags
                 cb.udata = match.udata
                 match.x6_fcheck(ct.pointer(cb))
-        except AttributeError: # x6_fcheck doesn't exist
+        except AttributeError:  # x6_fcheck doesn't exist
             if match.final_check:
                 match.final_check(match.mflags)
 
         try:
             if match.x6_options:
                 self._options_fcheck(match.name, match.mflags, match.x6_options)
-        except AttributeError: # x6_options doesn't exist
+        except AttributeError:  # x6_options doesn't exist
             pass
