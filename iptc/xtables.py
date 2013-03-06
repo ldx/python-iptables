@@ -177,9 +177,6 @@ class xt_fcheck_call(ct.Structure):
                 ("udata", ct.c_void_p),
                 ("xflags", ct.c_uint)]
 
-class _xtables_match_vall(ct.Structure):
-    _fields_ = [("version", ct.c_char_p)]
-
 class _xtables_match_v1(ct.Structure):
     _fields_ = [("version", ct.c_char_p),
                 ("next", ct.c_void_p),
@@ -402,8 +399,7 @@ class _xtables_match_v10(ct.Structure):
                 ("loaded", ct.c_uint)]
 
 class xtables_match(ct.Union):
-    _fields_ = [("all", _xtables_match_vall),
-                ("v1", _xtables_match_v1),
+    _fields_ = [("v1", _xtables_match_v1),
                 ("v2", _xtables_match_v2),
                 # Apparently v3 was skipped
                 ("v4", _xtables_match_v4),
@@ -413,9 +409,6 @@ class xtables_match(ct.Union):
                 # Apparently v8 was skipped
                 ("v9", _xtables_match_v9),
                 ("v10", _xtables_match_v10)]
-
-class _xtables_target_vall(ct.Structure):
-    _fields_ = [("version", ct.c_char_p)]
 
 class _xtables_target_v1(ct.Structure):
     _fields_ = [("version", ct.c_char_p),
@@ -649,8 +642,7 @@ class _xtables_target_v10(ct.Structure):
                 ("loaded", ct.c_uint)]
 
 class xtables_target(ct.Union):
-    _fields_ = [("all", _xtables_target_vall),
-                ("v1", _xtables_target_v1),
+    _fields_ = [("v1", _xtables_target_v1),
                 ("v2", _xtables_target_v2),
                 # Apparently v3 was skipped
                 ("v4", _xtables_target_v4),
@@ -749,7 +741,7 @@ class xtables(object):
 
     def find_match(self, name):
         match = xtables._xtables_find_match(name, XTF_TRY_LOAD, None)
-        version = xtables._get_xtables_version(match.contents.all.version)
+        version = xtables._get_xtables_version(match.contents.v1.version)
 
         if 1 == version:
             return ct.cast(match, ct.POINTER(_xtables_match_v1))
@@ -772,7 +764,7 @@ class xtables(object):
 
     def find_target(self, name):
         target = xtables._xtables_find_target(name, XTF_TRY_LOAD)
-        version = xtables._get_xtables_version(target.contents.all.version)
+        version = xtables._get_xtables_version(target.contents.v1.version)
 
         if 1 == version:
             return ct.cast(target, ct.POINTER(_xtables_target_v1))
