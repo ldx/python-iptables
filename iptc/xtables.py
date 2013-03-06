@@ -825,33 +825,40 @@ class xtables(object):
         _optarg.value = argv[1]
         _optind.value = 2
 
-        # new API
+        x6_options = None
+        x6_parse = None
         try:
-            if t.x6_options and t.x6_parse:
-                entry = self._option_lookup(t.x6_options, argv[0])
-                if not entry:
-                    raise XTablesError("%s: no such parameter %s" % (t.name, argv[0]))
-
-                cb = xt_option_call()
-                cb.entry = ct.pointer(entry)
-                cb.arg = _optarg
-                cb.invert = ct.c_uint8(invert.value)
-                cb.ext_name = t.name
-                cb.data = ct.cast(t.t[0].data, ct.c_void_p)
-                cb.xflags = 0
-                cb.target = ct.pointer(t.t)
-                cb.xt_entry = ct.cast(fw, ct.c_void_p)
-                cb.udata = t.udata
-                rv = _wrap_x6parse(t.x6_parse, ct.pointer(cb))
-                if rv != 0:
-                    raise XTablesError("%s: parameter error %d (%s)" % (t.name, rv,
-                                                                        argv[1]))
-                t.tflags |= cb.xflags
-                return
+            # new API?
+            x6_options = t.x6_options
+            x6_parse = t.x6_parse
         except AttributeError:
             pass
 
-        # Here because either x6_options/x6_parse didn't exist or one was "None"
+        if x6_options and x6_parse:
+            # new API
+            entry = self._option_lookup(t.x6_options, argv[0])
+            if not entry:
+                raise XTablesError("%s: no such parameter %s" % (t.name,
+                                                                 argv[0]))
+
+            cb = xt_option_call()
+            cb.entry = ct.pointer(entry)
+            cb.arg = _optarg
+            cb.invert = ct.c_uint8(invert.value)
+            cb.ext_name = t.name
+            cb.data = ct.cast(t.t[0].data, ct.c_void_p)
+            cb.xflags = 0
+            cb.target = ct.pointer(t.t)
+            cb.xt_entry = ct.cast(fw, ct.c_void_p)
+            cb.udata = t.udata
+            rv = _wrap_x6parse(t.x6_parse, ct.pointer(cb))
+            if rv != 0:
+                raise XTablesError("%s: parameter error %d (%s)" % (t.name, rv,
+                                                                    argv[1]))
+            t.tflags |= cb.xflags
+            return
+
+        # old API
         flags = ct.pointer(ct.c_uint(0))
         self._parse(t, argv, invert, flags, fw, ptr)
         t.tflags |= flags[0]
@@ -862,33 +869,40 @@ class xtables(object):
         _optarg.value = argv[1]
         _optind.value = 2
 
-        # new API
+        x6_options = None
+        x6_parse = None
         try:
-            if m.x6_options and m.x6_parse:
-                entry = self._option_lookup(m.x6_options, argv[0])
-                if not entry:
-                    raise XTablesError("%s: no such parameter %s" % (m.name, argv[0]))
-
-                cb = xt_option_call()
-                cb.entry = ct.pointer(entry)
-                cb.arg = _optarg
-                cb.invert = ct.c_uint8(invert.value)
-                cb.ext_name = m.name
-                cb.data = ct.cast(m.m[0].data, ct.c_void_p)
-                cb.xflags = 0
-                cb.match = ct.pointer(m.m)
-                cb.xt_entry = ct.cast(fw, ct.c_void_p)
-                cb.udata = m.udata
-                rv = _wrap_x6parse(m.x6_parse, ct.pointer(cb))
-                if rv != 0:
-                    raise XTablesError("%s: parameter error %d (%s)" % (m.name, rv,
-                                                                        argv[1]))
-                m.mflags |= cb.xflags
-                return
+            # new API?
+            x6_options = m.x6_options
+            x6_parse = m.x6_parse
         except AttributeError:
             pass
 
-        # Here because either x6_options/x6_parse didn't exist or one was "None"
+        if x6_options and x6_parse:
+            # new API
+            entry = self._option_lookup(m.x6_options, argv[0])
+            if not entry:
+                raise XTablesError("%s: no such parameter %s" % (m.name,
+                                                                 argv[0]))
+
+            cb = xt_option_call()
+            cb.entry = ct.pointer(entry)
+            cb.arg = _optarg
+            cb.invert = ct.c_uint8(invert.value)
+            cb.ext_name = m.name
+            cb.data = ct.cast(m.m[0].data, ct.c_void_p)
+            cb.xflags = 0
+            cb.match = ct.pointer(m.m)
+            cb.xt_entry = ct.cast(fw, ct.c_void_p)
+            cb.udata = m.udata
+            rv = _wrap_x6parse(m.x6_parse, ct.pointer(cb))
+            if rv != 0:
+                raise XTablesError("%s: parameter error %d (%s)" % (m.name, rv,
+                                                                    argv[1]))
+            m.mflags |= cb.xflags
+            return
+
+        # old API
         flags = ct.pointer(ct.c_uint(0))
         self._parse(m, argv, invert, flags, fw, ptr)
         m.mflags |= flags[0]
@@ -909,41 +923,63 @@ class xtables(object):
     # Dispatch arguments to the appropriate final_check function, based upon
     # the extension's choice of API.
     def final_check_target(self, target):
+        x6_fcheck = None
         try:
-            if target.x6_fcheck:
-                cb = xt_fcheck_call()
-                cb.ext_name = target.name
-                cb.data = ct.cast(target.t[0].data, ct.c_void_p)
-                cb.xflags = target.tflags
-                cb.udata = target.udata
-                target.x6_fcheck(ct.pointer(cb))
-        except AttributeError:  # x6_fcheck doesn't exist
+            # new API?
+            x6_fcheck = target.x6_fcheck
+        except AttributeError:
+            # old API
+            pass
+
+        if x6_fcheck:
+            # new API
+            cb = xt_fcheck_call()
+            cb.ext_name = target.name
+            cb.data = ct.cast(target.t[0].data, ct.c_void_p)
+            cb.xflags = target.tflags
+            cb.udata = target.udata
+            target.x6_fcheck(ct.pointer(cb))
+        else:
             if target.final_check:
                 target.final_check(target.tflags)
 
         try:
+            # new API
             if target.x6_options:
-                self._options_fcheck(target.name, target.tflags, target.x6_options)
-        except AttributeError:  # x6_options doesn't exist
+                self._options_fcheck(target.name, target.tflags,
+                                     target.x6_options)
+        except AttributeError:
+            # old API
             pass
 
     # Dispatch arguments to the appropriate final_check function, based upon
     # the extension's choice of API.
     def final_check_match(self, match):
+        x6_fcheck = None
         try:
-            if match.x6_fcheck:
-                cb = xt_fcheck_call()
-                cb.ext_name = match.name
-                cb.data = ct.cast(match.m[0].data, ct.c_void_p)
-                cb.xflags = match.mflags
-                cb.udata = match.udata
-                match.x6_fcheck(ct.pointer(cb))
-        except AttributeError:  # x6_fcheck doesn't exist
+            # new API?
+            x6_fcheck = match.x6_fcheck
+        except AttributeError:  # old API
+            pass
+
+        if x6_fcheck:
+            # new API
+            cb = xt_fcheck_call()
+            cb.ext_name = match.name
+            cb.data = ct.cast(match.m[0].data, ct.c_void_p)
+            cb.xflags = match.mflags
+            cb.udata = match.udata
+            match.x6_fcheck(ct.pointer(cb))
+        else:
+            # old API
             if match.final_check:
                 match.final_check(match.mflags)
 
         try:
+            # new API
             if match.x6_options:
-                self._options_fcheck(match.name, match.mflags, match.x6_options)
-        except AttributeError:  # x6_options doesn't exist
+                self._options_fcheck(match.name, match.mflags,
+                                     match.x6_options)
+        except AttributeError:
+            # old API
             pass
