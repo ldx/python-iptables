@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import ctypes as ct
+import re
 import weakref
 import version
 
@@ -176,8 +177,90 @@ class xt_fcheck_call(ct.Structure):
                 ("udata", ct.c_void_p),
                 ("xflags", ct.c_uint)]
 
+class _xtables_match_vall(ct.Structure):
+    _fields_ = [("version", ct.c_char_p)]
 
-class xtables_match(ct.Structure):
+class _xtables_match_v1(ct.Structure):
+    _fields_ = [("version", ct.c_char_p),
+                ("next", ct.c_void_p),
+                ("name", ct.c_char_p),
+                ("revision", ct.c_uint8),
+                ("family", ct.c_uint16),
+                ("size", ct.c_size_t),
+                ("userspacesize", ct.c_size_t),
+                ("help", ct.CFUNCTYPE(None)),
+                ("init", ct.CFUNCTYPE(None, ct.POINTER(xt_entry_match))),
+                # fourth parameter entry is struct ipt_entry for example
+                # int (*parse)(int c, char **argv, int invert, unsigned int
+                # *flags, const void *entry, struct xt_entry_match **match)
+                ("parse", ct.CFUNCTYPE(ct.c_int, ct.c_int,
+                                       ct.POINTER(ct.c_char_p), ct.c_int,
+                                       ct.POINTER(ct.c_uint), ct.c_void_p,
+                                       ct.POINTER(ct.POINTER(
+                                           xt_entry_match)))),
+                ("final_check", ct.CFUNCTYPE(None, ct.c_uint)),
+                # prints out the match iff non-NULL: put space at end
+                # first parameter ip is struct ipt_ip * for example
+                ("print", ct.CFUNCTYPE(None, ct.c_void_p,
+                                       ct.POINTER(xt_entry_match), ct.c_int)),
+                # saves the match info in parsable form to stdout.
+                # first parameter ip is struct ipt_ip * for example
+                ("save", ct.CFUNCTYPE(None, ct.c_void_p,
+                                      ct.POINTER(xt_entry_match))),
+                # pointer to list of extra command-line options
+                ("extra_opts", ct.POINTER(option)),
+
+                ("option_offset", ct.c_uint),
+                ("m", ct.POINTER(xt_entry_match)),
+                ("mflags", ct.c_uint),
+                # Depending on how xtables was compiled, loaded may or may not be present
+                ("loaded", ct.c_uint)]
+
+_xtables_match_v2 = _xtables_match_v1
+_xtables_match_v4 = _xtables_match_v1
+_xtables_match_v5 = _xtables_match_v1
+
+class _xtables_match_v6(ct.Structure):
+    _fields_ = [("version", ct.c_char_p),
+                ("next", ct.c_void_p),
+                ("name", ct.c_char_p),
+                ("revision", ct.c_uint8),
+                ("family", ct.c_uint16),
+                ("size", ct.c_size_t),
+                ("userspacesize", ct.c_size_t),
+                ("help", ct.CFUNCTYPE(None)),
+                ("init", ct.CFUNCTYPE(None, ct.POINTER(xt_entry_match))),
+                # fourth parameter entry is struct ipt_entry for example
+                # int (*parse)(int c, char **argv, int invert, unsigned int
+                # *flags, const void *entry, struct xt_entry_match **match)
+                ("parse", ct.CFUNCTYPE(ct.c_int, ct.c_int,
+                                       ct.POINTER(ct.c_char_p), ct.c_int,
+                                       ct.POINTER(ct.c_uint), ct.c_void_p,
+                                       ct.POINTER(ct.POINTER(
+                                           xt_entry_match)))),
+                ("final_check", ct.CFUNCTYPE(None, ct.c_uint)),
+                # prints out the match iff non-NULL: put space at end
+                # first parameter ip is struct ipt_ip * for example
+                ("print", ct.CFUNCTYPE(None, ct.c_void_p,
+                                       ct.POINTER(xt_entry_match), ct.c_int)),
+                # saves the match info in parsable form to stdout.
+                # first parameter ip is struct ipt_ip * for example
+                ("save", ct.CFUNCTYPE(None, ct.c_void_p,
+                                      ct.POINTER(xt_entry_match))),
+                # pointer to list of extra command-line options
+                ("extra_opts", ct.POINTER(option)),
+
+                # introduced with the new iptables API
+                ("x6_parse", ct.CFUNCTYPE(None, ct.POINTER(xt_option_call))),
+                ("x6_fcheck", ct.CFUNCTYPE(None, ct.POINTER(xt_fcheck_call))),
+                ("x6_options", ct.POINTER(xt_option_entry)),
+
+                ("option_offset", ct.c_uint),
+                ("m", ct.POINTER(xt_entry_match)),
+                ("mflags", ct.c_uint),
+                ("loaded", ct.c_uint)]
+
+class _xtables_match_v7(ct.Structure):
     _fields_ = [("version", ct.c_char_p),
                 ("next", ct.c_void_p),
                 ("name", ct.c_char_p),
@@ -222,8 +305,203 @@ class xtables_match(ct.Structure):
                 ("mflags", ct.c_uint),
                 ("loaded", ct.c_uint)]
 
+class _xtables_match_v9(ct.Structure):
+    _fields_ = [("version", ct.c_char_p),
+                ("next", ct.c_void_p),
+                ("name", ct.c_char_p),
+                ("real_name", ct.c_char_p),
+                ("revision", ct.c_uint8),
+                ("family", ct.c_uint16),
+                ("size", ct.c_size_t),
+                ("userspacesize", ct.c_size_t),
+                ("help", ct.CFUNCTYPE(None)),
+                ("init", ct.CFUNCTYPE(None, ct.POINTER(xt_entry_match))),
+                # fourth parameter entry is struct ipt_entry for example
+                # int (*parse)(int c, char **argv, int invert, unsigned int
+                # *flags, const void *entry, struct xt_entry_match **match)
+                ("parse", ct.CFUNCTYPE(ct.c_int, ct.c_int,
+                                       ct.POINTER(ct.c_char_p), ct.c_int,
+                                       ct.POINTER(ct.c_uint), ct.c_void_p,
+                                       ct.POINTER(ct.POINTER(
+                                           xt_entry_match)))),
+                ("final_check", ct.CFUNCTYPE(None, ct.c_uint)),
+                # prints out the match iff non-NULL: put space at end
+                # first parameter ip is struct ipt_ip * for example
+                ("print", ct.CFUNCTYPE(None, ct.c_void_p,
+                                       ct.POINTER(xt_entry_match), ct.c_int)),
+                # saves the match info in parsable form to stdout.
+                # first parameter ip is struct ipt_ip * for example
+                ("save", ct.CFUNCTYPE(None, ct.c_void_p,
+                                      ct.POINTER(xt_entry_match))),
+                # pointer to list of extra command-line options
+                ("extra_opts", ct.POINTER(option)),
 
-class xtables_target(ct.Structure):
+                # introduced with the new iptables API
+                ("x6_parse", ct.CFUNCTYPE(None, ct.POINTER(xt_option_call))),
+                ("x6_fcheck", ct.CFUNCTYPE(None, ct.POINTER(xt_fcheck_call))),
+                ("x6_options", ct.POINTER(xt_option_entry)),
+
+                # size of per-extension instance extra "global" scratch space
+                ("udata_size", ct.c_size_t),
+
+                # ignore these men behind the curtain:
+                ("udata", ct.c_void_p),
+                ("option_offset", ct.c_uint),
+                ("m", ct.POINTER(xt_entry_match)),
+                ("mflags", ct.c_uint),
+                ("loaded", ct.c_uint)]
+
+class _xtables_match_v10(ct.Structure):
+    _fields_ = [("version", ct.c_char_p),
+                ("next", ct.c_void_p),
+                ("name", ct.c_char_p),
+                ("real_name", ct.c_char_p),
+                ("revision", ct.c_uint8),
+                ("ext_flags", ct.c_uint8),
+                ("family", ct.c_uint16),
+                ("size", ct.c_size_t),
+                ("userspacesize", ct.c_size_t),
+                ("help", ct.CFUNCTYPE(None)),
+                ("init", ct.CFUNCTYPE(None, ct.POINTER(xt_entry_match))),
+                # fourth parameter entry is struct ipt_entry for example
+                # int (*parse)(int c, char **argv, int invert, unsigned int
+                # *flags, const void *entry, struct xt_entry_match **match)
+                ("parse", ct.CFUNCTYPE(ct.c_int, ct.c_int,
+                                       ct.POINTER(ct.c_char_p), ct.c_int,
+                                       ct.POINTER(ct.c_uint), ct.c_void_p,
+                                       ct.POINTER(ct.POINTER(
+                                           xt_entry_match)))),
+                ("final_check", ct.CFUNCTYPE(None, ct.c_uint)),
+                # prints out the match iff non-NULL: put space at end
+                # first parameter ip is struct ipt_ip * for example
+                ("print", ct.CFUNCTYPE(None, ct.c_void_p,
+                                       ct.POINTER(xt_entry_match), ct.c_int)),
+                # saves the match info in parsable form to stdout.
+                # first parameter ip is struct ipt_ip * for example
+                ("save", ct.CFUNCTYPE(None, ct.c_void_p,
+                                      ct.POINTER(xt_entry_match))),
+                # Print match name or alias
+                ("alias", ct.CFUNCTYPE(ct.c_char_p, ct.c_void_p,
+                                       ct.POINTER(xt_entry_match))),
+                # pointer to list of extra command-line options
+                ("extra_opts", ct.POINTER(option)),
+
+                # introduced with the new iptables API
+                ("x6_parse", ct.CFUNCTYPE(None, ct.POINTER(xt_option_call))),
+                ("x6_fcheck", ct.CFUNCTYPE(None, ct.POINTER(xt_fcheck_call))),
+                ("x6_options", ct.POINTER(xt_option_entry)),
+
+                # size of per-extension instance extra "global" scratch space
+                ("udata_size", ct.c_size_t),
+
+                # ignore these men behind the curtain:
+                ("udata", ct.c_void_p),
+                ("option_offset", ct.c_uint),
+                ("m", ct.POINTER(xt_entry_match)),
+                ("mflags", ct.c_uint),
+                ("loaded", ct.c_uint)]
+
+class xtables_match(ct.Union):
+    _fields_ = [("all", _xtables_match_vall),
+                ("v1", _xtables_match_v1),
+                ("v2", _xtables_match_v2),
+                # Apparently v3 was skipped
+                ("v4", _xtables_match_v4),
+                ("v5", _xtables_match_v5),
+                ("v6", _xtables_match_v6),
+                ("v7", _xtables_match_v7),
+                # Apparently v8 was skipped
+                ("v9", _xtables_match_v9),
+                ("v10", _xtables_match_v10)]
+
+class _xtables_target_vall(ct.Structure):
+    _fields_ = [("version", ct.c_char_p)]
+
+class _xtables_target_v1(ct.Structure):
+    _fields_ = [("version", ct.c_char_p),
+                ("next", ct.c_void_p),
+                ("name", ct.c_char_p),
+                ("revision", ct.c_uint8),
+                ("family", ct.c_uint16),
+                ("size", ct.c_size_t),
+                ("userspacesize", ct.c_size_t),
+                ("help", ct.CFUNCTYPE(None)),
+                ("init", ct.CFUNCTYPE(None, ct.POINTER(xt_entry_target))),
+                # fourth parameter entry is struct ipt_entry for example
+                # int (*parse)(int c, char **argv, int invert,
+                #              unsigned int *flags, const void *entry,
+                #              struct xt_entry_target **target)
+                ("parse", ct.CFUNCTYPE(ct.c_int,
+                                       ct.POINTER(ct.c_char_p), ct.c_int,
+                                       ct.POINTER(ct.c_uint), ct.c_void_p,
+                                       ct.POINTER(ct.POINTER(
+                                           xt_entry_target)))),
+                ("final_check", ct.CFUNCTYPE(None, ct.c_uint)),
+                # prints out the target iff non-NULL: put space at end
+                # first parameter ip is struct ipt_ip * for example
+                ("print", ct.CFUNCTYPE(None, ct.c_void_p,
+                                       ct.POINTER(xt_entry_target), ct.c_int)),
+                # saves the target info in parsable form to stdout.
+                # first parameter ip is struct ipt_ip * for example
+                ("save", ct.CFUNCTYPE(None, ct.c_void_p,
+                                      ct.POINTER(xt_entry_target))),
+                # pointer to list of extra command-line options
+                ("extra_opts", ct.POINTER(option)),
+
+                ("option_offset", ct.c_uint),
+                ("t", ct.POINTER(xt_entry_target)),
+                ("tflags", ct.c_uint),
+                ("used", ct.c_uint),
+                # Depending on how xtables was compiled, loaded may or may not be present
+                ("loaded", ct.c_uint)]
+
+_xtables_target_v2 = _xtables_target_v1
+_xtables_target_v4 = _xtables_target_v1
+_xtables_target_v5 = _xtables_target_v1
+
+class _xtables_target_v6(ct.Structure):
+    _fields_ = [("version", ct.c_char_p),
+                ("next", ct.c_void_p),
+                ("name", ct.c_char_p),
+                ("revision", ct.c_uint8),
+                ("family", ct.c_uint16),
+                ("size", ct.c_size_t),
+                ("userspacesize", ct.c_size_t),
+                ("help", ct.CFUNCTYPE(None)),
+                ("init", ct.CFUNCTYPE(None, ct.POINTER(xt_entry_target))),
+                # fourth parameter entry is struct ipt_entry for example
+                # int (*parse)(int c, char **argv, int invert,
+                #              unsigned int *flags, const void *entry,
+                #              struct xt_entry_target **target)
+                ("parse", ct.CFUNCTYPE(ct.c_int,
+                                       ct.POINTER(ct.c_char_p), ct.c_int,
+                                       ct.POINTER(ct.c_uint), ct.c_void_p,
+                                       ct.POINTER(ct.POINTER(
+                                           xt_entry_target)))),
+                ("final_check", ct.CFUNCTYPE(None, ct.c_uint)),
+                # prints out the target iff non-NULL: put space at end
+                # first parameter ip is struct ipt_ip * for example
+                ("print", ct.CFUNCTYPE(None, ct.c_void_p,
+                                       ct.POINTER(xt_entry_target), ct.c_int)),
+                # saves the target info in parsable form to stdout.
+                # first parameter ip is struct ipt_ip * for example
+                ("save", ct.CFUNCTYPE(None, ct.c_void_p,
+                                      ct.POINTER(xt_entry_target))),
+                # pointer to list of extra command-line options
+                ("extra_opts", ct.POINTER(option)),
+
+                # introduced with the new iptables API
+                ("x6_parse", ct.CFUNCTYPE(None, ct.POINTER(xt_option_call))),
+                ("x6_fcheck", ct.CFUNCTYPE(None, ct.POINTER(xt_fcheck_call))),
+                ("x6_options", ct.POINTER(xt_option_entry)),
+
+                ("option_offset", ct.c_uint),
+                ("t", ct.POINTER(xt_entry_target)),
+                ("tflags", ct.c_uint),
+                ("used", ct.c_uint),
+                ("loaded", ct.c_uint)]
+
+class _xtables_target_v7(ct.Structure):
     _fields_ = [("version", ct.c_char_p),
                 ("next", ct.c_void_p),
                 ("name", ct.c_char_p),
@@ -270,6 +548,118 @@ class xtables_target(ct.Structure):
                 ("used", ct.c_uint),
                 ("loaded", ct.c_uint)]
 
+class _xtables_target_v9(ct.Structure):
+    _fields_ = [("version", ct.c_char_p),
+                ("next", ct.c_void_p),
+                ("name", ct.c_char_p),
+                ("real_name", ct.c_char_p),
+                ("revision", ct.c_uint8),
+                ("family", ct.c_uint16),
+                ("size", ct.c_size_t),
+                ("userspacesize", ct.c_size_t),
+                ("help", ct.CFUNCTYPE(None)),
+                ("init", ct.CFUNCTYPE(None, ct.POINTER(xt_entry_target))),
+                # fourth parameter entry is struct ipt_entry for example
+                # int (*parse)(int c, char **argv, int invert,
+                #              unsigned int *flags, const void *entry,
+                #              struct xt_entry_target **target)
+                ("parse", ct.CFUNCTYPE(ct.c_int,
+                                       ct.POINTER(ct.c_char_p), ct.c_int,
+                                       ct.POINTER(ct.c_uint), ct.c_void_p,
+                                       ct.POINTER(ct.POINTER(
+                                           xt_entry_target)))),
+                ("final_check", ct.CFUNCTYPE(None, ct.c_uint)),
+                # prints out the target iff non-NULL: put space at end
+                # first parameter ip is struct ipt_ip * for example
+                ("print", ct.CFUNCTYPE(None, ct.c_void_p,
+                                       ct.POINTER(xt_entry_target), ct.c_int)),
+                # saves the target info in parsable form to stdout.
+                # first parameter ip is struct ipt_ip * for example
+                ("save", ct.CFUNCTYPE(None, ct.c_void_p,
+                                      ct.POINTER(xt_entry_target))),
+                # pointer to list of extra command-line options
+                ("extra_opts", ct.POINTER(option)),
+
+                # introduced with the new iptables API
+                ("x6_parse", ct.CFUNCTYPE(None, ct.POINTER(xt_option_call))),
+                ("x6_fcheck", ct.CFUNCTYPE(None, ct.POINTER(xt_fcheck_call))),
+                ("x6_options", ct.POINTER(xt_option_entry)),
+
+                # size of per-extension instance extra "global" scratch space
+                ("udata_size", ct.c_size_t),
+
+                # ignore these men behind the curtain:
+                ("udata", ct.c_void_p),
+                ("option_offset", ct.c_uint),
+                ("t", ct.POINTER(xt_entry_target)),
+                ("tflags", ct.c_uint),
+                ("used", ct.c_uint),
+                ("loaded", ct.c_uint)]
+
+class _xtables_target_v10(ct.Structure):
+    _fields_ = [("version", ct.c_char_p),
+                ("next", ct.c_void_p),
+                ("name", ct.c_char_p),
+                ("real_name", ct.c_char_p),
+                ("revision", ct.c_uint8),
+                ("ext_flags", ct.c_uint8),
+                ("family", ct.c_uint16),
+                ("size", ct.c_size_t),
+                ("userspacesize", ct.c_size_t),
+                ("help", ct.CFUNCTYPE(None)),
+                ("init", ct.CFUNCTYPE(None, ct.POINTER(xt_entry_target))),
+                # fourth parameter entry is struct ipt_entry for example
+                # int (*parse)(int c, char **argv, int invert,
+                #              unsigned int *flags, const void *entry,
+                #              struct xt_entry_target **target)
+                ("parse", ct.CFUNCTYPE(ct.c_int,
+                                       ct.POINTER(ct.c_char_p), ct.c_int,
+                                       ct.POINTER(ct.c_uint), ct.c_void_p,
+                                       ct.POINTER(ct.POINTER(
+                                           xt_entry_target)))),
+                ("final_check", ct.CFUNCTYPE(None, ct.c_uint)),
+                # prints out the target iff non-NULL: put space at end
+                # first parameter ip is struct ipt_ip * for example
+                ("print", ct.CFUNCTYPE(None, ct.c_void_p,
+                                       ct.POINTER(xt_entry_target), ct.c_int)),
+                # saves the target info in parsable form to stdout.
+                # first parameter ip is struct ipt_ip * for example
+                ("save", ct.CFUNCTYPE(None, ct.c_void_p,
+                                      ct.POINTER(xt_entry_target))),
+                # Print target name or alias
+                ("alias", ct.CFUNCTYPE(ct.c_char_p, ct.c_void_p,
+                                       ct.POINTER(xt_entry_target))),
+                # pointer to list of extra command-line options
+                ("extra_opts", ct.POINTER(option)),
+
+                # introduced with the new iptables API
+                ("x6_parse", ct.CFUNCTYPE(None, ct.POINTER(xt_option_call))),
+                ("x6_fcheck", ct.CFUNCTYPE(None, ct.POINTER(xt_fcheck_call))),
+                ("x6_options", ct.POINTER(xt_option_entry)),
+
+                # size of per-extension instance extra "global" scratch space
+                ("udata_size", ct.c_size_t),
+
+                # ignore these men behind the curtain:
+                ("udata", ct.c_void_p),
+                ("option_offset", ct.c_uint),
+                ("t", ct.POINTER(xt_entry_target)),
+                ("tflags", ct.c_uint),
+                ("used", ct.c_uint),
+                ("loaded", ct.c_uint)]
+
+class xtables_target(ct.Union):
+    _fields_ = [("all", _xtables_target_vall),
+                ("v1", _xtables_target_v1),
+                ("v2", _xtables_target_v2),
+                # Apparently v3 was skipped
+                ("v4", _xtables_target_v4),
+                ("v5", _xtables_target_v5),
+                ("v6", _xtables_target_v6),
+                ("v7", _xtables_target_v7),
+                # Apparently v8 was skipped
+                ("v9", _xtables_target_v9),
+                ("v10", _xtables_target_v10)]
 
 class XTablesError(Exception):
     """Raised when an xtables call fails for some reason."""
@@ -348,11 +738,60 @@ class xtables(object):
     def __repr__(self):
         return "XTables for protocol %d" % (self.proto)
 
+    @classmethod
+    def _get_xtables_version(cls, version):
+        version_match = re.match("libxtables.so.(\d+)", version)
+
+        if version_match:
+            return int(version_match.group(1))
+        else:
+            raise RuntimeError("Xtables returned unknown version format")
+
     def find_match(self, name):
-        return xtables._xtables_find_match(name, XTF_TRY_LOAD, None)
+        match = xtables._xtables_find_match(name, XTF_TRY_LOAD, None)
+        version = xtables._get_xtables_version(match.contents.all.version)
+
+        if 1 == version:
+            return ct.cast(match, ct.POINTER(_xtables_match_v1))
+        elif 2 == version:
+            return ct.cast(match, ct.POINTER(_xtables_match_v2))
+        elif 4 == version:
+            return ct.cast(match, ct.POINTER(_xtables_match_v4))
+        elif 5 == version:
+            return ct.cast(match, ct.POINTER(_xtables_match_v5))
+        elif 6 == version:
+            return ct.cast(match, ct.POINTER(_xtables_match_v6))
+        elif 7 == version:
+            return ct.cast(match, ct.POINTER(_xtables_match_v7))
+        elif 9 == version:
+            return ct.cast(match, ct.POINTER(_xtables_match_v9))
+        elif 10 <= version:
+            return ct.cast(match, ct.POINTER(_xtables_match_v10))
+        else:
+            raise Exception("Match object casting failed")
 
     def find_target(self, name):
-        return xtables._xtables_find_target(name, XTF_TRY_LOAD)
+        target = xtables._xtables_find_target(name, XTF_TRY_LOAD)
+        version = xtables._get_xtables_version(target.contents.all.version)
+
+        if 1 == version:
+            return ct.cast(target, ct.POINTER(_xtables_target_v1))
+        elif 2 == version:
+            return ct.cast(target, ct.POINTER(_xtables_target_v2))
+        elif 4 == version:
+            return ct.cast(target, ct.POINTER(_xtables_target_v4))
+        elif 5 == version:
+            return ct.cast(target, ct.POINTER(_xtables_target_v5))
+        elif 6 == version:
+            return ct.cast(target, ct.POINTER(_xtables_target_v6))
+        elif 7 == version:
+            return ct.cast(target, ct.POINTER(_xtables_target_v7))
+        elif 9 == version:
+            return ct.cast(target, ct.POINTER(_xtables_target_v9))
+        elif 10 <= version:
+            return ct.cast(target, ct.POINTER(_xtables_target_v10))
+        else:
+            raise Exception("Target object casting failed")
 
     def save(self, module, ip, ptr):
         _wrap_save(module.save, ct.cast(ct.pointer(ip), ct.c_void_p), ptr)
@@ -383,32 +822,32 @@ class xtables(object):
         _optarg.value = argv[1]
         _optind.value = 2
 
-        if not t.x6_options or not t.x6_parse:  # old API
+        # new API
+        try:
+            entry = self._option_lookup(t.x6_options, argv[0])
+            if not entry:
+                raise XTablesError("%s: no such parameter %s" % (t.name, argv[0]))
+
+            cb = xt_option_call()
+            cb.entry = ct.pointer(entry)
+            cb.arg = _optarg
+            cb.invert = ct.c_uint8(invert.value)
+            cb.ext_name = t.name
+            cb.data = ct.cast(t.t[0].data, ct.c_void_p)
+            cb.xflags = 0
+            cb.target = ct.pointer(t.t)
+            cb.xt_entry = ct.cast(fw, ct.c_void_p)
+            cb.udata = t.udata
+            rv = _wrap_x6parse(t.x6_parse, ct.pointer(cb))
+            if rv != 0:
+                raise XTablesError("%s: parameter error %d (%s)" % (t.name, rv,
+                                                                    argv[1]))
+            t.tflags |= cb.xflags
+        except AttributeError:
             flags = ct.pointer(ct.c_uint(0))
             self._parse(t, argv, invert, flags, fw, ptr)
             t.tflags |= flags[0]
-            return
 
-        # new API
-        entry = self._option_lookup(t.x6_options, argv[0])
-        if not entry:
-            raise XTablesError("%s: no such parameter %s" % (t.name, argv[0]))
-
-        cb = xt_option_call()
-        cb.entry = ct.pointer(entry)
-        cb.arg = _optarg
-        cb.invert = ct.c_uint8(invert.value)
-        cb.ext_name = t.name
-        cb.data = ct.cast(t.t[0].data, ct.c_void_p)
-        cb.xflags = 0
-        cb.target = ct.pointer(t.t)
-        cb.xt_entry = ct.cast(fw, ct.c_void_p)
-        cb.udata = t.udata
-        rv = _wrap_x6parse(t.x6_parse, ct.pointer(cb))
-        if rv != 0:
-            raise XTablesError("%s: parameter error %d (%s)" % (t.name, rv,
-                                                                argv[1]))
-        t.tflags |= cb.xflags
 
     # Dispatch arguments to the appropriate parse function, based upon the
     # extension's choice of API.
@@ -416,32 +855,31 @@ class xtables(object):
         _optarg.value = argv[1]
         _optind.value = 2
 
-        if not m.x6_options or not m.x6_parse:  # old API
+        # new API
+        try:
+            entry = self._option_lookup(m.x6_options, argv[0])
+            if not entry:
+                raise XTablesError("%s: no such parameter %s" % (m.name, argv[0]))
+
+            cb = xt_option_call()
+            cb.entry = ct.pointer(entry)
+            cb.arg = _optarg
+            cb.invert = ct.c_uint8(invert.value)
+            cb.ext_name = m.name
+            cb.data = ct.cast(m.m[0].data, ct.c_void_p)
+            cb.xflags = 0
+            cb.match = ct.pointer(m.m)
+            cb.xt_entry = ct.cast(fw, ct.c_void_p)
+            cb.udata = m.udata
+            rv = _wrap_x6parse(m.x6_parse, ct.pointer(cb))
+            if rv != 0:
+                raise XTablesError("%s: parameter error %d (%s)" % (m.name, rv,
+                                                                    argv[1]))
+            m.mflags |= cb.xflags
+        except AttributeError:
             flags = ct.pointer(ct.c_uint(0))
             self._parse(m, argv, invert, flags, fw, ptr)
             m.mflags |= flags[0]
-            return
-
-        # new API
-        entry = self._option_lookup(m.x6_options, argv[0])
-        if not entry:
-            raise XTablesError("%s: no such parameter %s" % (m.name, argv[0]))
-
-        cb = xt_option_call()
-        cb.entry = ct.pointer(entry)
-        cb.arg = _optarg
-        cb.invert = ct.c_uint8(invert.value)
-        cb.ext_name = m.name
-        cb.data = ct.cast(m.m[0].data, ct.c_void_p)
-        cb.xflags = 0
-        cb.match = ct.pointer(m.m)
-        cb.xt_entry = ct.cast(fw, ct.c_void_p)
-        cb.udata = m.udata
-        rv = _wrap_x6parse(m.x6_parse, ct.pointer(cb))
-        if rv != 0:
-            raise XTablesError("%s: parameter error %d (%s)" % (m.name, rv,
-                                                                argv[1]))
-        m.mflags |= cb.xflags
 
     # Check that all option constraints have been met. This effectively
     # replaces ->final_check of the older API.
@@ -459,31 +897,41 @@ class xtables(object):
     # Dispatch arguments to the appropriate final_check function, based upon
     # the extension's choice of API.
     def final_check_target(self, target):
-        if target.x6_fcheck:
-            cb = xt_fcheck_call()
-            cb.ext_name = target.name
-            cb.data = ct.cast(target.t[0].data, ct.c_void_p)
-            cb.xflags = target.tflags
-            cb.udata = target.udata
-            target.x6_fcheck(ct.pointer(cb))
-        elif target.final_check:
-            target.final_check(target.tflags)
+        try:
+            if target.x6_fcheck:
+                cb = xt_fcheck_call()
+                cb.ext_name = target.name
+                cb.data = ct.cast(target.t[0].data, ct.c_void_p)
+                cb.xflags = target.tflags
+                cb.udata = target.udata
+                target.x6_fcheck(ct.pointer(cb))
+        except AttributeError: # x6_fcheck doesn't exist
+            if target.final_check:
+                target.final_check(target.tflags)
 
-        if target.x6_options:
-            self._options_fcheck(target.name, target.tflags, target.x6_options)
+        try:
+            if target.x6_options:
+                self._options_fcheck(target.name, target.tflags, target.x6_options)
+        except AttributeError:  # x6_options doesn't exist
+            pass
 
     # Dispatch arguments to the appropriate final_check function, based upon
     # the extension's choice of API.
     def final_check_match(self, match):
-        if match.x6_fcheck:
-            cb = xt_fcheck_call()
-            cb.ext_name = match.name
-            cb.data = ct.cast(match.m[0].data, ct.c_void_p)
-            cb.xflags = match.mflags
-            cb.udata = match.udata
-            match.x6_fcheck(ct.pointer(cb))
-        elif match.final_check:
-            match.final_check(match.mflags)
+        try:
+            if match.x6_fcheck:
+                cb = xt_fcheck_call()
+                cb.ext_name = match.name
+                cb.data = ct.cast(match.m[0].data, ct.c_void_p)
+                cb.xflags = match.mflags
+                cb.udata = match.udata
+                match.x6_fcheck(ct.pointer(cb))
+        except AttributeError: # x6_fcheck doesn't exist
+            if match.final_check:
+                match.final_check(match.mflags)
 
-        if match.x6_options:
-            self._options_fcheck(match.name, match.mflags, match.x6_options)
+        try:
+            if match.x6_options:
+                self._options_fcheck(match.name, match.mflags, match.x6_options)
+        except AttributeError: # x6_options doesn't exist
+            pass
