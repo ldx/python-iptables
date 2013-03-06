@@ -316,6 +316,7 @@ class TestRule6(unittest.TestCase):
         iptc.Table6(iptc.Table6.FILTER).create_chain(self.chain)
 
     def tearDown(self):
+        self.chain.flush()
         self.chain.delete()
 
     def test_rule_address(self):
@@ -455,6 +456,38 @@ class TestRule6(unittest.TestCase):
                       iptc.Table6(iptc.Table6.SECURITY).chains
                       for rule in chain.rules if rule):
                 pass
+
+        rules = []
+
+        rule = iptc.Rule6()
+        rule.protocol = "tcp"
+        rule.src = "::1"
+        target = iptc.Target(rule, "ACCEPT")
+        rule.target = target
+        self.chain.insert_rule(rule)
+        rules.append(rule)
+
+        rule = iptc.Rule6()
+        rule.protocol = "udp"
+        rule.src = "::1"
+        target = iptc.Target(rule, "ACCEPT")
+        rule.target = target
+        self.chain.insert_rule(rule)
+        rules.append(rule)
+
+        rule = iptc.Rule6()
+        rule.protocol = "tcp"
+        rule.dst = "2001::/16"
+        target = iptc.Target(rule, "RETURN")
+        rule.target = target
+        self.chain.insert_rule(rule)
+        rules.append(rule)
+
+        crules = self.chain.rules
+        self.failUnless(len(rules) == len(crules))
+        for rule in rules:
+            self.failUnless(rule in crules)
+            crules.remove(rule)
 
 
 class TestRule(unittest.TestCase):
@@ -635,7 +668,10 @@ class TestRule(unittest.TestCase):
         rules.append(rule)
 
         crules = self.chain.rules
-        self.failUnless(rules[::-1] == crules)
+        self.failUnless(len(rules) == len(crules))
+        for rule in rules:
+            self.failUnless(rule in crules)
+            crules.remove(rule)
 
 
 def suite():

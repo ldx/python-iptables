@@ -602,3 +602,6 @@ class Table6(Table):
         self.name = name
         self.autocommit = autocommit
         self.refresh()
+
+    def create_rule(self, entry=None, chain=None):
+        return Rule6(entry, chain)
