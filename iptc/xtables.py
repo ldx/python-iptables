@@ -752,6 +752,8 @@ class xtables(object):
 
     def find_match(self, name):
         match = xtables._xtables_find_match(name, XTF_TRY_LOAD, None)
+        if not match:
+            return match
         version = xtables._get_xtables_version(match.contents.v1.version)
 
         if 1 == version:
@@ -775,6 +777,8 @@ class xtables(object):
 
     def find_target(self, name):
         target = xtables._xtables_find_target(name, XTF_TRY_LOAD)
+        if not target:
+            return target
         version = xtables._get_xtables_version(target.contents.v1.version)
 
         if 1 == version:
