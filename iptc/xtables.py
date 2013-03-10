@@ -212,6 +212,9 @@ class _xtables_match_v1(ct.Structure):
                 ("m", ct.POINTER(xt_entry_match)),
                 ("mflags", ct.c_uint),
                 ("loaded", ct.c_uint)]
+    x6_parse = None
+    x6_fcheck = None
+    x6_options = None
 
 _xtables_match_v2 = _xtables_match_v1
 _xtables_match_v4 = _xtables_match_v1
@@ -452,6 +455,9 @@ class _xtables_target_v1(ct.Structure):
                 ("tflags", ct.c_uint),
                 ("used", ct.c_uint),
                 ("loaded", ct.c_uint)]
+    x6_parse = None
+    x6_fcheck = None
+    x6_options = None
 
 _xtables_target_v2 = _xtables_target_v1
 _xtables_target_v4 = _xtables_target_v1
