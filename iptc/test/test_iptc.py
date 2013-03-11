@@ -470,7 +470,8 @@ class TestRule6(unittest.TestCase):
         rule = iptc.Rule6()
         rule.protocol = "udp"
         rule.src = "::1"
-        target = iptc.Target(rule, "ACCEPT")
+        target = iptc.Target(rule, "REJECT")
+        target.reject_with = "addr-unreach"
         rule.target = target
         self.chain.insert_rule(rule)
         rules.append(rule)
@@ -655,6 +656,7 @@ class TestRule(unittest.TestCase):
         rule.protocol = "udp"
         rule.src = "127.0.0.1"
         target = iptc.Target(rule, "REJECT")
+        target.reject_with = "host-unreach"
         rule.target = target
         self.chain.insert_rule(rule)
         rules.append(rule)
