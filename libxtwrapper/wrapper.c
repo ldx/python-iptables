@@ -80,3 +80,17 @@ int wrap_uintfn(void (*fn)(unsigned int), unsigned int data)
 
     return 0;
 }
+
+int wrap_voidfn(void (*fn)(void))
+{
+    int err;
+
+    if ((err = setjmp(env)) == 0) {
+        fn();
+    } else {
+        errno = err;
+        return -err;
+    }
+
+    return 0;
+}
