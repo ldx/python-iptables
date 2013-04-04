@@ -339,6 +339,10 @@ class IPTCModule(object):
 
         return params
 
+    def _update_parameters(self):
+        for k, v in self.get_all_parameters().iteritems():
+            self.__setattr__(k, v)
+
     def __setattr__(self, name, value):
         if not name.startswith('_') and name not in dir(self):
             self.parse(name.replace("_", "-"), value)
@@ -421,6 +425,7 @@ class Match(IPTCModule):
         if match:
             ct.memmove(ct.byref(self._match_buf), ct.byref(match), self.size)
             self._update_pointers()
+            self._update_parameters()
         else:
             self.reset()
 
@@ -545,6 +550,7 @@ class Target(IPTCModule):
         if target:
             ct.memmove(ct.byref(self._target_buf), ct.byref(target), self.size)
             self._update_pointers()
+            self._update_parameters()
         else:
             self.reset()
 
