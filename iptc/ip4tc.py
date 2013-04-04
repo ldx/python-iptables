@@ -320,7 +320,7 @@ class IPTCModule(object):
 
     def get_all_parameters(self):
         params = {}
-        ip =  self.rule.get_ip()
+        ip = self.rule.get_ip()
         if self._module and self._module.save:
             # redirect C stdout to a pipe and read back the output of m->save
             pipes = os.pipe()
@@ -335,7 +335,7 @@ class IPTCModule(object):
 
             res = re.findall(IPTCModule.pattern, buf)
             for x in res:
-                 params[x[1]] = "%s%s" % ((x[0] or x[2]) and "!" or "", x[3])
+                params[x[1]] = "%s%s" % ((x[0] or x[2]) and "!" or "", x[3])
 
         return params
 
