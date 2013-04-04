@@ -690,13 +690,17 @@ _wrap_parse.argtypes = [ct.c_void_p, ct.c_int, ct.POINTER(ct.c_char_p),
                         ct.c_int, ct.POINTER(ct.c_uint), ct.c_void_p,
                         ct.POINTER(ct.c_void_p)]
 
-_wrap_x6parse = _lib_xtwrapper.wrap_x6parse
-_wrap_x6parse.restype = ct.c_int
-_wrap_x6parse.argtypes = [ct.c_void_p, ct.POINTER(xt_option_call)]
-
 _wrap_save = _lib_xtwrapper.wrap_save
 _wrap_save.restype = ct.c_void_p
 _wrap_save.argtypes = [ct.c_void_p, ct.c_void_p, ct.c_void_p]
+
+_wrap_uintfn = _lib_xtwrapper.wrap_uintfn
+_wrap_uintfn.restype = ct.c_int
+_wrap_uintfn.argtypes = [ct.c_void_p, ct.c_uint]
+
+_wrap_x6fn = _lib_xtwrapper.wrap_x6fn
+_wrap_x6fn.restype = ct.c_int
+_wrap_x6fn.argtypes = [ct.c_void_p, ct.c_void_p]
 
 _kernel_version = ct.c_int.in_dll(_lib_xtwrapper, 'kernel_version')
 _get_kernel_version = _lib_xtwrapper.get_kernel_version
@@ -861,7 +865,7 @@ class xtables(object):
             cb.target = ct.pointer(t.t)
             cb.xt_entry = ct.cast(fw, ct.c_void_p)
             cb.udata = t.udata
-            rv = _wrap_x6parse(t.x6_parse, ct.pointer(cb))
+            rv = _wrap_x6fn(t.x6_parse, ct.pointer(cb))
             if rv != 0:
                 raise XTablesError("%s: parameter error %d (%s)" % (t.name, rv,
                                                                     argv[1]))
@@ -905,7 +909,7 @@ class xtables(object):
             cb.match = ct.pointer(m.m)
             cb.xt_entry = ct.cast(fw, ct.c_void_p)
             cb.udata = m.udata
-            rv = _wrap_x6parse(m.x6_parse, ct.pointer(cb))
+            rv = _wrap_x6fn(m.x6_parse, ct.pointer(cb))
             if rv != 0:
                 raise XTablesError("%s: parameter error %d (%s)" % (m.name, rv,
                                                                     argv[1]))
@@ -948,10 +952,15 @@ class xtables(object):
             cb.data = ct.cast(target.t[0].data, ct.c_void_p)
             cb.xflags = target.tflags
             cb.udata = target.udata
-            target.x6_fcheck(ct.pointer(cb))
+            rv = _wrap_x6fn(target.x6_fcheck, ct.pointer(cb))
+            if rv:
+                raise XTablesError("%s.x6_fcheck has failed" % (target.name))
         else:
             if target.final_check:
-                target.final_check(target.tflags)
+                rv = _wrap_uintfn(target.final_check, target.tflags)
+                if rv:
+                    raise XTablesError("%s.final_check() has failed" %
+                                       (target.name))
 
         try:
             # new API
@@ -979,11 +988,16 @@ class xtables(object):
             cb.data = ct.cast(match.m[0].data, ct.c_void_p)
             cb.xflags = match.mflags
             cb.udata = match.udata
-            match.x6_fcheck(ct.pointer(cb))
+            rv = _wrap_x6fn(match.x6_fcheck, ct.pointer(cb))
+            if rv:
+                raise XTablesError("%s.x6_fcheck has failed" % (match.name))
         else:
             # old API
             if match.final_check:
-                match.final_check(match.mflags)
+                rv = _wrap_uintfn(match.final_check, match.mflags)
+                if rv:
+                    raise XTablesError("%s.final_check() has failed" %
+                                       (match.name))
 
         try:
             # new API
