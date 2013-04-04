@@ -460,6 +460,7 @@ class Match(IPTCModule):
                             ct.POINTER(xt_entry_match))
         self._ptrptr = ct.cast(ct.pointer(self._ptr),
                                ct.POINTER(ct.POINTER(xt_entry_match)))
+        self._module.m = self._ptr
 
     def reset(self):
         """Reset the match.
@@ -473,7 +474,6 @@ class Match(IPTCModule):
         m.u.user.revision = self._revision
         if self._module.init:
             self._module.init(self._ptr)
-        self._module.m = self._ptr
         self._module.mflags = 0
 
     def _get_match(self):
@@ -608,6 +608,7 @@ class Target(IPTCModule):
                             ct.POINTER(xt_entry_target))
         self._ptrptr = ct.cast(ct.pointer(self._ptr),
                                ct.POINTER(ct.POINTER(xt_entry_target)))
+        self._module.t = self._ptr
 
     def reset(self):
         """Reset the target.  Parameters are set to their default values, any
@@ -620,7 +621,6 @@ class Target(IPTCModule):
         t.u.user.revision = self._revision
         if self._module.init:
             self._module.init(self._ptr)
-        self._module.t = self._ptr
         self._module.tflags = 0
 
     def _get_target(self):
