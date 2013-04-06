@@ -81,7 +81,7 @@ class ip6t_entry(ct.Structure):
                 ("elems", ct.c_ubyte * 0)]       # the matches then the target
 
 
-_libiptc = find_library("ip6tc", "iptc")  # old iptables versions use iptc
+_libiptc, _ = find_library("ip6tc", "iptc")  # old iptables versions use iptc
 
 
 class ip6tc(object):

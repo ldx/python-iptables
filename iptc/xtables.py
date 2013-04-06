@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import ctypes as ct
-import re
+import sys
 import weakref
 import version
 
@@ -684,13 +684,13 @@ class XTablesError(Exception):
     """Raised when an xtables call fails for some reason."""
 
 
-_libc = find_library("c")
+_libc, _ = find_library("c")
 _optind = ct.c_long.in_dll(_libc, "optind")
 _optarg = ct.c_char_p.in_dll(_libc, "optarg")
 
-_lib_xtables = find_library("xtables")
+_lib_xtables, _xtables_version = find_library("xtables")
 
-_lib_xtwrapper = find_library("xtwrapper")
+_lib_xtwrapper, _ = find_library("xtwrapper")
 
 _throw = _lib_xtwrapper.throw_exception
 
@@ -783,6 +783,16 @@ class xtables(object):
         self._xt_globals.opts = None
         self._xt_globals.exit_err = _xt_exit
 
+        thismodule = sys.modules[__name__]
+        matchname = "_xtables_match_v%d" % (_xtables_version)
+        targetname = "_xtables_target_v%d" % (_xtables_version)
+        try:
+            self._match_struct = getattr(thismodule, matchname)
+            self._target_struct = getattr(thismodule, targetname)
+        except:
+            raise XTablesError("unknown xtables version %d" %
+                               (_xtables_version))
+
         self._loaded_exts = []
 
         # make sure we're initializing with clean state
@@ -827,15 +837,6 @@ class xtables(object):
         xtables._xtables_pending_matches.value = self._pending_matches
         xtables._xtables_targets.value = self._targets
         xtables._xtables_pending_targets.value = self._pending_targets
-
-    @classmethod
-    def _get_xtables_version(cls, version):
-        version_match = re.match("libxtables.so.(\d+)", version)
-
-        if version_match:
-            return int(version_match.group(1))
-        else:
-            raise RuntimeError("Xtables returned unknown version format")
 
     def _check_extname(self, name):
         if name in ["", "ACCEPT", "DROP", "QUEUE", "RETURN"]:
@@ -893,26 +894,8 @@ class xtables(object):
             if not match:
                 return match
         self._loaded(name)
-        version = xtables._get_xtables_version(match.contents.v1.version)
 
-        if 1 == version:
-            return ct.cast(match, ct.POINTER(_xtables_match_v1))
-        elif 2 == version:
-            return ct.cast(match, ct.POINTER(_xtables_match_v2))
-        elif 4 == version:
-            return ct.cast(match, ct.POINTER(_xtables_match_v4))
-        elif 5 == version:
-            return ct.cast(match, ct.POINTER(_xtables_match_v5))
-        elif 6 == version:
-            return ct.cast(match, ct.POINTER(_xtables_match_v6))
-        elif 7 == version:
-            return ct.cast(match, ct.POINTER(_xtables_match_v7))
-        elif 9 == version:
-            return ct.cast(match, ct.POINTER(_xtables_match_v9))
-        elif 10 <= version:
-            return ct.cast(match, ct.POINTER(_xtables_match_v10))
-        else:
-            raise Exception("Match object casting failed")
+        return ct.cast(match, ct.POINTER(self._match_struct))
 
     @preserve_globals
     def find_target(self, name):
@@ -924,26 +907,8 @@ class xtables(object):
             if not target:
                 return target
         self._loaded(name)
-        version = xtables._get_xtables_version(target.contents.v1.version)
 
-        if 1 == version:
-            return ct.cast(target, ct.POINTER(_xtables_target_v1))
-        elif 2 == version:
-            return ct.cast(target, ct.POINTER(_xtables_target_v2))
-        elif 4 == version:
-            return ct.cast(target, ct.POINTER(_xtables_target_v4))
-        elif 5 == version:
-            return ct.cast(target, ct.POINTER(_xtables_target_v5))
-        elif 6 == version:
-            return ct.cast(target, ct.POINTER(_xtables_target_v6))
-        elif 7 == version:
-            return ct.cast(target, ct.POINTER(_xtables_target_v7))
-        elif 9 == version:
-            return ct.cast(target, ct.POINTER(_xtables_target_v9))
-        elif 10 <= version:
-            return ct.cast(target, ct.POINTER(_xtables_target_v10))
-        else:
-            raise Exception("Target object casting failed")
+        return ct.cast(target, ct.POINTER(self._target_struct))
 
     @preserve_globals
     def save(self, module, ip, ptr):

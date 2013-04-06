@@ -1,3 +1,4 @@
+import re
 import ctypes
 import ctypes.util
 from subprocess import Popen, PIPE
@@ -63,4 +64,11 @@ def find_library(*names):
         lib = _find_library(name)
         if lib is not None:
             break
-    return lib
+    if lib:
+        major = 0
+        m = re.match("libxtables.so.(\d+)", lib._name)
+        if m:
+            major = int(m.group(1))
+        return lib, major
+    else:
+        return None, None

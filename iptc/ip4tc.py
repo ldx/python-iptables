@@ -83,7 +83,7 @@ class IPTCError(Exception):
     """
 
 
-_libiptc = find_library("ip4tc", "iptc")  # old iptables versions use iptc
+_libiptc, _ = find_library("ip4tc", "iptc")  # old iptables versions use iptc
 
 
 class iptc(object):
