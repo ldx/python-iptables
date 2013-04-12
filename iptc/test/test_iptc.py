@@ -45,6 +45,23 @@ class TestTable6(unittest.TestCase):
         if mangle and raw:
             self.assertNotEquals(id(mangle), id(raw))
 
+    def test_table6_autocommit(self):
+        table = iptc.Table(iptc.Table.FILTER, False)
+        self.assertEquals(table.autocommit, False)
+
+        rule = iptc.Rule()
+        rule.src = "1.2.3.4"
+        rule.dst = "2.3.4.5"
+        rule.protocol = "tcp"
+        self.assertEquals(table.autocommit, False)
+
+        rule.create_target('DROP')
+        self.assertEquals(table.autocommit, False)
+
+        match = rule.create_match('tcp')
+        match.dport = "80:90"
+        self.assertEquals(table.autocommit, False)
+
 
 class TestTable(unittest.TestCase):
     def setUp(self):
