@@ -3,6 +3,7 @@
 import os
 import re
 import ctypes as ct
+import shlex
 import socket
 import struct
 import weakref
@@ -258,9 +259,14 @@ class IPTCModule(object):
         else:
             inv = ct.c_int(0)
 
-        argv = (ct.c_char_p * 2)()
+        args = shlex.split(value)
+        if not args:
+            args = [value]
+        N = len(args)
+        argv = (ct.c_char_p * (N + 1))()
         argv[0] = parameter
-        argv[1] = value
+        for i in xrange(N):
+            argv[i + 1] = args[i]
 
         entry = self._rule.entry and ct.pointer(self._rule.entry) or None
 
