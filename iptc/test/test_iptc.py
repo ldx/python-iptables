@@ -5,6 +5,7 @@ import iptc
 
 
 is_table_available = iptc.is_table_available
+is_table6_available = iptc.is_table6_available
 
 
 class TestTable6(unittest.TestCase):
@@ -16,20 +17,20 @@ class TestTable6(unittest.TestCase):
 
     def test_table6(self):
         filt = None
-        if is_table_available(iptc.Table6.FILTER):
+        if is_table6_available(iptc.Table6.FILTER):
             filt = iptc.Table6("filter")
             self.assertEquals(id(filt), id(iptc.Table6(iptc.Table6.FILTER)))
         security = None
-        if is_table_available(iptc.Table6.SECURITY):
+        if is_table6_available(iptc.Table6.SECURITY):
             security = iptc.Table6("security")
             self.assertEquals(id(security),
                               id(iptc.Table6(iptc.Table6.SECURITY)))
         mangle = None
-        if is_table_available(iptc.Table6.MANGLE):
+        if is_table6_available(iptc.Table6.MANGLE):
             mangle = iptc.Table6("mangle")
             self.assertEquals(id(mangle), id(iptc.Table6(iptc.Table6.MANGLE)))
         raw = None
-        if is_table_available(iptc.Table6.RAW):
+        if is_table6_available(iptc.Table6.RAW):
             raw = iptc.Table6("raw")
             self.assertEquals(id(raw), id(iptc.Table6(iptc.Table6.RAW)))
         if filt and security:
@@ -456,19 +457,19 @@ class TestRule6(unittest.TestCase):
         self.chain.delete_rule(rule)
 
     def test_rule_iterate(self):
-        if is_table_available(iptc.Table6.FILTER):
+        if is_table6_available(iptc.Table6.FILTER):
             for r in (rule for chain in iptc.Table6(iptc.Table6.FILTER).chains
                       for rule in chain.rules if rule):
                 pass
-        if is_table_available(iptc.Table6.RAW):
+        if is_table6_available(iptc.Table6.RAW):
             for r in (rule for chain in iptc.Table6(iptc.Table6.RAW).chains
                       for rule in chain.rules if rule):
                 pass
-        if is_table_available(iptc.Table6.MANGLE):
+        if is_table6_available(iptc.Table6.MANGLE):
             for r in (rule for chain in iptc.Table6(iptc.Table6.MANGLE).chains
                       for rule in chain.rules if rule):
                 pass
-        if is_table_available(iptc.Table6.SECURITY):
+        if is_table6_available(iptc.Table6.SECURITY):
             for r in (rule for chain in
                       iptc.Table6(iptc.Table6.SECURITY).chains
                       for rule in chain.rules if rule):

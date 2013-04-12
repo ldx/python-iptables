@@ -15,12 +15,7 @@ load_kernel("ip6_tables")
 _IFNAMSIZ = 16
 
 
-def is_table_available(name):
-    try:
-        Table(name)
-        return True
-    except IPTCError:
-        pass
+def is_table6_available(name):
     try:
         Table6(name)
         return True
@@ -258,7 +253,7 @@ class Rule6(Rule):
         return self._save(name, self.entry.ipv6)
 
     def _get_tables(self):
-        return [Table6(t) for t in Table6.ALL if is_table_available(t)]
+        return [Table6(t) for t in Table6.ALL if is_table6_available(t)]
     tables = property(_get_tables)
     """This is the list of tables for our protocol."""
 
