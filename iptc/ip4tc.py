@@ -1284,16 +1284,19 @@ class Table(object):
 
     _cache = weakref.WeakValueDictionary()
 
-    def __new__(cls, name, autocommit=True):
+    def __new__(cls, name, autocommit=None):
         obj = Table._cache.get(name, None)
         if not obj:
             obj = object.__new__(cls)
+            if autocommit is None:
+                autocommit = True
+            obj._init(name, autocommit)
             Table._cache[name] = obj
-        else:
+        elif autocommit is not None:
             obj.autocommit = autocommit
         return obj
 
-    def __init__(self, name, autocommit=True):
+    def _init(self, name, autocommit):
         """
         *name* is the name of the table, if it already exists it is returned.
         *autocommit* specifies that any iptables operation that changes a
