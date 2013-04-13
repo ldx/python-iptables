@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import ctypes as ct
+import os
 import sys
 import weakref
 import version
@@ -689,6 +690,17 @@ _optind = ct.c_long.in_dll(_libc, "optind")
 _optarg = ct.c_char_p.in_dll(_libc, "optarg")
 
 _lib_xtables, _xtables_version = find_library("xtables")
+_xtables_libdir = os.getenv("XTABLES_LIBDIR")
+if _xtables_libdir is None:
+    import os.path
+    for xtdir in ["/lib/xtables", "/usr/lib/xtables",
+                  "/usr/local/lib/xtables"]:
+        if os.path.isdir(xtdir):
+            _xtables_libdir = xtdir
+            break
+if _xtables_libdir is None:
+    raise XTablesError("can't find directory with extensions; "
+                       "please set XTABLES_LIBDIR")
 
 _lib_xtwrapper, _ = find_library("xtwrapper")
 
@@ -878,8 +890,8 @@ class xtables(object):
             return
         afinfo = ct.cast(self._afinfo, ct.POINTER(xtables_afinfo))
         prefix = afinfo[0].libprefix
-        libs = ["/lib/xtables/libxt_" + name + ".so",
-                "/lib/xtables/" + prefix + name + ".so"]
+        libs = [os.path.join(_xtables_libdir, "libxt_" + name + ".so"),
+                os.path.join(_xtables_libdir, prefix + name + ".so")]
         for lib in libs:
             if self._try_extinit(name, lib):
                 return
