@@ -41,7 +41,7 @@ def _find_library(name):
     import os
     from distutils.sysconfig import get_python_lib
     try:
-        lib = ctypes.CDLL(os.path.join(get_python_lib(), 'lib%s.so' % (name)),
+        lib = ctypes.CDLL(os.path.join(get_python_lib(), name),
                           mode=ctypes.RTLD_GLOBAL)
         return lib
     except:
@@ -50,8 +50,7 @@ def _find_library(name):
     import sys
     for p in sys.path:
         try:
-            lib = ctypes.CDLL(os.path.join(p, 'lib%s.so' % (name)),
-                              mode=ctypes.RTLD_GLOBAL)
+            lib = ctypes.CDLL(os.path.join(p, name), mode=ctypes.RTLD_GLOBAL)
             return lib
         except:
             pass
@@ -64,9 +63,21 @@ def find_library(*names):
         lib = _find_library(name)
         if lib is not None:
             break
+        if not name.startswith("lib"):
+            lib = _find_library("lib" + name)
+            if lib is not None:
+                break
+        if not name.endswith(".so"):
+            lib = _find_library(name + ".so")
+            if lib is not None:
+                break
+        if not name.startswith("lib") and not name.endswith(".so"):
+            lib = _find_library("lib" + name + ".so")
+            if lib is not None:
+                break
     if lib:
         major = 0
-        m = re.match("libxtables.so.(\d+)", lib._name)
+        m = re.search(r"\.so\.(\d+)", lib._name)
         if m:
             major = int(m.group(1))
         return lib, major
