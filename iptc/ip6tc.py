@@ -576,16 +576,19 @@ class Table6(Table):
 
     _cache = weakref.WeakValueDictionary()
 
-    def __new__(cls, name, autocommit=True):
+    def __new__(cls, name, autocommit=None):
         obj = Table6._cache.get(name, None)
         if not obj:
             obj = object.__new__(cls)
+            if autocommit is None:
+                autocommit = True
+            obj._init(name, autocommit)
             Table6._cache[name] = obj
-        else:
+        elif autocommit is not None:
             obj.autocommit = autocommit
         return obj
 
-    def __init__(self, name, autocommit=True):
+    def _init(self, name, autocommit):
         """
         Here *name* is the name of the table to instantiate, if it has already
         been instantiated the existing cached object is returned.
