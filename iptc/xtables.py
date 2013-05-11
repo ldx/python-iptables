@@ -1045,6 +1045,29 @@ class xtables(object):
                     continue
             # XXX: check for conflicting options
 
+    def _fcheck_target_old(self, target):
+        # old API
+        if not target.final_check:
+            return
+        rv = _wrap_uintfn(target.final_check, target.tflags)
+        if rv:
+            raise XTablesError("%s.final_check() has failed" %
+                               (target.name))
+
+    def _fcheck_target_new(self, target):
+        # new API
+        cb = xt_fcheck_call()
+        cb.ext_name = target.name
+        cb.data = ct.cast(target.t[0].data, ct.c_void_p)
+        cb.xflags = target.tflags
+        cb.udata = target.udata
+        rv = _wrap_x6fn(target.x6_fcheck, ct.pointer(cb))
+        if rv:
+            raise XTablesError("%s.x6_fcheck has failed" % (target.name))
+        if target.x6_options:
+            self._options_fcheck(target.name, target.tflags,
+                                 target.x6_options)
+
     # Dispatch arguments to the appropriate final_check function, based upon
     # the extension's choice of API.
     @preserve_globals
@@ -1058,30 +1081,32 @@ class xtables(object):
             pass
 
         if x6_fcheck:
-            # new API
-            cb = xt_fcheck_call()
-            cb.ext_name = target.name
-            cb.data = ct.cast(target.t[0].data, ct.c_void_p)
-            cb.xflags = target.tflags
-            cb.udata = target.udata
-            rv = _wrap_x6fn(target.x6_fcheck, ct.pointer(cb))
-            if rv:
-                raise XTablesError("%s.x6_fcheck has failed" % (target.name))
+            self._fcheck_target_new(target)
         else:
-            if target.final_check:
-                rv = _wrap_uintfn(target.final_check, target.tflags)
-                if rv:
-                    raise XTablesError("%s.final_check() has failed" %
-                                       (target.name))
+            self._fcheck_target_old(target)
 
-        try:
-            # new API
-            if target.x6_options:
-                self._options_fcheck(target.name, target.tflags,
-                                     target.x6_options)
-        except AttributeError:
-            # old API
-            pass
+    def _fcheck_match_old(self, match):
+        # old API
+        if not match.final_check:
+            return
+        rv = _wrap_uintfn(match.final_check, match.mflags)
+        if rv:
+            raise XTablesError("%s.final_check() has failed" %
+                               (match.name))
+
+    def _fcheck_match_new(self, match):
+        # new API
+        cb = xt_fcheck_call()
+        cb.ext_name = match.name
+        cb.data = ct.cast(match.m[0].data, ct.c_void_p)
+        cb.xflags = match.mflags
+        cb.udata = match.udata
+        rv = _wrap_x6fn(match.x6_fcheck, ct.pointer(cb))
+        if rv:
+            raise XTablesError("%s.x6_fcheck has failed" % (match.name))
+        if match.x6_options:
+            self._options_fcheck(match.name, match.mflags,
+                                 match.x6_options)
 
     # Dispatch arguments to the appropriate final_check function, based upon
     # the extension's choice of API.
@@ -1091,32 +1116,11 @@ class xtables(object):
         try:
             # new API?
             x6_fcheck = match.x6_fcheck
-        except AttributeError:  # old API
-            pass
-
-        if x6_fcheck:
-            # new API
-            cb = xt_fcheck_call()
-            cb.ext_name = match.name
-            cb.data = ct.cast(match.m[0].data, ct.c_void_p)
-            cb.xflags = match.mflags
-            cb.udata = match.udata
-            rv = _wrap_x6fn(match.x6_fcheck, ct.pointer(cb))
-            if rv:
-                raise XTablesError("%s.x6_fcheck has failed" % (match.name))
-        else:
-            # old API
-            if match.final_check:
-                rv = _wrap_uintfn(match.final_check, match.mflags)
-                if rv:
-                    raise XTablesError("%s.final_check() has failed" %
-                                       (match.name))
-
-        try:
-            # new API
-            if match.x6_options:
-                self._options_fcheck(match.name, match.mflags,
-                                     match.x6_options)
         except AttributeError:
             # old API
             pass
+
+        if x6_fcheck:
+            self._fcheck_match_new(match)
+        else:
+            self._fcheck_match_old(match)
