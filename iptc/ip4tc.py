@@ -235,7 +235,7 @@ class iptc(object):
 class IPTCModule(object):
     """Superclass for Match and Target."""
     pattern = re.compile(
-        '\s*(!)?\s*--([-\w]+)\s+(!)?\s*"?([^"]*?)"?(?=\s*(?:!?\s*--|$))')
+        '\s*(!)?\s*--([-\w]+)\s+(!)?\s*("?[^"]*?"?)(?=\s*(?:!?\s*--|$))')
 
     def __init__(self):
         self._name = None
