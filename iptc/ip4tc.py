@@ -16,6 +16,10 @@ __all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError"]
 
 _IFNAMSIZ = 16
 
+_libc = ct.CDLL("libc.so.6")
+_get_errno_loc = _libc.__errno_location
+_get_errno_loc.restype = ct.POINTER(ct.c_int)
+
 
 def is_table_available(name):
     try:
@@ -1371,8 +1375,7 @@ class Table(object):
 
     def strerror(self):
         """Returns any pending iptables error from the previous operation."""
-        errno = ct.get_errno()
-        ct.set_errno(0)
+        errno = _get_errno_loc()[0]
         if errno == 0:
             return "libiptc version error"
         return self._iptc.iptc_strerror(errno)
