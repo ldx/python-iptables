@@ -671,16 +671,6 @@ class xtables_target(ct.Union):
                 ("v10", _xtables_target_v10)]
 
 
-class xtables_afinfo(ct.Structure):
-    _fields_ = [("kmod", ct.c_char_p),
-                ("proc_exists", ct.c_char_p),
-                ("libprefix", ct.c_char_p),
-                ("family", ct.c_uint8),
-                ("ipproto", ct.c_uint8),
-                ("so_rev_match", ct.c_int),
-                ("so_rev_target", ct.c_int)]
-
-
 class XTablesError(Exception):
     """Raised when an xtables call fails for some reason."""
 
@@ -766,7 +756,10 @@ class xtables(object):
     _xtables_find_target.restype = ct.POINTER(xtables_target)
     _xtables_find_target.argtypes = [ct.c_char_p, ct.c_int]
 
-    _xtables_afinfo = ct.c_void_p.in_dll(_lib_xtables, "afinfo")
+    _xtables_set_nfproto = _lib_xtables.xtables_set_nfproto
+    _xtables_set_nfproto.restype = None
+    _xtables_set_nfproto.argtypes = [ct.c_uint8]
+
     _xtables_xt_params = ct.c_void_p.in_dll(_lib_xtables, "xt_params")
     _xtables_matches = (ct.c_void_p.in_dll(_lib_xtables, "xtables_matches"))
     _xtables_pending_matches = (ct.c_void_p.in_dll(_lib_xtables,
@@ -808,7 +801,6 @@ class xtables(object):
         self._loaded_exts = []
 
         # make sure we're initializing with clean state
-        self._afinfo = ct.c_void_p(None).value
         self._xt_params = ct.c_void_p(None).value
         self._matches = ct.c_void_p(None).value
         self._pending_matches = ct.c_void_p(None).value
@@ -827,8 +819,6 @@ class xtables(object):
         # Save our per-protocol libxtables global variables, and set them to
         # NULL so that we don't interfere with other protocols.
         null = ct.c_void_p(None)
-        self._afinfo = xtables._xtables_afinfo.value
-        xtables._xtables_afinfo.value = null.value
         self._xt_params = xtables._xtables_xt_params.value
         xtables._xtables_xt_params.value = null.value
         self._matches = xtables._xtables_matches.value
@@ -843,7 +833,7 @@ class xtables(object):
     def _restore_globals(self):
         # Restore per-protocol libxtables global variables saved in
         # _save_globals().
-        xtables._xtables_afinfo.value = self._afinfo
+        xtables._xtables_set_nfproto(self.proto)
         xtables._xtables_xt_params.value = self._xt_params
         xtables._xtables_matches.value = self._matches
         xtables._xtables_pending_matches.value = self._pending_matches
@@ -868,8 +858,7 @@ class xtables(object):
         try:
             initfn = getattr(lib, "libxt_%s_init" % (name))
         except AttributeError:
-            afinfo = ct.cast(self._afinfo, ct.POINTER(xtables_afinfo))
-            prefix = afinfo[0].libprefix
+            prefix = self._get_prefix()
             initfn = getattr(lib, "%s%s_init" % (prefix, name), None)
         return initfn
 
@@ -885,11 +874,18 @@ class xtables(object):
             pass
         return False
 
+    def _get_prefix(self):
+        if self.proto == NFPROTO_IPV4:
+            return "libipt_"
+        elif self.proto == NFPROTO_IPV6:
+            return "libip6t_"
+        else:
+            raise XTablesError("Unknown protocol %d" % (self.proto))
+
     def _try_register(self, name):
         if self._try_extinit(name, _lib_xtables):
             return
-        afinfo = ct.cast(self._afinfo, ct.POINTER(xtables_afinfo))
-        prefix = afinfo[0].libprefix
+        prefix = self._get_prefix()
         libs = [os.path.join(_xtables_libdir, "libxt_" + name + ".so"),
                 os.path.join(_xtables_libdir, prefix + name + ".so")]
         for lib in libs:
