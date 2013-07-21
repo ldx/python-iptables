@@ -19,6 +19,12 @@ _IFNAMSIZ = 16
 _libc = ct.CDLL("libc.so.6")
 _get_errno_loc = _libc.__errno_location
 _get_errno_loc.restype = ct.POINTER(ct.c_int)
+_malloc = _libc.malloc
+_malloc.restype = ct.POINTER(ct.c_ubyte)
+_malloc.argtypes = [ct.c_size_t]
+_free = _libc.free
+_free.restype = None
+_free.argtypes = [ct.POINTER(ct.c_ubyte)]
 
 
 def is_table_available(name):
@@ -556,9 +562,11 @@ class Target(IPTCModule):
         else:
             self._revision = self._module.revision
 
-        self._target_buf = (ct.c_ubyte * self.size)()
+        self._target_buf = _malloc(self.size)
+        if self._target_buf is None:
+            raise Exception("Can't allocate target buffer")
         if target:
-            ct.memmove(ct.byref(self._target_buf), ct.byref(target), self.size)
+            ct.memmove(self._target_buf, ct.byref(target), self.size)
             self._update_pointers()
             self._update_parameters()
         else:
@@ -566,6 +574,10 @@ class Target(IPTCModule):
 
         if is_standard_target:
             self.standard_target = name
+
+    def __del__(self):
+        if getattr(self, "_target_buf", None) and self._target_buf is not None:
+            _free(self._target_buf)
 
     def __eq__(self, targ):
         basesz = ct.sizeof(xt_entry_target)
@@ -594,6 +606,8 @@ class Target(IPTCModule):
     def _parse(self, argv, inv, entry):
         self._xt.parse_target(argv, inv, self._module, entry,
                               ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
+        self._target_buf = ct.cast(self._module.t, ct.POINTER(ct.c_ubyte))
+        self._update_pointers()
 
     def _get_size(self):
         return xt_align(self._module.size + ct.sizeof(xt_entry_target))
@@ -620,8 +634,7 @@ class Target(IPTCModule):
     into."""
 
     def _update_pointers(self):
-        self._ptr = ct.cast(ct.byref(self._target_buf),
-                            ct.POINTER(xt_entry_target))
+        self._ptr = ct.cast(self._target_buf, ct.POINTER(xt_entry_target))
         self._ptrptr = ct.cast(ct.pointer(self._ptr),
                                ct.POINTER(ct.POINTER(xt_entry_target)))
         self._module.t = self._ptr
@@ -629,7 +642,7 @@ class Target(IPTCModule):
     def reset(self):
         """Reset the target.  Parameters are set to their default values, any
         flags are cleared."""
-        ct.memset(ct.byref(self._target_buf), 0, self.size)
+        ct.memset(self._target_buf, 0, self.size)
         self._update_pointers()
         t = self._ptr[0]
         t.u.user.name = self.name
@@ -640,8 +653,7 @@ class Target(IPTCModule):
         self._module.tflags = 0
 
     def _get_target(self):
-        return ct.cast(ct.byref(self.target_buf),
-                       ct.POINTER(xt_entry_target))[0]
+        return self._ptr[0]
     target = property(_get_target)
     """This is the C structure used by the extension."""
 
