@@ -580,8 +580,8 @@ class Target(IPTCModule):
             self.target.u.user.name == "RETURN" or
             self.target.u.user.name == "ERROR"):
             return True
-        if (self.target_buf[basesz:self.usersize] ==
-            targ.target_buf[basesz:targ.usersize]):
+        if (self._target_buf[basesz:self.usersize] ==
+            targ._target_buf[basesz:targ.usersize]):
             return True
         return False
 
@@ -644,11 +644,6 @@ class Target(IPTCModule):
                        ct.POINTER(xt_entry_target))[0]
     target = property(_get_target)
     """This is the C structure used by the extension."""
-
-    def _get_target_buf(self):
-        return self._target_buf
-    target_buf = property(_get_target_buf)
-    """This is the buffer holding the C structure used by the extension."""
 
 
 class Policy(object):
