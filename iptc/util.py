@@ -31,7 +31,7 @@ def load_kernel(name, exc_if_failed=False):
             raise Exception(err)
 
 
-def _find_library(name):
+def _do_find_library(name):
     p = ctypes.util.find_library(name)
     if p:
         lib = ctypes.CDLL(p, mode=ctypes.RTLD_GLOBAL)
@@ -57,29 +57,19 @@ def _find_library(name):
     return None
 
 
-def find_library(*names):
-    lib = None
+def _find_library(*names):
     for name in names:
-        lib = _find_library(name)
-        if lib is not None:
-            break
-        if not name.startswith("lib"):
-            lib = _find_library("lib" + name)
+        for n in (name, "lib" + name, name + ".so", "lib" + name + ".so"):
+            lib = _do_find_library(n)
             if lib is not None:
-                break
-        if not name.endswith(".so"):
-            lib = _find_library(name + ".so")
-            if lib is not None:
-                break
-        if not name.startswith("lib") and not name.endswith(".so"):
-            lib = _find_library("lib" + name + ".so")
-            if lib is not None:
-                break
-    if lib:
+                yield lib
+
+
+def find_library(*names):
+    for lib in _find_library(*names):
         major = 0
         m = re.search(r"\.so\.(\d+)", lib._name)
         if m:
             major = int(m.group(1))
         return lib, major
-    else:
-        return None, None
+    return None, None
