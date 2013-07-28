@@ -183,7 +183,7 @@ class TestXTTosTarget(unittest.TestCase):
         self.chain.flush()
         self.chain.delete()
 
-    def test_mode(self):
+    def test_set_tos(self):
         for tos in ["0x12/0xff", "0x12/0x0f"]:
             self.target.set_tos = tos
             self.assertEquals(self.target.set_tos, tos)
@@ -196,6 +196,8 @@ class TestXTTosTarget(unittest.TestCase):
             self.target.set_tos = tos[0]
             self.assertEquals(self.target.set_tos, tos[1])
             self.target.reset()
+
+    def test_tos_mode(self):
         for tos in ["0x04"]:
             self.target.and_tos = tos
             self.assertEquals(self.target.set_tos, "0x00/0xfb")
