@@ -544,17 +544,11 @@ class Target(IPTCModule):
 
         self._xt = xtables(rule.nfproto)
 
-        is_standard_target = False
-        module = None
-        for t in rule.tables:
-            if t.is_chain(name):
-                is_standard_target = True
-                module = self._xt.find_target('standard')
-
+        module = (self._is_standard_target() and
+                  self._xt.find_target('standard') or
+                  self._xt.find_target(name))
         if not module:
-            module = self._xt.find_target(name)
-            if not module:
-                raise XTablesError("can't find target %s" % (name))
+            raise XTablesError("can't find target %s" % (name))
         self._module = module[0]
         self._module.tflags = 0
         if revision is not None:
@@ -562,17 +556,9 @@ class Target(IPTCModule):
         else:
             self._revision = self._module.revision
 
-        self._target_buf = _malloc(self.size)
-        if self._target_buf is None:
-            raise Exception("Can't allocate target buffer")
-        if target:
-            ct.memmove(self._target_buf, ct.byref(target), self.size)
-            self._update_pointers()
-            self._update_parameters()
-        else:
-            self.reset()
+        self._allocate_buffer(target)
 
-        if is_standard_target:
+        if self._is_standard_target():
             self.standard_target = name
 
     def __del__(self):
@@ -599,6 +585,23 @@ class Target(IPTCModule):
 
     def __ne__(self, rule):
         return not self.__eq__(rule)
+
+    def _allocate_buffer(self, target):
+        self._target_buf = _malloc(self.size)
+        if self._target_buf is None:
+            raise Exception("Can't allocate target buffer")
+        if target:
+            ct.memmove(self._target_buf, ct.byref(target), self.size)
+            self._update_pointers()
+            self._update_parameters()
+        else:
+            self.reset()
+
+    def _is_standard_target(self):
+        for t in self._rule.tables:
+            if t.is_chain(self._name):
+                return True
+        return False
 
     def _final_check(self):
         self._xt.final_check_target(self._module)
