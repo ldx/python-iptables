@@ -299,6 +299,26 @@ class Rule6(Rule):
         src = "".join([src, str(plen)])
         return src
 
+    def _get_address_netmask(self, a):
+        slash = a.find("/")
+        if slash == -1:
+            addr = a
+            netm = "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
+        else:
+            addr = a[:slash]
+            netm = a[slash + 1:]
+        return addr, netm
+
+    def _addr2in6addr(self, addr):
+        arr = ct.c_uint8 * 16
+        ina = in6_addr()
+        try:
+            ina.s6_addr = arr.from_buffer_copy(
+                socket.inet_pton(socket.AF_INET6, addr))
+        except socket.error:
+            raise ValueError("invalid address %s" % (addr))
+        return arr, ina
+
     def set_src(self, src):
         if src[0] == "!":
             self.entry.ipv6.invflags |= ip6t_ip6.IP6T_INV_SRCIP
@@ -307,22 +327,9 @@ class Rule6(Rule):
             self.entry.ipv6.invflags &= (~ip6t_ip6.IP6T_INV_SRCIP &
                                          ip6t_ip6.IP6T_INV_MASK)
 
-        slash = src.find("/")
-        if slash == -1:
-            addr = src
-            netm = "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
-        else:
-            addr = src[:slash]
-            netm = src[slash + 1:]
+        addr, netm = self._get_address_netmask(src)
 
-        arr = ct.c_uint8 * 16
-        ina = in6_addr()
-        try:
-            ina.s6_addr = arr.from_buffer_copy(
-                socket.inet_pton(socket.AF_INET6, addr))
-        except socket.error:
-            raise ValueError("invalid address %s" % (addr))
-        self.entry.ipv6.src = ina
+        arr, self.entry.ipv6.src = self._addr2in6addr(addr)
 
         # if we got a numeric prefix length
         if netm.isdigit():
@@ -376,22 +383,9 @@ class Rule6(Rule):
             self.entry.ipv6.invflags &= (~ip6t_ip6.IP6T_INV_DSTIP &
                                          ip6t_ip6.IP6T_INV_MASK)
 
-        slash = dst.find("/")
-        if slash == -1:
-            addr = dst
-            netm = "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
-        else:
-            addr = dst[:slash]
-            netm = dst[slash + 1:]
+        addr, netm = self._get_address_netmask(dst)
 
-        arr = ct.c_uint8 * 16
-        ina = in6_addr()
-        try:
-            ina.s6_addr = arr.from_buffer_copy(
-                socket.inet_pton(socket.AF_INET6, addr))
-        except socket.error:
-            raise ValueError("invalid address %s" % (addr))
-        self.entry.ipv6.dst = ina
+        arr, self.entry.ipv6.dst = self._addr2in6addr(addr)
 
         # if we got a numeric prefix length
         if netm.isdigit():
