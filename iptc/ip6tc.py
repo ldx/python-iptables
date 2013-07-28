@@ -554,6 +554,7 @@ class Table6(Table):
     instantiated before, then it will be reused. To get access to e.g. the
     filter table:
 
+    >>> import iptc
     >>> table = iptc.Table6(iptc.Table6.FILTER)
 
     The interface provided by *Table* is rather low-level, in fact it maps to
