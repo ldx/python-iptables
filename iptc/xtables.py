@@ -762,11 +762,17 @@ class xtables(object):
 
     _xtables_xt_params = ct.c_void_p.in_dll(_lib_xtables, "xt_params")
     _xtables_matches = (ct.c_void_p.in_dll(_lib_xtables, "xtables_matches"))
-    _xtables_pending_matches = (ct.c_void_p.in_dll(_lib_xtables,
-                                                   "xtables_pending_matches"))
+    try:
+        _xtables_pending_matches = (ct.c_void_p.in_dll(_lib_xtables,
+                                                       "xtables_pending_matches"))
+    except ValueError:
+        _xtables_pending_matches = ct.POINTER(None)
     _xtables_targets = (ct.c_void_p.in_dll(_lib_xtables, "xtables_targets"))
-    _xtables_pending_targets = (ct.c_void_p.in_dll(_lib_xtables,
-                                                   "xtables_pending_targets"))
+    try:
+        _xtables_pending_targets = (ct.c_void_p.in_dll(_lib_xtables,
+                                                       "xtables_pending_targets"))
+    except ValueError:
+        _xtables_pending_targets = ct.POINTER(None)
 
     _cache = weakref.WeakValueDictionary()
 
