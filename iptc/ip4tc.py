@@ -455,8 +455,8 @@ class Match(IPTCModule):
             return True
         return False
 
-    def __ne__(self, rule):
-        return not self.__eq__(rule)
+    def __ne__(self, match):
+        return not self.__eq__(match)
 
     def _final_check(self):
         self._xt.final_check_match(self._module)
@@ -583,8 +583,8 @@ class Target(IPTCModule):
             return True
         return False
 
-    def __ne__(self, rule):
-        return not self.__eq__(rule)
+    def __ne__(self, target):
+        return not self.__eq__(target)
 
     def _allocate_buffer(self, target):
         self._target_buf = _malloc(self.size)
