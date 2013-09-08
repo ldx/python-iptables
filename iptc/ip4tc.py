@@ -450,6 +450,8 @@ class Match(IPTCModule):
             self._revision = revision
         else:
             self._revision = self._module.revision
+        if self._module.next is not None:
+            self._store_buffer(module)
 
         self._match_buf = (ct.c_ubyte * self.size)()
         if match:
@@ -471,6 +473,10 @@ class Match(IPTCModule):
 
     def __ne__(self, match):
         return not self.__eq__(match)
+
+    def _store_buffer(self, module):
+        self._buffer = _Buffer()
+        self._buffer.buffer = ct.cast(module, ct.POINTER(ct.c_ubyte))
 
     def _final_check(self):
         self._xt.final_check_match(self._module)
