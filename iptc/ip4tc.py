@@ -390,6 +390,20 @@ class IPTCModule(object):
     """The rule this target or match belong to."""
 
 
+class _Buffer(object):
+    def __init__(self, size=0):
+        if size > 0:
+            self.buffer = _malloc(size)
+            if self.buffer is None:
+                raise Exception("Can't allocate buffer")
+        else:
+            self.buffer = None
+
+    def __del__(self):
+        if self.buffer is not None:
+            _free(self.buffer)
+
+
 class Match(IPTCModule):
     """Matches are extensions which can match for special header fields or
     other attributes of a packet.
@@ -556,14 +570,10 @@ class Target(IPTCModule):
         else:
             self._revision = self._module.revision
 
-        self._allocate_buffer(target)
+        self._create_buffer(target)
 
         if self._is_standard_target():
             self.standard_target = name
-
-    def __del__(self):
-        if getattr(self, "_target_buf", None) and self._target_buf is not None:
-            _free(self._target_buf)
 
     def __eq__(self, targ):
         basesz = ct.sizeof(xt_entry_target)
@@ -586,10 +596,9 @@ class Target(IPTCModule):
     def __ne__(self, target):
         return not self.__eq__(target)
 
-    def _allocate_buffer(self, target):
-        self._target_buf = _malloc(self.size)
-        if self._target_buf is None:
-            raise Exception("Can't allocate target buffer")
+    def _create_buffer(self, target):
+        self._buffer = _Buffer(self.size)
+        self._target_buf = self._buffer.buffer
         if target:
             ct.memmove(self._target_buf, ct.byref(target), self.size)
             self._update_pointers()
@@ -610,6 +619,7 @@ class Target(IPTCModule):
         self._xt.parse_target(argv, inv, self._module, entry,
                               ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
         self._target_buf = ct.cast(self._module.t, ct.POINTER(ct.c_ubyte))
+        self._buffer.buffer = self._target_buf
         self._update_pointers()
 
     def _get_size(self):
