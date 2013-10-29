@@ -1318,7 +1318,7 @@ class Table(object):
     ALL = ["filter", "mangle", "raw", "nat"]
     """This is the constant for all tables."""
 
-    _cache = weakref.WeakValueDictionary()
+    _cache = dict()
 
     def __new__(cls, name, autocommit=None):
         obj = Table._cache.get(name, None)
