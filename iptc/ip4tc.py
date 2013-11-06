@@ -1362,7 +1362,8 @@ class Table(object):
         if self._handle is None:
             raise IPTCError("table is not initialized")
         try:
-            self.commit()
+            if self.autocommit:
+                self.commit()
         except IPTCError, e:
             if not ignore_exc:
                 raise e
