@@ -3,17 +3,25 @@
 import ctypes as ct
 import socket
 import weakref
-import ctypes.util
 
 from ip4tc import Rule, Table, IPTCError
+from util import find_library, load_kernel
 from xtables import (XT_INV_PROTO, NFPROTO_IPV6, xt_align, xt_counters)
-from util import load_kernel
 
 __all__ = ["Table6", "Rule6"]
 
 load_kernel("ip6_tables")
 
 _IFNAMSIZ = 16
+
+
+def is_table6_available(name):
+    try:
+        Table6(name)
+        return True
+    except IPTCError:
+        pass
+    return False
 
 
 class in6_addr(ct.Structure):
@@ -68,10 +76,7 @@ class ip6t_entry(ct.Structure):
                 ("elems", ct.c_ubyte * 0)]       # the matches then the target
 
 
-_libiptc_file = ctypes.util.find_library("ip6tc")
-if not _libiptc_file:
-    raise IPTCError("error: libip6tc not found")
-_libiptc = ct.CDLL(_libiptc_file, use_errno=True)
+_libiptc, _ = find_library("ip6tc", "iptc")  # old iptables versions use iptc
 
 
 class ip6tc(object):
@@ -248,7 +253,7 @@ class Rule6(Rule):
         return self._save(name, self.entry.ipv6)
 
     def _get_tables(self):
-        return [Table6(t) for t in Table6.ALL]
+        return [Table6(t) for t in Table6.ALL if is_table6_available(t)]
     tables = property(_get_tables)
     """This is the list of tables for our protocol."""
 
@@ -294,6 +299,26 @@ class Rule6(Rule):
         src = "".join([src, str(plen)])
         return src
 
+    def _get_address_netmask(self, a):
+        slash = a.find("/")
+        if slash == -1:
+            addr = a
+            netm = "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
+        else:
+            addr = a[:slash]
+            netm = a[slash + 1:]
+        return addr, netm
+
+    def _addr2in6addr(self, addr):
+        arr = ct.c_uint8 * 16
+        ina = in6_addr()
+        try:
+            ina.s6_addr = arr.from_buffer_copy(
+                socket.inet_pton(socket.AF_INET6, addr))
+        except socket.error:
+            raise ValueError("invalid address %s" % (addr))
+        return arr, ina
+
     def set_src(self, src):
         if src[0] == "!":
             self.entry.ipv6.invflags |= ip6t_ip6.IP6T_INV_SRCIP
@@ -302,22 +327,9 @@ class Rule6(Rule):
             self.entry.ipv6.invflags &= (~ip6t_ip6.IP6T_INV_SRCIP &
                                          ip6t_ip6.IP6T_INV_MASK)
 
-        slash = src.find("/")
-        if slash == -1:
-            addr = src
-            netm = "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
-        else:
-            addr = src[:slash]
-            netm = src[slash + 1:]
+        addr, netm = self._get_address_netmask(src)
 
-        arr = ct.c_uint8 * 16
-        ina = in6_addr()
-        try:
-            ina.s6_addr = arr.from_buffer_copy(
-                socket.inet_pton(socket.AF_INET6, addr))
-        except socket.error:
-            raise ValueError("invalid address %s" % (addr))
-        self.entry.ipv6.src = ina
+        arr, self.entry.ipv6.src = self._addr2in6addr(addr)
 
         # if we got a numeric prefix length
         if netm.isdigit():
@@ -371,22 +383,9 @@ class Rule6(Rule):
             self.entry.ipv6.invflags &= (~ip6t_ip6.IP6T_INV_DSTIP &
                                          ip6t_ip6.IP6T_INV_MASK)
 
-        slash = dst.find("/")
-        if slash == -1:
-            addr = dst
-            netm = "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
-        else:
-            addr = dst[:slash]
-            netm = dst[slash + 1:]
+        addr, netm = self._get_address_netmask(dst)
 
-        arr = ct.c_uint8 * 16
-        ina = in6_addr()
-        try:
-            ina.s6_addr = arr.from_buffer_copy(
-                socket.inet_pton(socket.AF_INET6, addr))
-        except socket.error:
-            raise ValueError("invalid address %s" % (addr))
-        self.entry.ipv6.dst = ina
+        arr, self.entry.ipv6.dst = self._addr2in6addr(addr)
 
         # if we got a numeric prefix length
         if netm.isdigit():
@@ -549,6 +548,7 @@ class Table6(Table):
     instantiated before, then it will be reused. To get access to e.g. the
     filter table:
 
+    >>> import iptc
     >>> table = iptc.Table6(iptc.Table6.FILTER)
 
     The interface provided by *Table* is rather low-level, in fact it maps to
@@ -569,18 +569,21 @@ class Table6(Table):
     ALL = ["filter", "mangle", "raw", "security"]
     """This is the constant for all tables."""
 
-    _cache = weakref.WeakValueDictionary()
+    _cache = dict()
 
-    def __new__(cls, name, autocommit=True):
+    def __new__(cls, name, autocommit=None):
         obj = Table6._cache.get(name, None)
         if not obj:
             obj = object.__new__(cls)
+            if autocommit is None:
+                autocommit = True
+            obj._init(name, autocommit)
             Table6._cache[name] = obj
-        else:
+        elif autocommit is not None:
             obj.autocommit = autocommit
         return obj
 
-    def __init__(self, name, autocommit=True):
+    def _init(self, name, autocommit):
         """
         Here *name* is the name of the table to instantiate, if it has already
         been instantiated the existing cached object is returned.
@@ -592,3 +595,6 @@ class Table6(Table):
         self.name = name
         self.autocommit = autocommit
         self.refresh()
+
+    def create_rule(self, entry=None, chain=None):
+        return Rule6(entry, chain)

@@ -1,3 +1,6 @@
+import re
+import ctypes
+import ctypes.util
 from subprocess import Popen, PIPE
 
 
@@ -26,3 +29,47 @@ def load_kernel(name, exc_if_failed=False):
             err = err[:-1]
         if exc_if_failed:
             raise Exception(err)
+
+
+def _do_find_library(name):
+    p = ctypes.util.find_library(name)
+    if p:
+        lib = ctypes.CDLL(p, mode=ctypes.RTLD_GLOBAL)
+        return lib
+
+    # probably we have been installed in a virtualenv
+    import os
+    from distutils.sysconfig import get_python_lib
+    try:
+        lib = ctypes.CDLL(os.path.join(get_python_lib(), name),
+                          mode=ctypes.RTLD_GLOBAL)
+        return lib
+    except:
+        pass
+
+    import sys
+    for p in sys.path:
+        try:
+            lib = ctypes.CDLL(os.path.join(p, name), mode=ctypes.RTLD_GLOBAL)
+            return lib
+        except:
+            pass
+    return None
+
+
+def _find_library(*names):
+    for name in names:
+        for n in (name, "lib" + name, name + ".so", "lib" + name + ".so"):
+            lib = _do_find_library(n)
+            if lib is not None:
+                yield lib
+
+
+def find_library(*names):
+    for lib in _find_library(*names):
+        major = 0
+        m = re.search(r"\.so\.(\d+)", lib._name)
+        if m:
+            major = int(m.group(1))
+        return lib, major
+    return None, None

@@ -4,6 +4,9 @@ import unittest
 import iptc
 
 
+is_table_available = iptc.is_table_available
+
+
 class TestTarget(unittest.TestCase):
     def setUp(self):
         pass
@@ -108,10 +111,7 @@ class TestXTClusteripTarget(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
-
-        self.chain.delete_rule(self.rule)
 
 
 class TestIPTRedirectTarget(unittest.TestCase):
@@ -160,10 +160,7 @@ class TestIPTRedirectTarget(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
-
-        self.chain.delete_rule(self.rule)
 
 
 class TestXTTosTarget(unittest.TestCase):
@@ -186,7 +183,7 @@ class TestXTTosTarget(unittest.TestCase):
         self.chain.flush()
         self.chain.delete()
 
-    def test_mode(self):
+    def test_set_tos(self):
         for tos in ["0x12/0xff", "0x12/0x0f"]:
             self.target.set_tos = tos
             self.assertEquals(self.target.set_tos, tos)
@@ -199,6 +196,8 @@ class TestXTTosTarget(unittest.TestCase):
             self.target.set_tos = tos[0]
             self.assertEquals(self.target.set_tos, tos[1])
             self.target.reset()
+
+    def test_tos_mode(self):
         for tos in ["0x04"]:
             self.target.and_tos = tos
             self.assertEquals(self.target.set_tos, "0x00/0xfb")
@@ -241,10 +240,55 @@ class TestXTTosTarget(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
 
-        self.chain.delete_rule(self.rule)
+
+class TestDnatTarget(unittest.TestCase):
+    def setUp(self):
+        self.rule = iptc.Rule()
+        self.rule.dst = "127.0.0.2"
+        self.rule.protocol = "tcp"
+        self.rule.in_interface = "eth0"
+
+        self.match = iptc.Match(self.rule, "tcp")
+        self.rule.add_match(self.match)
+
+        self.target = iptc.Target(self.rule, "DNAT")
+        self.rule.target = self.target
+
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.MANGLE),
+                                "iptc_test_dnat")
+        iptc.Table(iptc.Table.MANGLE).create_chain(self.chain)
+
+    def tearDown(self):
+        self.chain.flush()
+        self.chain.delete()
+
+    def test_mode(self):
+        for dst in ["1.2.3.4", "199.199.199.199-199.199.199.255",
+                    "1.2.3.4:5678", "1.2.3.4:5678-5688"]:
+            self.target.to_destination = dst
+            self.assertEquals(self.target.to_destination, dst)
+            self.target.reset()
+            self.target.to_destination = dst
+            self.target.random = "1"
+            self.assertEquals(self.target.to_destination, dst)
+            self.target.reset()
+            self.target.to_destination = dst
+            self.target.persistent = "1"
+            self.assertEquals(self.target.to_destination, dst)
+            self.target.reset()
+
+    def test_insert(self):
+        self.target.reset()
+        self.target.to_destination = "1.2.3.4"
+        self.rule.target = self.target
+
+        self.chain.insert_rule(self.rule)
+
+        for r in self.chain.rules:
+            if r != self.rule:
+                self.fail("inserted rule does not match original")
 
 
 class TestIPTMasqueradeTarget(unittest.TestCase):
@@ -294,27 +338,33 @@ class TestIPTMasqueradeTarget(unittest.TestCase):
                 found = True
                 break
 
-        self.chain.delete_rule(self.rule)
-
         if not found:
             self.fail("inserted rule does not match original")
 
 
 def suite():
     suite_target = unittest.TestLoader().loadTestsFromTestCase(TestTarget)
+    suite_tos = unittest.TestLoader().loadTestsFromTestCase(TestXTTosTarget)
     suite_cluster = unittest.TestLoader().loadTestsFromTestCase(
         TestXTClusteripTarget)
-    suite_redir = unittest.TestLoader().loadTestsFromTestCase(
-        TestIPTRedirectTarget)
-    suite_tos = unittest.TestLoader().loadTestsFromTestCase(TestXTTosTarget)
-    suite_masq = unittest.TestLoader().loadTestsFromTestCase(
-        TestIPTMasqueradeTarget)
-    return unittest.TestSuite([suite_target, suite_cluster, suite_redir,
-                               suite_tos, suite_masq])
+    if is_table_available(iptc.Table.NAT):
+        suite_redir = unittest.TestLoader().loadTestsFromTestCase(
+            TestIPTRedirectTarget)
+        suite_masq = unittest.TestLoader().loadTestsFromTestCase(
+            TestIPTMasqueradeTarget)
+        suite_dnat = unittest.TestLoader().loadTestsFromTestCase(
+            TestDnatTarget)
+        return unittest.TestSuite([suite_target, suite_cluster, suite_redir,
+                                   suite_tos, suite_masq, suite_dnat])
+    else:
+        return unittest.TestSuite([suite_target, suite_cluster, suite_tos])
 
 
 def run_tests():
-    unittest.TextTestRunner(verbosity=2).run(suite())
+    result = unittest.TextTestRunner(verbosity=2).run(suite())
+    if result.errors or result.failures:
+        return 1
+    return 0
 
 if __name__ == "__main__":
     unittest.main()

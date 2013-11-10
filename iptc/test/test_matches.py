@@ -73,6 +73,7 @@ class TestXTUdpMatch(unittest.TestCase):
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
+        self.chain.flush()
         self.chain.delete()
 
     def test_udp_port(self):
@@ -108,10 +109,7 @@ class TestXTUdpMatch(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
-
-        self.chain.delete_rule(self.rule)
 
 
 class TestXTMarkMatch(unittest.TestCase):
@@ -122,11 +120,13 @@ class TestXTMarkMatch(unittest.TestCase):
         self.rule.target = iptc.Target(self.rule, "ACCEPT")
 
         self.match = iptc.Match(self.rule, "mark")
+
         self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER),
                                 "iptc_test_mark")
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
+        self.chain.flush()
         self.chain.delete()
 
     def test_mark(self):
@@ -152,10 +152,7 @@ class TestXTMarkMatch(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
-
-        self.chain.delete_rule(self.rule)
 
 
 class TestXTLimitMatch(unittest.TestCase):
@@ -197,10 +194,7 @@ class TestXTLimitMatch(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
-
-        self.chain.delete_rule(self.rule)
 
 
 class TestCommentMatch(unittest.TestCase):
@@ -222,7 +216,7 @@ class TestCommentMatch(unittest.TestCase):
     def test_comment(self):
         comment = "comment test"
         self.match.reset()
-        self.match.comment = comment
+        self.match.comment = "\"%s\"" % (comment)
         self.chain.insert_rule(self.rule)
         self.assertEquals(self.match.comment.replace('"', ''), comment)
 
@@ -252,10 +246,7 @@ class TestIprangeMatch(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
-
-        self.chain.delete_rule(self.rule)
 
     def test_iprange_tcpdport(self):
         self.match.src_range = "192.168.1.100-192.168.1.200"
@@ -270,10 +261,7 @@ class TestIprangeMatch(unittest.TestCase):
 
         for r in self.chain.rules:
             if r != self.rule:
-                self.chain.delete_rule(self.rule)
                 self.fail("inserted rule does not match original")
-
-        self.chain.delete_rule(self.rule)
 
 
 def suite():
@@ -290,7 +278,10 @@ def suite():
 
 
 def run_tests():
-    unittest.TextTestRunner(verbosity=2).run(suite())
+    result = unittest.TextTestRunner(verbosity=2).run(suite())
+    if result.errors or result.failures:
+        return 1
+    return 0
 
 if __name__ == "__main__":
     unittest.main()

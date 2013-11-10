@@ -3,17 +3,37 @@
 import os
 import re
 import ctypes as ct
+import shlex
 import socket
 import struct
 import weakref
-import ctypes.util
 
+from util import find_library
 from xtables import (XT_INV_PROTO, NFPROTO_IPV4, XTablesError, xtables,
                      xt_align, xt_counters, xt_entry_target, xt_entry_match)
 
 __all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError"]
 
 _IFNAMSIZ = 16
+
+_libc = ct.CDLL("libc.so.6")
+_get_errno_loc = _libc.__errno_location
+_get_errno_loc.restype = ct.POINTER(ct.c_int)
+_malloc = _libc.malloc
+_malloc.restype = ct.POINTER(ct.c_ubyte)
+_malloc.argtypes = [ct.c_size_t]
+_free = _libc.free
+_free.restype = None
+_free.argtypes = [ct.POINTER(ct.c_ubyte)]
+
+
+def is_table_available(name):
+    try:
+        Table(name)
+        return True
+    except IPTCError:
+        pass
+    return False
 
 
 class in_addr(ct.Structure):
@@ -74,12 +94,7 @@ class IPTCError(Exception):
     """
 
 
-_libiptc_file = ctypes.util.find_library("ip4tc")
-if not _libiptc_file:
-    _libiptc_file = ctypes.util.find_library("iptc")
-if not _libiptc_file:
-    raise IPTCError("error: libiptc/libip4tc not found")
-_libiptc = ct.CDLL(_libiptc_file, use_errno=True)
+_libiptc, _ = find_library("ip4tc", "iptc")  # old iptables versions use iptc
 
 
 class iptc(object):
@@ -230,7 +245,7 @@ class iptc(object):
 class IPTCModule(object):
     """Superclass for Match and Target."""
     pattern = re.compile(
-        '\s*(!)?\s*--([-\w]+)\s+(!)?\s*"?([^"]*?)"?(?=\s*(?:!?\s*--|$))')
+        '\s*(!)?\s*--([-\w]+)\s+(!)?\s*("?[^"]*?"?)(?=\s*(?:!?\s*--|$))')
 
     def __init__(self):
         self._name = None
@@ -254,9 +269,14 @@ class IPTCModule(object):
         else:
             inv = ct.c_int(0)
 
-        argv = (ct.c_char_p * 2)()
+        args = shlex.split(value)
+        if not args:
+            args = [value]
+        N = len(args)
+        argv = (ct.c_char_p * (N + 1))()
         argv[0] = parameter
-        argv[1] = value
+        for i in xrange(N):
+            argv[i + 1] = args[i]
 
         entry = self._rule.entry and ct.pointer(self._rule.entry) or None
 
@@ -266,7 +286,7 @@ class IPTCModule(object):
         raise NotImplementedError()
 
     def final_check(self):
-        if self._module and self._module.final_check:
+        if self._module:
             self._final_check()  # subclasses override this
 
     def _final_check(self):
@@ -314,6 +334,31 @@ class IPTCModule(object):
         except KeyError:
             return None
 
+    def get_all_parameters(self):
+        params = {}
+        ip = self.rule.get_ip()
+        if self._module and self._module.save:
+            # redirect C stdout to a pipe and read back the output of m->save
+            pipes = os.pipe()
+            saved_out = os.dup(1)
+            os.dup2(pipes[1], 1)
+            self._xt.save(self._module, ip, self._ptr)
+            buf = os.read(pipes[0], 1024)
+            os.dup2(saved_out, 1)
+            os.close(pipes[0])
+            os.close(pipes[1])
+            os.close(saved_out)
+
+            res = re.findall(IPTCModule.pattern, buf)
+            for x in res:
+                params[x[1]] = "%s%s" % ((x[0] or x[2]) and "!" or "", x[3])
+
+        return params
+
+    def _update_parameters(self):
+        for k, v in self.get_all_parameters().iteritems():
+            self.__setattr__(k, v)
+
     def __setattr__(self, name, value):
         if not name.startswith('_') and name not in dir(self):
             self.parse(name.replace("_", "-"), value)
@@ -343,6 +388,20 @@ class IPTCModule(object):
         self._rule = rule
     rule = property(_get_rule, _set_rule)
     """The rule this target or match belong to."""
+
+
+class _Buffer(object):
+    def __init__(self, size=0):
+        if size > 0:
+            self.buffer = _malloc(size)
+            if self.buffer is None:
+                raise Exception("Can't allocate buffer")
+        else:
+            self.buffer = None
+
+    def __del__(self):
+        if self.buffer is not None:
+            _free(self.buffer)
 
 
 class Match(IPTCModule):
@@ -391,11 +450,14 @@ class Match(IPTCModule):
             self._revision = revision
         else:
             self._revision = self._module.revision
+        if self._module.next is not None:
+            self._store_buffer(module)
 
         self._match_buf = (ct.c_ubyte * self.size)()
         if match:
             ct.memmove(ct.byref(self._match_buf), ct.byref(match), self.size)
             self._update_pointers()
+            self._update_parameters()
         else:
             self.reset()
 
@@ -409,8 +471,12 @@ class Match(IPTCModule):
             return True
         return False
 
-    def __ne__(self, rule):
-        return not self.__eq__(rule)
+    def __ne__(self, match):
+        return not self.__eq__(match)
+
+    def _store_buffer(self, module):
+        self._buffer = _Buffer()
+        self._buffer.buffer = ct.cast(module, ct.POINTER(ct.c_ubyte))
 
     def _final_check(self):
         self._xt.final_check_match(self._module)
@@ -435,6 +501,7 @@ class Match(IPTCModule):
                             ct.POINTER(xt_entry_match))
         self._ptrptr = ct.cast(ct.pointer(self._ptr),
                                ct.POINTER(ct.POINTER(xt_entry_match)))
+        self._module.m = self._ptr
 
     def reset(self):
         """Reset the match.
@@ -448,7 +515,6 @@ class Match(IPTCModule):
         m.u.user.revision = self._revision
         if self._module.init:
             self._module.init(self._ptr)
-        self._module.m = self._ptr
         self._module.mflags = 0
 
     def _get_match(self):
@@ -498,17 +564,11 @@ class Target(IPTCModule):
 
         self._xt = xtables(rule.nfproto)
 
-        is_standard_target = False
-        module = None
-        for t in rule.tables:
-            if t.is_chain(name):
-                is_standard_target = True
-                module = self._xt.find_target('standard')
-
+        module = (self._is_standard_target() and
+                  self._xt.find_target('standard') or
+                  self._xt.find_target(name))
         if not module:
-            module = self._xt.find_target(name)
-            if not module:
-                raise XTablesError("can't find target %s" % (name))
+            raise XTablesError("can't find target %s" % (name))
         self._module = module[0]
         self._module.tflags = 0
         if revision is not None:
@@ -516,36 +576,47 @@ class Target(IPTCModule):
         else:
             self._revision = self._module.revision
 
-        self._target_buf = (ct.c_ubyte * self.size)()
-        if target:
-            ct.memmove(ct.byref(self._target_buf), ct.byref(target), self.size)
-            self._update_pointers()
-        else:
-            self.reset()
+        self._create_buffer(target)
 
-        if is_standard_target:
+        if self._is_standard_target():
             self.standard_target = name
 
     def __eq__(self, targ):
         basesz = ct.sizeof(xt_entry_target)
-        if self.target.u.target_size != targ.target.u.target_size or \
-                self.target.u.user.name != targ.target.u.user.name or \
-                self.target.u.user.revision != targ.target.u.user.revision:
+        if (self.target.u.target_size != targ.target.u.target_size or
+            self.target.u.user.name != targ.target.u.user.name or
+            self.target.u.user.revision != targ.target.u.user.revision):
             return False
-        if self.target.u.user.name == "" or \
-                self.target.u.user.name == "standard" or \
-                self.target.u.user.name == "ACCEPT" or \
-                self.target.u.user.name == "DROP" or \
-                self.target.u.user.name == "RETURN" or \
-                self.target.u.user.name == "ERROR":
+        if (self.target.u.user.name == "" or
+            self.target.u.user.name == "standard" or
+            self.target.u.user.name == "ACCEPT" or
+            self.target.u.user.name == "DROP" or
+            self.target.u.user.name == "RETURN" or
+            self.target.u.user.name == "ERROR"):
             return True
-        if self.target_buf[basesz:self.usersize] == \
-                targ.target_buf[basesz:targ.usersize]:
+        if (self._target_buf[basesz:self.usersize] ==
+            targ._target_buf[basesz:targ.usersize]):
             return True
         return False
 
-    def __ne__(self, rule):
-        return not self.__eq__(rule)
+    def __ne__(self, target):
+        return not self.__eq__(target)
+
+    def _create_buffer(self, target):
+        self._buffer = _Buffer(self.size)
+        self._target_buf = self._buffer.buffer
+        if target:
+            ct.memmove(self._target_buf, ct.byref(target), self.size)
+            self._update_pointers()
+            self._update_parameters()
+        else:
+            self.reset()
+
+    def _is_standard_target(self):
+        for t in self._rule.tables:
+            if t.is_chain(self._name):
+                return True
+        return False
 
     def _final_check(self):
         self._xt.final_check_target(self._module)
@@ -553,6 +624,9 @@ class Target(IPTCModule):
     def _parse(self, argv, inv, entry):
         self._xt.parse_target(argv, inv, self._module, entry,
                               ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
+        self._target_buf = ct.cast(self._module.t, ct.POINTER(ct.c_ubyte))
+        self._buffer.buffer = self._target_buf
+        self._update_pointers()
 
     def _get_size(self):
         return xt_align(self._module.size + ct.sizeof(xt_entry_target))
@@ -579,15 +653,15 @@ class Target(IPTCModule):
     into."""
 
     def _update_pointers(self):
-        self._ptr = ct.cast(ct.byref(self._target_buf),
-                            ct.POINTER(xt_entry_target))
+        self._ptr = ct.cast(self._target_buf, ct.POINTER(xt_entry_target))
         self._ptrptr = ct.cast(ct.pointer(self._ptr),
                                ct.POINTER(ct.POINTER(xt_entry_target)))
+        self._module.t = self._ptr
 
     def reset(self):
         """Reset the target.  Parameters are set to their default values, any
         flags are cleared."""
-        ct.memset(ct.byref(self._target_buf), 0, self.size)
+        ct.memset(self._target_buf, 0, self.size)
         self._update_pointers()
         t = self._ptr[0]
         t.u.user.name = self.name
@@ -595,19 +669,12 @@ class Target(IPTCModule):
         t.u.user.revision = self._revision
         if self._module.init:
             self._module.init(self._ptr)
-        self._module.t = self._ptr
         self._module.tflags = 0
 
     def _get_target(self):
-        return ct.cast(ct.byref(self.target_buf),
-                       ct.POINTER(xt_entry_target))[0]
+        return self._ptr[0]
     target = property(_get_target)
     """This is the C structure used by the extension."""
-
-    def _get_target_buf(self):
-        return self._target_buf
-    target_buf = property(_get_target_buf)
-    """This is the buffer holding the C structure used by the extension."""
 
 
 class Policy(object):
@@ -699,9 +766,16 @@ class Rule(object):
         return not self.__eq__(rule)
 
     def _get_tables(self):
-        return [Table(t) for t in Table.ALL]
+        return [Table(t) for t in Table.ALL if is_table_available(t)]
     tables = property(_get_tables)
     """This is the list of tables for our protocol."""
+
+    def final_check(self):
+        """Do a final check on the target and the matches."""
+        if self.target:
+            self.target.final_check()
+        for match in self.matches:
+            match.final_check()
 
     def create_match(self, name, revision=None):
         """Create a *match*, and add it to the list of matches in this rule.
@@ -1158,6 +1232,7 @@ class Chain(object):
 
     def append_rule(self, rule):
         """Append *rule* to the end of the chain."""
+        rule.final_check()
         rbuf = rule.rule
         if not rbuf:
             raise ValueError("invalid rule")
@@ -1166,6 +1241,7 @@ class Chain(object):
     def insert_rule(self, rule, position=0):
         """Insert *rule* as the first entry in the chain if *position* is 0 or
         not specified, else *rule* is inserted in the given position."""
+        rule.final_check()
         rbuf = rule.rule
         if not rbuf:
             raise ValueError("invalid rule")
@@ -1173,6 +1249,7 @@ class Chain(object):
 
     def delete_rule(self, rule):
         """Removes *rule* from the chain."""
+        rule.final_check()
         rbuf = rule.rule
         if not rbuf:
             raise ValueError("invalid rule")
@@ -1187,12 +1264,12 @@ class Chain(object):
         return self.table.get_target(rbuf)
 
     def _get_rules(self):
-        rules = []
-        rule = self.table.first_rule(self.name)
-        while rule:
-            rules.append(Rule(rule, self))
-            rule = self.table.next_rule(rule)
-        return rules
+        entries = []
+        entry = self.table.first_rule(self.name)
+        while entry:
+            entries.append(entry)
+            entry = self.table.next_rule(entry)
+        return [self.table.create_rule(e, self) for e in entries]
 
     rules = property(_get_rules)
     """This is the list of rules currently in the chain."""
@@ -1241,18 +1318,21 @@ class Table(object):
     ALL = ["filter", "mangle", "raw", "nat"]
     """This is the constant for all tables."""
 
-    _cache = weakref.WeakValueDictionary()
+    _cache = dict()
 
-    def __new__(cls, name, autocommit=True):
+    def __new__(cls, name, autocommit=None):
         obj = Table._cache.get(name, None)
         if not obj:
             obj = object.__new__(cls)
+            if autocommit is None:
+                autocommit = True
+            obj._init(name, autocommit)
             Table._cache[name] = obj
-        else:
+        elif autocommit is not None:
             obj.autocommit = autocommit
         return obj
 
-    def __init__(self, name, autocommit=True):
+    def _init(self, name, autocommit):
         """
         *name* is the name of the table, if it already exists it is returned.
         *autocommit* specifies that any iptables operation that changes a
@@ -1282,7 +1362,8 @@ class Table(object):
         if self._handle is None:
             raise IPTCError("table is not initialized")
         try:
-            self.commit()
+            if self.autocommit:
+                self.commit()
         except IPTCError, e:
             if not ignore_exc:
                 raise e
@@ -1321,8 +1402,7 @@ class Table(object):
 
     def strerror(self):
         """Returns any pending iptables error from the previous operation."""
-        errno = ct.get_errno()
-        ct.set_errno(0)
+        errno = _get_errno_loc()[0]
         if errno == 0:
             return "libiptc version error"
         return self._iptc.iptc_strerror(errno)
@@ -1479,3 +1559,6 @@ class Table(object):
             if not self.builtin_chain(chain):
                 chain.flush()
                 chain.delete()
+
+    def create_rule(self, entry=None, chain=None):
+        return Rule(entry, chain)
