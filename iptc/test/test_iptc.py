@@ -18,10 +18,10 @@ def _check_chains(testcase, *chains):
 
 class TestTable6(unittest.TestCase):
     def setUp(self):
-        pass
+        self.autocommit = iptc.Table(iptc.Table.FILTER).autocommit
 
     def tearDown(self):
-        pass
+        iptc.Table(iptc.Table.FILTER, self.autocommit)
 
     def test_table6(self):
         filt = None
