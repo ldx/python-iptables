@@ -9,8 +9,8 @@ import struct
 import sys
 import weakref
 
-from util import find_library
-from xtables import (XT_INV_PROTO, NFPROTO_IPV4, XTablesError, xtables,
+from iptc.util import find_library
+from iptc.xtables import (XT_INV_PROTO, NFPROTO_IPV4, XTablesError, xtables,
                      xt_align, xt_counters, xt_entry_target, xt_entry_match)
 
 __all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError"]
@@ -362,7 +362,7 @@ class IPTCModule(object):
         return params
 
     def _update_parameters(self):
-        for k, v in self.get_all_parameters().iteritems():
+        for k, v in self.get_all_parameters().items():
             self.__setattr__(k, v)
 
     def __setattr__(self, name, value):
@@ -1313,15 +1313,15 @@ class Table(object):
     low-level details from the user.
     """
 
-    FILTER = "filter"
+    FILTER = b"filter"
     """This is the constant for the filter table."""
-    MANGLE = "mangle"
+    MANGLE = b"mangle"
     """This is the constant for the mangle table."""
-    RAW = "raw"
+    RAW = b"raw"
     """This is the constant for the raw table."""
-    NAT = "nat"
+    NAT = b"nat"
     """This is the constant for the nat table."""
-    ALL = ["filter", "mangle", "raw", "nat"]
+    ALL = [b"filter", b"mangle", b"raw", b"nat"]
     """This is the constant for all tables."""
 
     _cache = dict()
@@ -1370,7 +1370,7 @@ class Table(object):
         try:
             if self.autocommit:
                 self.commit()
-        except IPTCError, e:
+        except IPTCError as e:
             if not ignore_exc:
                 raise e
         finally:

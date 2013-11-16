@@ -4,9 +4,9 @@ import ctypes as ct
 import socket
 import weakref
 
-from ip4tc import Rule, Table, IPTCError
-from util import find_library, load_kernel
-from xtables import (XT_INV_PROTO, NFPROTO_IPV6, xt_align, xt_counters)
+from iptc.ip4tc import Rule, Table, IPTCError
+from iptc.util import find_library, load_kernel
+from iptc.xtables import XT_INV_PROTO, NFPROTO_IPV6, xt_align, xt_counters
 
 __all__ = ["Table6", "Rule6"]
 
@@ -558,15 +558,15 @@ class Table6(Table):
     low-level details from the user.
     """
 
-    FILTER = "filter"
+    FILTER = b"filter"
     """This is the constant for the filter table."""
-    MANGLE = "mangle"
+    MANGLE = b"mangle"
     """This is the constant for the mangle table."""
-    RAW = "raw"
+    RAW = b"raw"
     """This is the constant for the raw table."""
-    SECURITY = "security"
+    SECURITY = b"security"
     """This is the constant for the security table."""
-    ALL = ["filter", "mangle", "raw", "security"]
+    ALL = [b"filter", b"mangle", b"raw", b"security"]
     """This is the constant for all tables."""
 
     _cache = dict()

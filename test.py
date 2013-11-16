@@ -3,11 +3,11 @@
 
 import sys
 
-print "WARNING: this test will manipulate iptables rules."
-print "Don't do this on a production machine."
+print("WARNING: this test will manipulate iptables rules.")
+print("Don't do this on a production machine.")
 while True:
-    print "Would you like to continue? y/n",
-    answer = raw_input()
+    print("Would you like to continue? y/n")
+    answer = input()
     if answer in "yYnN" and len(answer) == 1:
         break
 if answer in "nN":
