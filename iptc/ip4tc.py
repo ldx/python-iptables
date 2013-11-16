@@ -6,6 +6,7 @@ import ctypes as ct
 import shlex
 import socket
 import struct
+import sys
 import weakref
 
 from util import find_library
@@ -296,23 +297,28 @@ class IPTCModule(object):
         return self._save(name, self.rule.get_ip())
 
     def _save(self, name, ip):
-        if self._module and self._module.save:
-            # redirect C stdout to a pipe and read back the output of m->save
-            pipes = os.pipe()
-            saved_out = os.dup(1)
-            os.dup2(pipes[1], 1)
-            self._xt.save(self._module, ip, self._ptr)
-            buf = os.read(pipes[0], 1024)
-            os.dup2(saved_out, 1)
-            os.close(pipes[0])
-            os.close(pipes[1])
-            os.close(saved_out)
-            if name:
-                return self._get_value(buf, name)
-            else:
-                return self._get_all_values(buf)
-        else:
+        if not self._module or not self._module.save:
             return None
+        # redirect C stdout to a pipe and read back the output of m->save
+        fd = sys.stdout.fileno()
+        with os.fdopen(os.dup(fd), 'w') as old_stdout:
+            try:
+                pipes = os.pipe()
+                sys.stdout.close()
+                os.dup2(pipes[1], fd)
+                sys.stdout = os.fdopen(fd, 'w')
+                self._xt.save(self._module, ip, self._ptr)
+                buf = os.read(pipes[0], 1024)
+                os.close(pipes[0])
+                os.close(pipes[1])
+                if name:
+                    return self._get_value(buf, name)
+                else:
+                    return self._get_all_values(buf)
+            finally:
+                sys.stdout.close()
+                os.dup2(old_stdout.fileno(), fd)
+                sys.stdout = os.fdopen(fd, 'w')
 
     def _get_all_values(self, buf):
         table = {}  # variable -> (value, inverted)
