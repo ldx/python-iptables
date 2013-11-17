@@ -16,7 +16,7 @@ setup(
     description="Python bindings for iptables",
     author="Nilvec",
     author_email="nilvec@nilvec.com",
-    url="http://nilvec.com/",
+    url="https://github.com/ldx/python-iptables",
     packages=["iptc"],
     package_dir={"iptc": "iptc"},
     ext_modules=[Extension("libxtwrapper",
