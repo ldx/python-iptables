@@ -308,13 +308,11 @@ class IPTCModule(object):
                 buf = os.read(pipes[0], 1024)
                 os.close(pipes[0])
                 os.close(pipes[1])
-                print >> sys.stderr, buf
                 return buf
             finally:
                 sys.stdout.close()
                 os.dup2(old_stdout.fileno(), fd)
                 sys.stdout = os.fdopen(fd, 'w')
-                print >> sys.stderr, "restored stdout"
 
     def save(self, name):
         return self._save(name, self.rule.get_ip())
@@ -354,7 +352,6 @@ class IPTCModule(object):
         params = {}
         ip = self.rule.get_ip()
         buf = self._get_saved_buf(ip)
-        print >> sys.stderr, buf
         if buf is not None:
             res = re.findall(IPTCModule.pattern, buf)
             for x in res:
@@ -443,7 +440,6 @@ class Match(IPTCModule):
         if not name:
             name = match.u.user.name
             revision = match.u.user.revision
-            print "loading", name, revision, "from buffer"
         self._name = name
         self._rule = rule
 
@@ -463,7 +459,6 @@ class Match(IPTCModule):
             self._store_buffer(module)
 
         self._check_alias(module[0], match)
-        print >> sys.stderr, "alias ok"
 
         self._match_buf = (ct.c_ubyte * self.size)()
         if match:
@@ -490,9 +485,7 @@ class Match(IPTCModule):
         # This is ugly, but there are extensions using an alias name.
         # Check if that's the case, and load again if necessary.
         if getattr(module, "alias", None) is not None and module.alias:
-            print >> sys.stderr, "alias", module.alias
             self._alias_name = module.alias(match)
-            print >> sys.stderr, "alias name ok"
             alias = self._xt.find_match(self._alias_name)
             if not alias:
                 raise XTablesError("can't find alias match %s" %

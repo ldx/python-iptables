@@ -838,7 +838,6 @@ class xtables(object):
     def _restore_globals(self):
         # Restore per-protocol libxtables global variables saved in
         # _save_globals().
-        print >> sys.stderr, "nfproto", self.proto
         xtables._xtables_set_nfproto(self.proto)
         xtables._xtables_xt_params.value = self._xt_params
         xtables._xtables_matches.value = self._matches
@@ -909,9 +908,7 @@ class xtables(object):
                 return match
         self._loaded(name)
 
-        m = ct.cast(match, ct.POINTER(self._match_struct))
-        print >> sys.stderr, "loaded match", m[0].name, m[0].revision, m[0].family
-        return m
+        return ct.cast(match, ct.POINTER(self._match_struct))
 
     @preserve_globals
     def find_target(self, name):
@@ -1017,7 +1014,6 @@ class xtables(object):
             if not entry:
                 raise XTablesError("%s: no such parameter %s" % (m.name,
                                                                  argv[0]))
-            print >> sys.stderr, "found param", m.name, argv[0]
 
             cb = xt_option_call()
             cb.entry = ct.pointer(entry)
