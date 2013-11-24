@@ -293,10 +293,7 @@ class IPTCModule(object):
     def _final_check(self):
         raise NotImplementedError()
 
-    def save(self, name):
-        return self._save(name, self.rule.get_ip())
-
-    def _save(self, name, ip):
+    def _get_saved_buf(self, ip):
         if not self._module or not self._module.save:
             return None
         # redirect C stdout to a pipe and read back the output of m->save
@@ -311,14 +308,25 @@ class IPTCModule(object):
                 buf = os.read(pipes[0], 1024)
                 os.close(pipes[0])
                 os.close(pipes[1])
-                if name:
-                    return self._get_value(buf, name)
-                else:
-                    return self._get_all_values(buf)
+                return buf
             finally:
                 sys.stdout.close()
                 os.dup2(old_stdout.fileno(), fd)
                 sys.stdout = os.fdopen(fd, 'w')
+
+    def save(self, name):
+        return self._save(name, self.rule.get_ip())
+
+    def _save(self, name, ip):
+        buf = self._get_saved_buf(ip)
+        if buf is None:
+            return None
+        if not self._module or not self._module.save:
+            return None
+        if name:
+            return self._get_value(buf, name)
+        else:
+            return self._get_all_values(buf)
 
     def _get_all_values(self, buf):
         table = {}  # variable -> (value, inverted)
@@ -343,22 +351,11 @@ class IPTCModule(object):
     def get_all_parameters(self):
         params = {}
         ip = self.rule.get_ip()
-        if self._module and self._module.save:
-            # redirect C stdout to a pipe and read back the output of m->save
-            pipes = os.pipe()
-            saved_out = os.dup(1)
-            os.dup2(pipes[1], 1)
-            self._xt.save(self._module, ip, self._ptr)
-            buf = os.read(pipes[0], 1024)
-            os.dup2(saved_out, 1)
-            os.close(pipes[0])
-            os.close(pipes[1])
-            os.close(saved_out)
-
+        buf = self._get_saved_buf(ip)
+        if buf is not None:
             res = re.findall(IPTCModule.pattern, buf)
             for x in res:
                 params[x[1]] = "%s%s" % ((x[0] or x[2]) and "!" or "", x[3])
-
         return params
 
     def _update_parameters(self):
