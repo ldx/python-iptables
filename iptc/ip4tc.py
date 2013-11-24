@@ -308,11 +308,13 @@ class IPTCModule(object):
                 buf = os.read(pipes[0], 1024)
                 os.close(pipes[0])
                 os.close(pipes[1])
+                print >> sys.stderr, buf
                 return buf
             finally:
                 sys.stdout.close()
                 os.dup2(old_stdout.fileno(), fd)
                 sys.stdout = os.fdopen(fd, 'w')
+                print >> sys.stderr, "restored stdout"
 
     def save(self, name):
         return self._save(name, self.rule.get_ip())
@@ -352,6 +354,7 @@ class IPTCModule(object):
         params = {}
         ip = self.rule.get_ip()
         buf = self._get_saved_buf(ip)
+        print >> sys.stderr, buf
         if buf is not None:
             res = re.findall(IPTCModule.pattern, buf)
             for x in res:
@@ -439,6 +442,8 @@ class Match(IPTCModule):
             raise ValueError("can't create match based on nothing")
         if not name:
             name = match.u.user.name
+            revision = match.u.user.revision
+            print "loading", name, revision, "from buffer"
         self._name = name
         self._rule = rule
 
@@ -447,6 +452,7 @@ class Match(IPTCModule):
         module = self._xt.find_match(name)
         if not module:
             raise XTablesError("can't find match %s" % (name))
+
         self._module = module[0]
         self._module.mflags = 0
         if revision is not None:
@@ -455,6 +461,9 @@ class Match(IPTCModule):
             self._revision = self._module.revision
         if self._module.next is not None:
             self._store_buffer(module)
+
+        self._check_alias(module[0], match)
+        print >> sys.stderr, "alias ok"
 
         self._match_buf = (ct.c_ubyte * self.size)()
         if match:
@@ -477,6 +486,19 @@ class Match(IPTCModule):
     def __ne__(self, match):
         return not self.__eq__(match)
 
+    def _check_alias(self, module, match):
+        # This is ugly, but there are extensions using an alias name.
+        # Check if that's the case, and load again if necessary.
+        if getattr(module, "alias", None) is not None and module.alias:
+            print >> sys.stderr, "alias", module.alias
+            self._alias_name = module.alias(match)
+            print >> sys.stderr, "alias name ok"
+            alias = self._xt.find_match(self._alias_name)
+            if not alias:
+                raise XTablesError("can't find alias match %s" %
+                                   (self._alias_name))
+            self._alias = alias[0]
+
     def _store_buffer(self, module):
         self._buffer = _Buffer()
         self._buffer.buffer = ct.cast(module, ct.POINTER(ct.c_ubyte))
@@ -485,7 +507,12 @@ class Match(IPTCModule):
         self._xt.final_check_match(self._module)
 
     def _parse(self, argv, inv, entry):
-        self._xt.parse_match(argv, inv, self._module, entry,
+        if self._alias is not None:
+            module = self._alias
+        else:
+            module = self._module
+        self._xt.parse_match(argv, inv, module, entry,
+        #self._xt.parse_match(argv, inv, self._module, entry,
                              ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
 
     def _get_size(self):
@@ -505,6 +532,8 @@ class Match(IPTCModule):
         self._ptrptr = ct.cast(ct.pointer(self._ptr),
                                ct.POINTER(ct.POINTER(xt_entry_match)))
         self._module.m = self._ptr
+        if self._alias is not None:
+            self._alias.m = self._ptr
 
     def reset(self):
         """Reset the match.
