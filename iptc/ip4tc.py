@@ -456,6 +456,8 @@ class Match(IPTCModule):
         if self._module.next is not None:
             self._store_buffer(module)
 
+        self._check_alias(module[0], match)
+
         self._match_buf = (ct.c_ubyte * self.size)()
         if match:
             ct.memmove(ct.byref(self._match_buf), ct.byref(match), self.size)
@@ -477,6 +479,19 @@ class Match(IPTCModule):
     def __ne__(self, match):
         return not self.__eq__(match)
 
+    def _check_alias(self, module, match):
+        # This is ugly, but there are extensions using an alias name. Check if
+        # that's the case, and load that extension as well if necessary. It
+        # will be used to parse parameters, since the 'real' extension
+        # probably won't understand them.
+        if getattr(module, "alias", None) is not None and module.alias:
+            self._alias_name = module.alias(match)
+            alias = self._xt.find_match(self._alias_name)
+            if not alias:
+                raise XTablesError("can't find alias match %s" %
+                                   (self._alias_name))
+            self._alias = alias[0]
+
     def _store_buffer(self, module):
         self._buffer = _Buffer()
         self._buffer.buffer = ct.cast(module, ct.POINTER(ct.c_ubyte))
@@ -485,7 +500,11 @@ class Match(IPTCModule):
         self._xt.final_check_match(self._module)
 
     def _parse(self, argv, inv, entry):
-        self._xt.parse_match(argv, inv, self._module, entry,
+        if self._alias is not None:
+            module = self._alias
+        else:
+            module = self._module
+        self._xt.parse_match(argv, inv, module, entry,
                              ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
 
     def _get_size(self):
@@ -505,6 +524,8 @@ class Match(IPTCModule):
         self._ptrptr = ct.cast(ct.pointer(self._ptr),
                                ct.POINTER(ct.POINTER(xt_entry_match)))
         self._module.m = self._ptr
+        if self._alias is not None:
+            self._alias.m = self._ptr
 
     def reset(self):
         """Reset the match.
@@ -579,6 +600,8 @@ class Target(IPTCModule):
         else:
             self._revision = self._module.revision
 
+        self._check_alias(module[0], target)
+
         self._create_buffer(target)
 
         if self._is_standard_target():
@@ -605,6 +628,19 @@ class Target(IPTCModule):
     def __ne__(self, target):
         return not self.__eq__(target)
 
+    def _check_alias(self, module, target):
+        # This is ugly, but there are extensions using an alias name. Check if
+        # that's the case, and load that extension as well if necessary. It
+        # will be used to parse parameters, since the 'real' extension
+        # probably won't understand them.
+        if getattr(module, "alias", None) is not None and module.alias:
+            self._alias_name = module.alias(target)
+            alias = self._xt.find_target(self._alias_name)
+            if not alias:
+                raise XTablesError("can't find alias target %s" %
+                                   (self._alias_name))
+            self._alias = alias[0]
+
     def _create_buffer(self, target):
         self._buffer = _Buffer(self.size)
         self._target_buf = self._buffer.buffer
@@ -625,7 +661,11 @@ class Target(IPTCModule):
         self._xt.final_check_target(self._module)
 
     def _parse(self, argv, inv, entry):
-        self._xt.parse_target(argv, inv, self._module, entry,
+        if self._alias is not None:
+            module = self._alias
+        else:
+            module = self._module
+        self._xt.parse_target(argv, inv, module, entry,
                               ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
         self._target_buf = ct.cast(self._module.t, ct.POINTER(ct.c_ubyte))
         self._buffer.buffer = self._target_buf
@@ -660,6 +700,8 @@ class Target(IPTCModule):
         self._ptrptr = ct.cast(ct.pointer(self._ptr),
                                ct.POINTER(ct.POINTER(xt_entry_target)))
         self._module.t = self._ptr
+        if self._alias is not None:
+            self._alias.t = self._ptr
 
     def reset(self):
         """Reset the target.  Parameters are set to their default values, any
