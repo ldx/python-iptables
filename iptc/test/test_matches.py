@@ -264,6 +264,40 @@ class TestIprangeMatch(unittest.TestCase):
                 self.fail("inserted rule does not match original")
 
 
+class TestXTStateMatch(unittest.TestCase):
+    def setUp(self):
+        self.rule = iptc.Rule()
+        self.rule.src = "127.0.0.1"
+        self.rule.protocol = "tcp"
+        self.rule.target = iptc.Target(self.rule, "ACCEPT")
+
+        self.match = iptc.Match(self.rule, "state")
+
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER),
+                                "iptc_test_state")
+        self.table = iptc.Table(iptc.Table.FILTER)
+        try:
+            self.chain.flush()
+            self.chain.delete()
+        except:
+            pass
+        self.table.create_chain(self.chain)
+
+    def tearDown(self):
+        self.chain.flush()
+        self.chain.delete()
+        pass
+
+    def test_state(self):
+        self.match.state = "RELATED,ESTABLISHED"
+        self.rule.add_match(self.match)
+        self.chain.insert_rule(self.rule)
+        rule = self.chain.rules[0]
+        m = rule.matches[0]
+        self.assertIn(m.name, ["state", "conntrack"])
+        self.assertEquals(m.state, "RELATED,ESTABLISHED")
+
+
 def suite():
     suite_match = unittest.TestLoader().loadTestsFromTestCase(TestMatch)
     suite_udp = unittest.TestLoader().loadTestsFromTestCase(TestXTUdpMatch)
@@ -273,8 +307,10 @@ def suite():
         TestCommentMatch)
     suite_iprange = unittest.TestLoader().loadTestsFromTestCase(
         TestIprangeMatch)
+    suite_state = unittest.TestLoader().loadTestsFromTestCase(TestXTStateMatch)
     return unittest.TestSuite([suite_match, suite_udp, suite_mark,
-                               suite_limit, suite_comment, suite_iprange])
+                               suite_limit, suite_comment, suite_iprange,
+                               suite_state])
 
 
 def run_tests():

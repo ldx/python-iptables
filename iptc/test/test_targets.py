@@ -342,22 +342,56 @@ class TestIPTMasqueradeTarget(unittest.TestCase):
             self.fail("inserted rule does not match original")
 
 
+class TestXTNotrackTarget(unittest.TestCase):
+    def setUp(self):
+        self.rule = iptc.Rule()
+        self.rule.dst = "127.0.0.2"
+        self.rule.protocol = "tcp"
+        self.rule.out_interface = "eth0"
+
+        self.target = iptc.Target(self.rule, "NOTRACK")
+        self.rule.target = self.target
+
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.RAW),
+                                "iptc_test_notrack")
+        try:
+            self.chain.flush()
+            self.chain.delete()
+        except:
+            pass
+        iptc.Table(iptc.Table.RAW).create_chain(self.chain)
+
+    def tearDown(self):
+        self.chain.flush()
+        self.chain.delete()
+
+    def test_notrack(self):
+        self.chain.insert_rule(self.rule)
+        t = self.chain.rules[0].target
+        self.assertIn(t.name, ["NOTRACK", "CT"])
+
+
 def suite():
+    suites = []
     suite_target = unittest.TestLoader().loadTestsFromTestCase(TestTarget)
     suite_tos = unittest.TestLoader().loadTestsFromTestCase(TestXTTosTarget)
     suite_cluster = unittest.TestLoader().loadTestsFromTestCase(
         TestXTClusteripTarget)
+    suite_redir = unittest.TestLoader().loadTestsFromTestCase(
+        TestIPTRedirectTarget)
+    suite_masq = unittest.TestLoader().loadTestsFromTestCase(
+        TestIPTMasqueradeTarget)
+    suite_dnat = unittest.TestLoader().loadTestsFromTestCase(
+        TestDnatTarget)
+    suite_conntrack = unittest.TestLoader().loadTestsFromTestCase(
+        TestXTNotrackTarget)
+    suites.extend([suite_target, suite_cluster, suite_tos])
     if is_table_available(iptc.Table.NAT):
-        suite_redir = unittest.TestLoader().loadTestsFromTestCase(
-            TestIPTRedirectTarget)
-        suite_masq = unittest.TestLoader().loadTestsFromTestCase(
-            TestIPTMasqueradeTarget)
-        suite_dnat = unittest.TestLoader().loadTestsFromTestCase(
-            TestDnatTarget)
-        return unittest.TestSuite([suite_target, suite_cluster, suite_redir,
-                                   suite_tos, suite_masq, suite_dnat])
-    else:
-        return unittest.TestSuite([suite_target, suite_cluster, suite_tos])
+        suites.extend([suite_target, suite_cluster, suite_redir, suite_tos,
+                       suite_masq, suite_dnat])
+    if is_table_available(iptc.Table.RAW):
+        suites.extend([suite_conntrack])
+    return unittest.TestSuite(suites)
 
 
 def run_tests():
