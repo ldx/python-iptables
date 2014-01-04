@@ -681,9 +681,9 @@ _lib_xtables, _xtables_version = find_library("xtables")
 _xtables_libdir = os.getenv("XTABLES_LIBDIR")
 if _xtables_libdir is None:
     import os.path
-    for xtdir in ["/lib/xtables", "/usr/lib/xtables", "/usr/lib/iptables",
-                  "/usr/lib64/xtables", "/usr/lib64/iptables",
-                  "/usr/local/lib/xtables"]:
+    for xtdir in ["/lib/xtables", "/lib64/xtables", "/usr/lib/xtables",
+                  "/usr/lib/iptables", "/usr/lib64/xtables",
+                  "/usr/lib64/iptables", "/usr/local/lib/xtables"]:
         if os.path.isdir(xtdir):
             _xtables_libdir = xtdir
             break
