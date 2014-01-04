@@ -441,6 +441,8 @@ class Match(IPTCModule):
             name = match.u.user.name
         self._name = name
         self._rule = rule
+        self._alias = None
+        self._real_name = None
 
         self._xt = xtables(rule.nfproto)
 
@@ -484,6 +486,8 @@ class Match(IPTCModule):
         # that's the case, and load that extension as well if necessary. It
         # will be used to parse parameters, since the 'real' extension
         # probably won't understand them.
+        if getattr(module, "real_name", None) is not None and module.real_name:
+            self._real_name = module.real_name
         if getattr(module, "alias", None) is not None and module.alias:
             self._alias_name = module.alias(match)
             alias = self._xt.find_match(self._alias_name)
@@ -526,6 +530,14 @@ class Match(IPTCModule):
         self._module.m = self._ptr
         if self._alias is not None:
             self._alias.m = self._ptr
+        self._update_name()
+
+    def _update_name(self):
+        m = self._ptr[0]
+        if self._real_name is not None:
+            m.u.user.name = self._real_name
+        else:
+            m.u.user.name = self.name
 
     def reset(self):
         """Reset the match.
@@ -534,7 +546,6 @@ class Match(IPTCModule):
         ct.memset(ct.byref(self._match_buf), 0, self.size)
         self._update_pointers()
         m = self._ptr[0]
-        m.u.user.name = self.name
         m.u.match_size = self.size
         m.u.user.revision = self._revision
         if self._module.init:
@@ -633,6 +644,8 @@ class Target(IPTCModule):
         # that's the case, and load that extension as well if necessary. It
         # will be used to parse parameters, since the 'real' extension
         # probably won't understand them.
+        if getattr(module, "real_name", None) is not None and module.real_name:
+            self._real_name = module.real_name
         if getattr(module, "alias", None) is not None and module.alias:
             self._alias_name = module.alias(target)
             alias = self._xt.find_target(self._alias_name)
@@ -702,6 +715,14 @@ class Target(IPTCModule):
         self._module.t = self._ptr
         if self._alias is not None:
             self._alias.t = self._ptr
+        self._update_name()
+
+    def _update_name(self):
+        m = self._ptr[0]
+        if self._real_name is not None:
+            m.u.user.name = self._real_name
+        else:
+            m.u.user.name = self.name
 
     def reset(self):
         """Reset the target.  Parameters are set to their default values, any
@@ -709,7 +730,6 @@ class Target(IPTCModule):
         ct.memset(self._target_buf, 0, self.size)
         self._update_pointers()
         t = self._ptr[0]
-        t.u.user.name = self.name
         t.u.target_size = self.size
         t.u.user.revision = self._revision
         if self._module.init:
