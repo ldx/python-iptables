@@ -294,7 +294,7 @@ class TestXTStateMatch(unittest.TestCase):
         self.chain.insert_rule(self.rule)
         rule = self.chain.rules[0]
         m = rule.matches[0]
-        self.assertIn(m.name, ["state", "conntrack"])
+        self.assertTrue(m.name, ["state", "conntrack"])
         self.assertEquals(m.state, "RELATED,ESTABLISHED")
 
 

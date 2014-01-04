@@ -368,7 +368,7 @@ class TestXTNotrackTarget(unittest.TestCase):
     def test_notrack(self):
         self.chain.insert_rule(self.rule)
         t = self.chain.rules[0].target
-        self.assertIn(t.name, ["NOTRACK", "CT"])
+        self.assertTrue(t.name in ["NOTRACK", "CT"])
 
 
 def suite():
