@@ -9,11 +9,13 @@ import struct
 import sys
 import weakref
 
-from util import find_library
+from util import find_library, load_kernel
 from xtables import (XT_INV_PROTO, NFPROTO_IPV4, XTablesError, xtables,
                      xt_align, xt_counters, xt_entry_target, xt_entry_match)
 
 __all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError"]
+
+load_kernel("ip_tables")
 
 _IFNAMSIZ = 16
 
