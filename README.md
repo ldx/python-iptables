@@ -308,6 +308,7 @@ command:
 
 Counters
 --------
+
 You can query rule and chain counters, e.g.:
 
     >>> import iptc
@@ -317,36 +318,40 @@ You can query rule and chain counters, e.g.:
     >>>         (packets, bytes) = rule.get_counters()
     >>>         print packets, bytes
 
-However, the counters are only refreshed when the underlying low-level iptables connection is refreshed in `Table` via `table.refresh()`. For example:
+However, the counters are only refreshed when the underlying low-level
+iptables connection is refreshed in `Table` via `table.refresh()`. For
+example:
 
-    import time, sys
-    import iptc
-    table = iptc.Table(iptc.Table.FILTER)
-    chain = iptc.Chain(table, 'OUTPUT')
-    for rule in chain.rules:
-            (packets, bytes) = rule.get_counters()
-            print packets, bytes
-    print "Please send some traffic"
-    sys.stdout.flush()
-    time.sleep(3)
-    for rule in chain.rules:
-            # Here you will get back the same counter values as above
-            (packets, bytes) = rule.get_counters()
-            print packets, bytes
+    >>> import time, sys
+    >>> import iptc
+    >>> table = iptc.Table(iptc.Table.FILTER)
+    >>> chain = iptc.Chain(table, 'OUTPUT')
+    >>> for rule in chain.rules:
+    >>>         (packets, bytes) = rule.get_counters()
+    >>>         print packets, bytes
+    >>> print "Please send some traffic"
+    >>> sys.stdout.flush()
+    >>> time.sleep(3)
+    >>> for rule in chain.rules:
+    >>>         # Here you will get back the same counter values as above
+    >>>         (packets, bytes) = rule.get_counters()
+    >>>         print packets, bytes
 
-This will show you the same counter values even if there was traffic hitting your rules. You have to refresh your table to get update your counters:
+This will show you the same counter values even if there was traffic
+hitting your rules. You have to refresh your table to get update your
+counters:
 
-    import time, sys
-    import iptc
-    table = iptc.Table(iptc.Table.FILTER)
-    chain = iptc.Chain(table, 'OUTPUT')
-    for rule in chain.rules:
-            (packets, bytes) = rule.get_counters()
-            print packets, bytes
-    print "Please send some traffic"
-    sys.stdout.flush()
-    time.sleep(3)
-    table.refresh()  # Here: refresh table to update rule counters
-    for rule in chain.rules:
-            (packets, bytes) = rule.get_counters()
-            print packets, bytes
+    >>> import time, sys
+    >>> import iptc
+    >>> table = iptc.Table(iptc.Table.FILTER)
+    >>> chain = iptc.Chain(table, 'OUTPUT')
+    >>> for rule in chain.rules:
+    >>>         (packets, bytes) = rule.get_counters()
+    >>>         print packets, bytes
+    >>> print "Please send some traffic"
+    >>> sys.stdout.flush()
+    >>> time.sleep(3)
+    >>> table.refresh()  # Here: refresh table to update rule counters
+    >>> for rule in chain.rules:
+    >>>         (packets, bytes) = rule.get_counters()
+    >>>         print packets, bytes
