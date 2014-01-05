@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Examples &mdash; python-iptables 0.2.0 documentation</title>
+    <title>Examples &mdash; python-iptables 0.3.0-dev documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.0',
+        VERSION:     '0.3.0-dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="python-iptables 0.2.0 documentation" href="index.html" />
+    <link rel="top" title="python-iptables 0.3.0-dev documentation" href="index.html" />
     <link rel="prev" title="Usage" href="usage.html" /> 
   </head>
   <body>
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="usage.html" title="Usage"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">python-iptables 0.2.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">python-iptables 0.3.0-dev documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -250,6 +250,55 @@ matches:</p>
 </pre></div>
 </div>
 </div>
+<div class="section" id="counters">
+<h2>Counters<a class="headerlink" href="#counters" title="Permalink to this headline">¶</a></h2>
+<p>You can query rule and chain counters, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">iptc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">FILTER</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="s">&#39;OUTPUT&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">chain</span><span class="o">.</span><span class="n">rules</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="p">(</span><span class="n">packets</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">get_counters</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="k">print</span> <span class="n">packets</span><span class="p">,</span> <span class="nb">bytes</span>
+</pre></div>
+</div>
+<p>However, the counters are only refreshed when the underlying low-level
+iptables connection is refreshed in <tt class="docutils literal"><span class="pre">Table</span></tt> via <tt class="docutils literal"><span class="pre">table.refresh()</span></tt>. For
+example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">sys</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">iptc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">FILTER</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="s">&#39;OUTPUT&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">chain</span><span class="o">.</span><span class="n">rules</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="p">(</span><span class="n">packets</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">get_counters</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="k">print</span> <span class="n">packets</span><span class="p">,</span> <span class="nb">bytes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="s">&quot;Please send some traffic&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">chain</span><span class="o">.</span><span class="n">rules</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="c"># Here you will get back the same counter values as above</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="p">(</span><span class="n">packets</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">get_counters</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="k">print</span> <span class="n">packets</span><span class="p">,</span> <span class="nb">bytes</span>
+</pre></div>
+</div>
+<p>This will show you the same counter values even if there was traffic hitting
+your rules. You have to refresh your table to get update your counters:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">sys</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">iptc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">FILTER</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="s">&#39;OUTPUT&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">chain</span><span class="o">.</span><span class="n">rules</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="p">(</span><span class="n">packets</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">get_counters</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="k">print</span> <span class="n">packets</span><span class="p">,</span> <span class="nb">bytes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="s">&quot;Please send some traffic&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>  <span class="c"># Here: refresh table to update rule counters</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">chain</span><span class="o">.</span><span class="n">rules</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="p">(</span><span class="n">packets</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">get_counters</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="k">print</span> <span class="n">packets</span><span class="p">,</span> <span class="nb">bytes</span>
+</pre></div>
+</div>
+</div>
 </div>
 
 
@@ -264,6 +313,7 @@ matches:</p>
 <li><a class="reference internal" href="#rules">Rules</a></li>
 <li><a class="reference internal" href="#chains-and-tables">Chains and tables</a></li>
 <li><a class="reference internal" href="#more-about-matches-and-targets">More about matches and targets</a></li>
+<li><a class="reference internal" href="#counters">Counters</a></li>
 </ul>
 </li>
 </ul>
@@ -302,7 +352,7 @@ matches:</p>
         <li class="right" >
           <a href="usage.html" title="Usage"
              >previous</a> |</li>
-        <li><a href="index.html">python-iptables 0.2.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">python-iptables 0.3.0-dev documentation</a> &raquo;</li> 
       </ul>
     </div>
 

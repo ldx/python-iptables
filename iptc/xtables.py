@@ -386,8 +386,7 @@ class _xtables_match_v10(ct.Structure):
                 ("save", ct.CFUNCTYPE(None, ct.c_void_p,
                                       ct.POINTER(xt_entry_match))),
                 # Print match name or alias
-                ("alias", ct.CFUNCTYPE(ct.c_char_p, ct.c_void_p,
-                                       ct.POINTER(xt_entry_match))),
+                ("alias", ct.CFUNCTYPE(ct.c_char_p, ct.POINTER(xt_entry_match))),
                 # pointer to list of extra command-line options
                 ("extra_opts", ct.POINTER(option)),
 
@@ -636,8 +635,7 @@ class _xtables_target_v10(ct.Structure):
                 ("save", ct.CFUNCTYPE(None, ct.c_void_p,
                                       ct.POINTER(xt_entry_target))),
                 # Print target name or alias
-                ("alias", ct.CFUNCTYPE(ct.c_char_p, ct.c_void_p,
-                                       ct.POINTER(xt_entry_target))),
+                ("alias", ct.CFUNCTYPE(ct.c_char_p, ct.POINTER(xt_entry_target))),
                 # pointer to list of extra command-line options
                 ("extra_opts", ct.POINTER(option)),
 
@@ -683,8 +681,9 @@ _lib_xtables, _xtables_version = find_library("xtables")
 _xtables_libdir = os.getenv("XTABLES_LIBDIR")
 if _xtables_libdir is None:
     import os.path
-    for xtdir in ["/lib/xtables", "/usr/lib/xtables", "/usr/lib/iptables",
-                  "/usr/local/lib/xtables"]:
+    for xtdir in ["/lib/xtables", "/lib64/xtables", "/usr/lib/xtables",
+                  "/usr/lib/iptables", "/usr/lib64/xtables",
+                  "/usr/lib64/iptables", "/usr/local/lib/xtables"]:
         if os.path.isdir(xtdir):
             _xtables_libdir = xtdir
             break

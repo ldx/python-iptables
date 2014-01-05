@@ -31,8 +31,15 @@ Linux iptables framework..
 
 .. |buildstatus| image:: https://travis-ci.org/ldx/python-iptables.png?branch=master
 
-Compiling and installing
-------------------------
+Installing via pip
+------------------
+
+The usual way::
+
+    pip install --upgrade python-iptables
+
+Compiling from source
+----------------------
 
 First make sure you have iptables installed (most Linux distributions install
 it by default). ``Python-iptables`` needs the shared libraries ``libiptc.so``

@@ -210,3 +210,51 @@ matches::
 This is the ``python-iptables`` equivalent of the following iptables command::
 
     # iptables -A INPUT -p tcp –destination-port 22 -m iprange –src-range 192.168.1.100-192.168.1.200 –dst-range 172.22.33.106 -j DROP
+
+Counters
+--------
+You can query rule and chain counters, e.g.::
+
+    >>> import iptc
+    >>> table = iptc.Table(iptc.Table.FILTER)
+    >>> chain = iptc.Chain(table, 'OUTPUT')
+    >>> for rule in chain.rules:
+    >>>         (packets, bytes) = rule.get_counters()
+    >>>         print packets, bytes
+
+However, the counters are only refreshed when the underlying low-level
+iptables connection is refreshed in ``Table`` via ``table.refresh()``. For
+example::
+
+    >>> import time, sys
+    >>> import iptc
+    >>> table = iptc.Table(iptc.Table.FILTER)
+    >>> chain = iptc.Chain(table, 'OUTPUT')
+    >>> for rule in chain.rules:
+    >>>         (packets, bytes) = rule.get_counters()
+    >>>         print packets, bytes
+    >>> print "Please send some traffic"
+    >>> sys.stdout.flush()
+    >>> time.sleep(3)
+    >>> for rule in chain.rules:
+    >>>         # Here you will get back the same counter values as above
+    >>>         (packets, bytes) = rule.get_counters()
+    >>>         print packets, bytes
+
+This will show you the same counter values even if there was traffic hitting
+your rules. You have to refresh your table to get update your counters::
+
+    >>> import time, sys
+    >>> import iptc
+    >>> table = iptc.Table(iptc.Table.FILTER)
+    >>> chain = iptc.Chain(table, 'OUTPUT')
+    >>> for rule in chain.rules:
+    >>>         (packets, bytes) = rule.get_counters()
+    >>>         print packets, bytes
+    >>> print "Please send some traffic"
+    >>> sys.stdout.flush()
+    >>> time.sleep(3)
+    >>> table.refresh()  # Here: refresh table to update rule counters
+    >>> for rule in chain.rules:
+    >>>         (packets, bytes) = rule.get_counters()
+    >>>         print packets, bytes
