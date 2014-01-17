@@ -306,6 +306,31 @@ command:
 
     # iptables -A INPUT -p tcp –destination-port 22 -m iprange –src-range 192.168.1.100-192.168.1.200 –dst-range 172.22.33.106 -j DROP
 
+You can of course negate matches, just like when you use `!` in front of
+a match with iptables. For example:
+
+    >>> import iptc
+    >>> rule = iptc.Rule()
+    >>> match = iptc.Match(rule, "mac")
+    >>> match.mac_source = "!00:11:22:33:44:55"
+    >>> rule.add_match(match)
+    >>> rule.target = iptc.Target(rule, "ACCEPT")
+    >>> chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "INPUT")
+    >>> chain.insert_rule(rule)
+
+This results in:
+
+    $ sudo iptables -L -n
+    Chain INPUT (policy ACCEPT)
+    target     prot opt source               destination
+    ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0            MAC ! 00:11:22:33:44:55
+
+    Chain FORWARD (policy ACCEPT)
+    target     prot opt source               destination
+
+    Chain OUTPUT (policy ACCEPT)
+    target     prot opt source               destination
+
 Counters
 --------
 
