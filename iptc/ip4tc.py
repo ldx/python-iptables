@@ -501,7 +501,11 @@ class Match(IPTCModule):
         self._buffer.buffer = ct.cast(module, ct.POINTER(ct.c_ubyte))
 
     def _final_check(self):
-        self._xt.final_check_match(self._module)
+        if self._alias is not None:
+            module = self._alias
+        else:
+            module = self._module
+        self._xt.final_check_match(module)
 
     def _parse(self, argv, inv, entry):
         if self._alias is not None:
@@ -670,7 +674,11 @@ class Target(IPTCModule):
         return False
 
     def _final_check(self):
-        self._xt.final_check_target(self._module)
+        if self._alias is not None:
+            module = self._alias
+        else:
+            module = self._module
+        self._xt.final_check_target(module)
 
     def _parse(self, argv, inv, entry):
         if self._alias is not None:
