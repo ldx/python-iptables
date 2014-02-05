@@ -460,8 +460,6 @@ class Match(IPTCModule):
         if self._module.next is not None:
             self._store_buffer(module)
 
-        self._check_alias(module[0], match)
-
         self._match_buf = (ct.c_ubyte * self.size)()
         if match:
             ct.memmove(ct.byref(self._match_buf), ct.byref(match), self.size)
@@ -503,7 +501,11 @@ class Match(IPTCModule):
         self._buffer.buffer = ct.cast(module, ct.POINTER(ct.c_ubyte))
 
     def _final_check(self):
-        self._xt.final_check_match(self._module)
+        if self._alias is not None:
+            module = self._alias
+        else:
+            module = self._module
+        self._xt.final_check_match(module)
 
     def _parse(self, argv, inv, entry):
         if self._alias is not None:
@@ -530,6 +532,7 @@ class Match(IPTCModule):
         self._ptrptr = ct.cast(ct.pointer(self._ptr),
                                ct.POINTER(ct.POINTER(xt_entry_match)))
         self._module.m = self._ptr
+        self._check_alias(self._module, self._module.m)
         if self._alias is not None:
             self._alias.m = self._ptr
         self._update_name()
@@ -613,8 +616,6 @@ class Target(IPTCModule):
         else:
             self._revision = self._module.revision
 
-        self._check_alias(module[0], target)
-
         self._create_buffer(target)
 
         if self._is_standard_target():
@@ -673,7 +674,11 @@ class Target(IPTCModule):
         return False
 
     def _final_check(self):
-        self._xt.final_check_target(self._module)
+        if self._alias is not None:
+            module = self._alias
+        else:
+            module = self._module
+        self._xt.final_check_target(module)
 
     def _parse(self, argv, inv, entry):
         if self._alias is not None:
@@ -715,6 +720,7 @@ class Target(IPTCModule):
         self._ptrptr = ct.cast(ct.pointer(self._ptr),
                                ct.POINTER(ct.POINTER(xt_entry_target)))
         self._module.t = self._ptr
+        self._check_alias(self._module, self._module.t)
         if self._alias is not None:
             self._alias.t = self._ptr
         self._update_name()
