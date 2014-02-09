@@ -52,7 +52,64 @@ To set up a rule that matches packets marked with 0xff::
     >>> match = rule.create_match("mark")
     >>> match.mark = "0xff"
 
-Parameters are always strings.
+Parameters are always strings. You can supply any string as the parameter
+value, but note that most extensions validate their parameters. For example
+this::
+
+    >>> rule = iptc.Rule()
+    >>> rule.protocol = "tcp"
+    >>> rule.target = iptc.Target(rule, "ACCEPT")
+    >>> match = iptc.Match(rule, "state")
+    >>> chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "INPUT")
+    >>> match.state = "RELATED,ESTABLISHED"
+    >>> rule.add_match(match)
+    >>> chain.insert_rule(rule)
+
+will work. However, if you change the `state` parameter::
+
+    >>> rule = iptc.Rule()
+    >>> rule.protocol = "tcp"
+    >>> rule.target = iptc.Target(rule, "ACCEPT")
+    >>> match = iptc.Match(rule, "state")
+    >>> chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "INPUT")
+    >>> match.state = "RELATED,ESTABLISHED,FOOBAR"
+    >>> rule.add_match(match)
+    >>> chain.insert_rule(rule)
+
+``python-iptables`` will throw an exception::
+
+    Traceback (most recent call last):
+      File "state.py", line 7, in <module>
+        match.state = "RELATED,ESTABLISHED,FOOBAR"
+      File "/home/user/Projects/python-iptables/iptc/ip4tc.py", line 369, in __setattr__
+        self.parse(name.replace("_", "-"), value)
+      File "/home/user/Projects/python-iptables/iptc/ip4tc.py", line 286, in parse
+        self._parse(argv, inv, entry)
+      File "/home/user/Projects/python-iptables/iptc/ip4tc.py", line 516, in _parse
+        ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
+      File "/home/user/Projects/python-iptables/iptc/xtables.py", line 736, in new
+        ret = fn(*args)
+      File "/home/user/Projects/python-iptables/iptc/xtables.py", line 1031, in parse_match
+        argv[1]))
+    iptc.xtables.XTablesError: state: parameter error -2 (RELATED,ESTABLISHED,FOOBAR)
+
+In certain cases you might need to use quoting inside the parameter string, for
+example::
+
+    >>> rule = iptc.Rule()
+    >>> rule.src = "127.0.0.1"
+    >>> rule.protocol = "udp"
+    >>> rule.target = rule.create_target("ACCEPT")
+    >>> match = rule.create_match("comment")
+    >>> match.comment = "this is a test comment"
+    >>> chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "INPUT")
+    >>> chain.insert_rule(rule)
+
+will only add the comment `this` instead of the expected `this is a test
+comment`. Use quoting inside the comment string itself::
+
+    >>> comment = "this is a test comment"
+    >>> match.comment = "\"%s\"" % (comment)
 
 When you are ready constructing your rule, add them to the chain you want it
 to show up in::
