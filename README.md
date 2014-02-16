@@ -437,3 +437,7 @@ counters:
     >>> for rule in chain.rules:
     >>>         (packets, bytes) = rule.get_counters()
     >>>         print packets, bytes
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/ldx/python-iptables/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
