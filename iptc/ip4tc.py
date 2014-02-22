@@ -103,7 +103,7 @@ _libiptc, _ = find_library("ip4tc", "iptc")  # old iptables versions use iptc
 class iptc(object):
     """This class contains all libiptc API calls."""
     iptc_init = _libiptc.iptc_init
-    iptc_init.restype = ct.c_void_p
+    iptc_init.restype = ct.POINTER(ct.c_int)
     iptc_init.argstype = [ct.c_char_p]
 
     iptc_free = _libiptc.iptc_free
@@ -120,11 +120,11 @@ class iptc(object):
 
     iptc_first_chain = _libiptc.iptc_first_chain
     iptc_first_chain.restype = ct.c_char_p
-    iptc_first_chain.argstype = [ct.c_char_p, ct.c_void_p]
+    iptc_first_chain.argstype = [ct.c_void_p]
 
     iptc_next_chain = _libiptc.iptc_next_chain
     iptc_next_chain.restype = ct.c_char_p
-    iptc_next_chain.argstype = [ct.c_char_p, ct.c_void_p]
+    iptc_next_chain.argstype = [ct.c_void_p]
 
     iptc_is_chain = _libiptc.iptc_is_chain
     iptc_is_chain.restype = ct.c_int
