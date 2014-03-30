@@ -512,13 +512,28 @@ class TestRule6(unittest.TestCase):
 
 class TestRule(unittest.TestCase):
     def setUp(self):
-        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER),
-                                "iptc_test_chain")
-        iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
+        self.table = iptc.Table(iptc.Table.FILTER)
+        self.chain = iptc.Chain(self.table, "iptc_test_chain")
+        try:
+            self.table.create_chain(self.chain)
+        except:
+            self.chain.flush()
+        if is_table_available(iptc.Table.NAT):
+            self.table_nat = iptc.Table(iptc.Table.NAT)
+            self.chain_nat = iptc.Chain(self.table_nat, "iptc_test_nat_chain")
+            try:
+                self.table_nat.create_chain(self.chain_nat)
+            except:
+                self.chain_nat.flush()
 
     def tearDown(self):
+        self.table.autocommit = True
         self.chain.flush()
         self.chain.delete()
+        if is_table_available(iptc.Table.NAT):
+            self.table_nat.autocommit = True
+            self.chain_nat.flush()
+            self.chain_nat.delete()
 
     def test_rule_address(self):
         # valid addresses
@@ -698,6 +713,49 @@ class TestRule(unittest.TestCase):
         for rule in rules:
             self.failUnless(rule in crules)
             crules.remove(rule)
+
+    def test_rule_delete(self):
+        self.table.autocommit = False
+        self.table.refresh()
+        for p in ['8001', '8002', '8003']:
+            rule = iptc.Rule()
+            rule.dst = "127.0.0.1"
+            rule.protocol = "tcp"
+            rule.dport = "8080"
+            target = rule.create_target("REJECT")
+            target.reject_with = "icmp-host-unreachable"
+            self.chain.insert_rule(rule)
+        self.table.commit()
+        self.table.refresh()
+
+        rules = self.chain.rules
+        for rule in rules:
+            self.chain.delete_rule(rule)
+        self.table.commit()
+        self.table.refresh()
+
+    def test_rule_delete_nat(self):
+        if not is_table_available(iptc.Table.NAT):
+            return
+
+        self.table_nat.autocommit = False
+        self.table_nat.refresh()
+        for p in ['8001', '8002', '8003']:
+            rule = iptc.Rule()
+            rule.dst = "127.0.0.1"
+            rule.protocol = "udp"
+            rule.dport = "8080"
+            target = rule.create_target("DNAT")
+            target.to_destination = '127.0.0.0:' + p
+            self.chain_nat.insert_rule(rule)
+        self.table_nat.commit()
+        self.table_nat.refresh()
+
+        rules = self.chain_nat.rules
+        for rule in rules:
+            self.chain_nat.delete_rule(rule)
+        self.table_nat.commit()
+        self.table_nat.refresh()
 
 
 def suite():
