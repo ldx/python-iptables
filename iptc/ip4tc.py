@@ -774,12 +774,32 @@ class Rule(object):
         * One target.  This determines what happens with the packet if it is
           matched.
     """
+
     protocols = {0: "all",
-                 socket.IPPROTO_TCP: "tcp",
-                 socket.IPPROTO_UDP: "udp",
-                 socket.IPPROTO_ICMP: "icmp",
+                 socket.IPPROTO_AH: "ah",
+                 socket.IPPROTO_DSTOPTS: "dstopts",
+                 socket.IPPROTO_EGP: "egp",
                  socket.IPPROTO_ESP: "esp",
-                 socket.IPPROTO_AH: "ah"}
+                 socket.IPPROTO_FRAGMENT: "fragment",
+                 socket.IPPROTO_GRE: "gre",
+                 socket.IPPROTO_HOPOPTS: "hopopts",
+                 socket.IPPROTO_ICMP: "icmp",
+                 socket.IPPROTO_ICMPV6: "icmpv6",
+                 socket.IPPROTO_IDP: "idp",
+                 socket.IPPROTO_IGMP: "igmp",
+                 socket.IPPROTO_IP: "ip",
+                 socket.IPPROTO_IPIP: "ipip",
+                 socket.IPPROTO_IPV6: "ipv6",
+                 socket.IPPROTO_NONE: "none",
+                 socket.IPPROTO_PIM: "pim",
+                 socket.IPPROTO_PUP: "pup",
+                 socket.IPPROTO_RAW: "raw",
+                 socket.IPPROTO_ROUTING: "routing",
+                 socket.IPPROTO_RSVP: "rsvp",
+                 socket.IPPROTO_TCP: "tcp",
+                 socket.IPPROTO_TP: "tp",
+                 socket.IPPROTO_UDP: "udp",
+                 }
 
     def __init__(self, entry=None, chain=None):
         """
