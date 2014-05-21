@@ -1023,7 +1023,7 @@ class Rule(object):
 
         self.entry.ip.iniface = "".join([intf, '\x00' * (_IFNAMSIZ -
                                                          len(intf))])
-        self.entry.ip.iniface_mask = "".join(['\x01' * masklen, '\x00' *
+        self.entry.ip.iniface_mask = "".join(['\xff' * masklen, '\x00' *
                                               (_IFNAMSIZ - masklen)])
 
     in_interface = property(get_in_interface, set_in_interface)
@@ -1067,7 +1067,7 @@ class Rule(object):
 
         self.entry.ip.outiface = "".join([intf, '\x00' * (_IFNAMSIZ -
                                                           len(intf))])
-        self.entry.ip.outiface_mask = "".join(['\x01' * masklen, '\x00' *
+        self.entry.ip.outiface_mask = "".join(['\xff' * masklen, '\x00' *
                                                (_IFNAMSIZ - masklen)])
 
     out_interface = property(get_out_interface, set_out_interface)
