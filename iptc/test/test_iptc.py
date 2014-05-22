@@ -573,6 +573,12 @@ class TestRule(unittest.TestCase):
             self.assertEquals(intf, rule.in_interface)
             rule.out_interface = intf
             self.assertEquals(intf, rule.out_interface)
+            rule.create_target("ACCEPT")
+            self.chain.insert_rule(rule)
+            r = self.chain.rules[0]
+            eq = r == rule
+            self.chain.flush()
+            self.assertTrue(eq)
 
         # invalid interfaces
         for intf in ["itsaverylonginterfacename"]:
