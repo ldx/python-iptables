@@ -1612,9 +1612,10 @@ class Table(object):
     def flush(self):
         """Flush and delete all non-builtin chains the table."""
         for chain in self.chains:
+            chain.flush()
+        for chain in self.chains:
             if not self.builtin_chain(chain):
-                chain.flush()
-                chain.delete()
+                self.delete_chain(chain)
 
     def create_rule(self, entry=None, chain=None):
         return Rule(entry, chain)
