@@ -125,6 +125,9 @@ class TestTable(unittest.TestCase):
         rule.target = iptc.Target(rule, chain1.name)
         chain2.append_rule(rule)
 
+        self.assertEquals(len(chain1.rules), 1)
+        self.assertEquals(len(chain2.rules), 1)
+
         filter_table = iptc.Table(iptc.Table.FILTER)
         filter_table.flush()
 
