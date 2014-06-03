@@ -65,10 +65,11 @@ class TestTable(unittest.TestCase):
     def setUp(self):
         self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER),
                                 "iptc_test_chain")
+
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
-        iptc.Table(iptc.Table.FILTER).delete_chain(self.chain)
+        iptc.Table(iptc.Table.FILTER).flush()
 
     def test_table(self):
         filt = None
@@ -106,6 +107,47 @@ class TestTable(unittest.TestCase):
         rule.protocol = "tcp"
         self.chain.insert_rule(rule)
         self.chain.delete_rule(rule)
+
+    def test_flush_user_chains(self):
+
+        chain1 = iptc.Chain(iptc.Table(iptc.Table.FILTER),
+                                "iptc_test_flush_chain1")
+        chain2 = iptc.Chain(iptc.Table(iptc.Table.FILTER),
+                                "iptc_test_flush_chain2")
+        iptc.Table(iptc.Table.FILTER).create_chain(chain1)
+        iptc.Table(iptc.Table.FILTER).create_chain(chain2)
+
+        rule = iptc.Rule()
+        rule.target = iptc.Target(rule, chain2.name)
+        chain1.append_rule(rule)
+
+        rule = iptc.Rule()
+        rule.target = iptc.Target(rule, chain1.name)
+        chain2.append_rule(rule)
+
+        self.assertEquals(len(chain1.rules), 1)
+        self.assertEquals(len(chain2.rules), 1)
+
+        filter_table = iptc.Table(iptc.Table.FILTER)
+        filter_table.flush()
+
+        self.assertTrue(not filter_table.is_chain(chain1.name))
+        self.assertTrue(not filter_table.is_chain(chain2.name))
+
+    def test_flush_builtin(self):
+        filter_table = iptc.Table(iptc.Table.FILTER)
+        output_rule_count = len(iptc.Chain(filter_table, "OUTPUT").rules)
+
+        rule = iptc.Rule()
+        rule.target = iptc.Target(rule, "ACCEPT")
+
+        iptc.Chain(filter_table, "OUTPUT").append_rule(rule)
+
+        self.assertEquals(len(iptc.Chain(filter_table, "OUTPUT").rules), output_rule_count + 1)
+        
+        filter_table.flush()
+
+        self.assertEquals(len(iptc.Chain(filter_table, "OUTPUT").rules), 0)
 
 
 class TestChain(unittest.TestCase):
