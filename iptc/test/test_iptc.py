@@ -135,11 +135,14 @@ class TestTable(unittest.TestCase):
         self.assertTrue(not filter_table.is_chain(chain2.name))
 
     def test_flush_builtin(self):
+        output_rule_count = len(iptc.Chain(filter_table, "OUTPUT").rules)
+
         rule = iptc.Rule()
         rule.target = iptc.Target(rule, "ACCEPT")
         filter_table = iptc.Table(iptc.Table.FILTER)
         iptc.Chain(filter_table, "OUTPUT").append_rule(rule)
-        self.assertEquals(len(iptc.Chain(filter_table, "OUTPUT").rules), 1)
+
+        self.assertEquals(len(iptc.Chain(filter_table, "OUTPUT").rules), output_rule_count + 1)
         
         filter_table.flush()
 
