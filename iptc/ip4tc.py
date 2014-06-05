@@ -920,12 +920,19 @@ class Rule(object):
         ina.s_addr = ct.c_uint32(saddr)
         self.entry.ip.src = ina
 
-        try:
-            nmask = _a_to_i(socket.inet_pton(socket.AF_INET, netm))
-        except socket.error:
-            raise ValueError("invalid netmask %s" % (netm))
+        if not netm.isdigit():
+            try:
+                nmask = _a_to_i(socket.inet_pton(socket.AF_INET, netm))
+            except socket.error:
+                raise ValueError("invalid netmask %s" % (netm))
+        else:
+            nmask = int(netm)
+            if nmask > 32 or nmask < 0:
+                raise ValueError("invalid netmask %s" % (netm))
+            nmask = socket.htonl((0xffffffff << (32 - nmask)) & 0xffffffff )
         neta = in_addr()
         neta.s_addr = ct.c_uint32(nmask)
+
         self.entry.ip.smsk = neta
 
     src = property(get_src, set_src)
@@ -974,10 +981,16 @@ class Rule(object):
         ina.s_addr = ct.c_uint32(daddr)
         self.entry.ip.dst = ina
 
-        try:
-            nmask = _a_to_i(socket.inet_pton(socket.AF_INET, netm))
-        except socket.error:
-            raise ValueError("invalid netmask %s" % (netm))
+        if not netm.isdigit():
+            try:
+                nmask = _a_to_i(socket.inet_pton(socket.AF_INET, netm))
+            except socket.error:
+                raise ValueError("invalid netmask %s" % (netm))
+        else:
+            nmask = int(netm)
+            if nmask > 32 or nmask < 0:
+                raise ValueError("invalid netmask %s" % (netm))
+            nmask = socket.htonl((0xffffffff << (32 - nmask)) & 0xffffffff )
         neta = in_addr()
         neta.s_addr = ct.c_uint32(nmask)
         self.entry.ip.dmsk = neta
