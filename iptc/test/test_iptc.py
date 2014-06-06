@@ -580,11 +580,17 @@ class TestRule(unittest.TestCase):
     def test_rule_address(self):
         # valid addresses
         rule = iptc.Rule()
-        for addr in ["127.0.0.1/255.255.255.0", "!127.0.0.1/255.255.255.0"]:
-            rule.src = addr
-            self.assertEquals(rule.src, addr)
-            rule.dst = addr
-            self.assertEquals(rule.dst, addr)
+        for addr in [("127.0.0.1/255.255.255.0", "127.0.0.1/255.255.255.0"), 
+                    ("!127.0.0.1/255.255.255.0", "!127.0.0.1/255.255.255.0"), 
+                    ("127.0.0.1/255.255.128.0", "127.0.0.1/255.255.128.0"),
+                    ("127.0.0.1/16", "127.0.0.1/255.255.0.0"), 
+                    ("127.0.0.1/24", "127.0.0.1/255.255.255.0"),
+                    ("127.0.0.1/17", "127.0.0.1/255.255.128.0"),
+                    ("!127.0.0.1/17", "!127.0.0.1/255.255.128.0")]:
+            rule.src = addr[0]
+            self.assertEquals(rule.src, addr[1])
+            rule.dst = addr[0]
+            self.assertEquals(rule.dst, addr[1])
         addr = "127.0.0.1"
         rule.src = addr
         self.assertEquals("127.0.0.1/255.255.255.255", rule.src)
@@ -593,7 +599,8 @@ class TestRule(unittest.TestCase):
 
         # invalid addresses
         for addr in ["127.256.0.1/255.255.255.0", "127.0.1/255.255.255.0",
-                     "127.0.0.1/255.255.255.", "127.0.0.1 255.255.255.0"]:
+                     "127.0.0.1/255.255.255.", "127.0.0.1 255.255.255.0",
+                     "127.0.0.1/33", "127.0.0.1/-5", "127.0.0.1/255.5"]:
             try:
                 rule.src = addr
             except ValueError:
@@ -606,6 +613,7 @@ class TestRule(unittest.TestCase):
                 pass
             else:
                 self.fail("rule accepted invalid address %s" % (addr))
+
 
     def test_rule_interface(self):
         # valid interfaces
