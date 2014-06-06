@@ -291,23 +291,31 @@ class IPTCModule(object):
     def _get_saved_buf(self, ip):
         if not self._module or not self._module.save:
             return None
+
         # redirect C stdout to a pipe and read back the output of m->save
-        fd = sys.stdout.fileno()
-        with os.fdopen(os.dup(fd), 'w') as old_stdout:
-            try:
-                pipes = os.pipe()
-                sys.stdout.close()
-                os.dup2(pipes[1], fd)
-                sys.stdout = os.fdopen(fd, 'w')
-                self._xt.save(self._module, ip, self._ptr)
-                buf = os.read(pipes[0], 1024)
-                os.close(pipes[0])
-                os.close(pipes[1])
-                return buf
-            finally:
-                sys.stdout.close()
-                os.dup2(old_stdout.fileno(), fd)
-                sys.stdout = os.fdopen(fd, 'w')
+
+        # Save the current C stdout.
+        stdout = os.dup(1)
+        try:
+            # Create a pipe and use the write end to replace the original C
+            # stdout.
+            pipes = os.pipe()
+            os.dup2(pipes[1], 1)
+            self._xt.save(self._module, ip, self._ptr)
+
+            # Use the read end to read whatever was written.
+            buf = os.read(pipes[0], 1024)
+
+            # Clean up the pipe.
+            os.close(pipes[0])
+            os.close(pipes[1])
+            return buf
+        finally:
+            # Put the original C stdout back in place.
+            os.dup2(stdout, 1)
+
+            # Clean up the copy we made.
+            os.close(stdout)
 
     def save(self, name):
         return self._save(name, self.rule.get_ip())
