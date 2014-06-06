@@ -926,10 +926,10 @@ class Rule(object):
             except socket.error:
                 raise ValueError("invalid netmask %s" % (netm))
         else:
-            nmask = int(netm)
-            if nmask > 32 or nmask < 0:
+            imask = int(netm)
+            if imask > 32 or imask < 0:
                 raise ValueError("invalid netmask %s" % (netm))
-            nmask = socket.htonl((0xffffffff << (32 - nmask)) & 0xffffffff )
+            nmask = socket.htonl((2**imask-1) << (32-imask))
         neta = in_addr()
         neta.s_addr = ct.c_uint32(nmask)
 
@@ -987,10 +987,10 @@ class Rule(object):
             except socket.error:
                 raise ValueError("invalid netmask %s" % (netm))
         else:
-            nmask = int(netm)
-            if nmask > 32 or nmask < 0:
+            imask = int(netm)
+            if imask > 32 or imask < 0:
                 raise ValueError("invalid netmask %s" % (netm))
-            nmask = socket.htonl((0xffffffff << (32 - nmask)) & 0xffffffff )
+            nmask = socket.htonl((2**imask-1) << (32-imask))
         neta = in_addr()
         neta.s_addr = ct.c_uint32(nmask)
         self.entry.ip.dmsk = neta
