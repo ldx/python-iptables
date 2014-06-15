@@ -6,7 +6,6 @@ import ctypes as ct
 import shlex
 import socket
 import struct
-import sys
 import weakref
 
 from util import find_library, load_kernel
