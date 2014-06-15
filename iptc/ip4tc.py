@@ -669,7 +669,11 @@ class Target(IPTCModule):
         self._xt.parse_target(argv, inv, module, entry,
                               ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
         self._target_buf = ct.cast(self._module.t, ct.POINTER(ct.c_ubyte))
-        self._buffer.buffer = self._target_buf
+        if self._buffer.buffer != self._target_buf:
+            if self._buffer.buffer is not None:
+                self._buffer.buffer = None  # Buffer was freed by iptables.
+                self._buffer = _Buffer()
+            self._buffer.buffer = self._target_buf
         self._update_pointers()
 
     def _get_size(self):
