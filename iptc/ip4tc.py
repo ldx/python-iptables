@@ -3,7 +3,6 @@
 import os
 import re
 import ctypes as ct
-import shlex
 import socket
 import struct
 import weakref
@@ -247,7 +246,7 @@ class iptc(object):
 class IPTCModule(object):
     """Superclass for Match and Target."""
     pattern = re.compile(
-        '\s*(!)?\s*--([-\w]+)\s+(!)?\s*("?[^"]*?"?)(?=\s*(?:!?\s*--|$))')
+        '\s*(!)?\s*--([-\w]+)\s+(!)?\s*"?([^"]*?)"?(?=\s*(?:!?\s*--|$))')
 
     def __init__(self):
         self._name = None
@@ -271,8 +270,10 @@ class IPTCModule(object):
         else:
             inv = ct.c_int(0)
 
-        args = shlex.split(value)
-        if not args:
+        N = 1
+        if isinstance(value, list):
+            args = value
+        else:
             args = [value]
         N = len(args)
         argv = (ct.c_char_p * (N + 1))()

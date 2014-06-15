@@ -249,9 +249,9 @@ class TestCommentMatch(unittest.TestCase):
     def test_comment(self):
         comment = "comment test"
         self.match.reset()
-        self.match.comment = "\"%s\"" % (comment)
+        self.match.comment = comment
         self.chain.insert_rule(self.rule)
-        self.assertEquals(self.match.comment.replace('"', ''), comment)
+        self.assertEquals(self.match.comment, comment)
 
 
 class TestIprangeMatch(unittest.TestCase):
