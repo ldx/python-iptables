@@ -266,9 +266,9 @@ class IPTCModule(object):
 
         parameter = parameter.rstrip().lstrip()
         value = value.rstrip().lstrip()
-        if "!" in value:
+        if value.startswith("!"):
             inv = ct.c_int(1)
-            value = value.replace("!", "")
+            value = value[1:]
         else:
             inv = ct.c_int(0)
 
