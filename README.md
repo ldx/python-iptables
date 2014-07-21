@@ -29,8 +29,17 @@ wish to interface with the Linux iptables framework..
 
 ![buildstatus](https://travis-ci.org/ldx/python-iptables.png?branch=master)
 
-Compiling and installing
-------------------------
+![Bitdeli](https://d2weczhvl823v0.cloudfront.net/ldx/python-iptables/trend.png)
+
+Installing via pip
+------------------
+
+The usual way:
+
+    pip install --upgrade python-iptables
+
+Compiling from source
+---------------------
 
 First make sure you have iptables installed (most Linux distributions
 install it by default). `Python-iptables` needs the shared libraries
@@ -139,7 +148,64 @@ To set up a rule that matches packets marked with 0xff:
     >>> match = rule.create_match("mark")
     >>> match.mark = "0xff"
 
-Parameters are always strings.
+Parameters are always strings. You can supply any string as the
+parameter value, but note that most extensions validate their
+parameters. For example this:
+
+    >>> rule = iptc.Rule()
+    >>> rule.protocol = "tcp"
+    >>> rule.target = iptc.Target(rule, "ACCEPT")
+    >>> match = iptc.Match(rule, "state")
+    >>> chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "INPUT")
+    >>> match.state = "RELATED,ESTABLISHED"
+    >>> rule.add_match(match)
+    >>> chain.insert_rule(rule)
+
+will work. However, if you change the state parameter:
+
+    >>> rule = iptc.Rule()
+    >>> rule.protocol = "tcp"
+    >>> rule.target = iptc.Target(rule, "ACCEPT")
+    >>> match = iptc.Match(rule, "state")
+    >>> chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "INPUT")
+    >>> match.state = "RELATED,ESTABLISHED,FOOBAR"
+    >>> rule.add_match(match)
+    >>> chain.insert_rule(rule)
+
+`python-iptables` will throw an exception:
+
+    Traceback (most recent call last):
+      File "state.py", line 7, in <module>
+        match.state = "RELATED,ESTABLISHED,FOOBAR"
+      File "/home/user/Projects/python-iptables/iptc/ip4tc.py", line 369, in __setattr__
+        self.parse(name.replace("_", "-"), value)
+      File "/home/user/Projects/python-iptables/iptc/ip4tc.py", line 286, in parse
+        self._parse(argv, inv, entry)
+      File "/home/user/Projects/python-iptables/iptc/ip4tc.py", line 516, in _parse
+        ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
+      File "/home/user/Projects/python-iptables/iptc/xtables.py", line 736, in new
+        ret = fn(*args)
+      File "/home/user/Projects/python-iptables/iptc/xtables.py", line 1031, in parse_match
+        argv[1]))
+    iptc.xtables.XTablesError: state: parameter error -2 (RELATED,ESTABLISHED,FOOBAR)
+
+In certain cases you might need to use quoting inside the parameter
+string, for example:
+
+    >>> rule = iptc.Rule()
+    >>> rule.src = "127.0.0.1"
+    >>> rule.protocol = "udp"
+    >>> rule.target = rule.create_target("ACCEPT")
+    >>> match = rule.create_match("comment")
+    >>> match.comment = "this is a test comment"
+    >>> chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "INPUT")
+    >>> chain.insert_rule(rule)
+
+will only add the comment this instead of the expected this is a test
+comment. Use quoting inside the comment string itself:
+
+    >>> comment = "this is a test comment"
+    >>> match.comment = "\"%s\"" % (comment)
 
 When you are ready constructing your rule, add them to the chain you
 want it to show up in:
@@ -298,3 +364,78 @@ This is the `python-iptables` equivalent of the following iptables
 command:
 
     # iptables -A INPUT -p tcp –destination-port 22 -m iprange –src-range 192.168.1.100-192.168.1.200 –dst-range 172.22.33.106 -j DROP
+
+You can of course negate matches, just like when you use `!` in front of
+a match with iptables. For example:
+
+    >>> import iptc
+    >>> rule = iptc.Rule()
+    >>> match = iptc.Match(rule, "mac")
+    >>> match.mac_source = "!00:11:22:33:44:55"
+    >>> rule.add_match(match)
+    >>> rule.target = iptc.Target(rule, "ACCEPT")
+    >>> chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "INPUT")
+    >>> chain.insert_rule(rule)
+
+This results in:
+
+    $ sudo iptables -L -n
+    Chain INPUT (policy ACCEPT)
+    target     prot opt source               destination
+    ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0            MAC ! 00:11:22:33:44:55
+
+    Chain FORWARD (policy ACCEPT)
+    target     prot opt source               destination
+
+    Chain OUTPUT (policy ACCEPT)
+    target     prot opt source               destination
+
+Counters
+--------
+
+You can query rule and chain counters, e.g.:
+
+    >>> import iptc
+    >>> table = iptc.Table(iptc.Table.FILTER)
+    >>> chain = iptc.Chain(table, 'OUTPUT')
+    >>> for rule in chain.rules:
+    >>>         (packets, bytes) = rule.get_counters()
+    >>>         print packets, bytes
+
+However, the counters are only refreshed when the underlying low-level
+iptables connection is refreshed in `Table` via `table.refresh()`. For
+example:
+
+    >>> import time, sys
+    >>> import iptc
+    >>> table = iptc.Table(iptc.Table.FILTER)
+    >>> chain = iptc.Chain(table, 'OUTPUT')
+    >>> for rule in chain.rules:
+    >>>         (packets, bytes) = rule.get_counters()
+    >>>         print packets, bytes
+    >>> print "Please send some traffic"
+    >>> sys.stdout.flush()
+    >>> time.sleep(3)
+    >>> for rule in chain.rules:
+    >>>         # Here you will get back the same counter values as above
+    >>>         (packets, bytes) = rule.get_counters()
+    >>>         print packets, bytes
+
+This will show you the same counter values even if there was traffic
+hitting your rules. You have to refresh your table to get update your
+counters:
+
+    >>> import time, sys
+    >>> import iptc
+    >>> table = iptc.Table(iptc.Table.FILTER)
+    >>> chain = iptc.Chain(table, 'OUTPUT')
+    >>> for rule in chain.rules:
+    >>>         (packets, bytes) = rule.get_counters()
+    >>>         print packets, bytes
+    >>> print "Please send some traffic"
+    >>> sys.stdout.flush()
+    >>> time.sleep(3)
+    >>> table.refresh()  # Here: refresh table to update rule counters
+    >>> for rule in chain.rules:
+    >>>         (packets, bytes) = rule.get_counters()
+    >>>         print packets, bytes
