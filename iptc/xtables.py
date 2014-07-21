@@ -4,8 +4,8 @@ import ctypes as ct
 import os
 import sys
 import weakref
-import version
 
+from . import version
 from .util import find_library
 
 XT_INV_PROTO = 0x40  # invert the sense of PROTO
