@@ -6,7 +6,7 @@ import sys
 import weakref
 import version
 
-from util import find_library
+from .util import find_library
 
 XT_INV_PROTO = 0x40  # invert the sense of PROTO
 

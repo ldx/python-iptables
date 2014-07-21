@@ -4,9 +4,9 @@ import ctypes as ct
 import socket
 import weakref
 
-from ip4tc import Rule, Table, IPTCError
-from util import find_library, load_kernel
-from xtables import (XT_INV_PROTO, NFPROTO_IPV6, xt_align, xt_counters)
+from .ip4tc import Rule, Table, IPTCError
+from .util import find_library, load_kernel
+from .xtables import (XT_INV_PROTO, NFPROTO_IPV6, xt_align, xt_counters)
 
 __all__ = ["Table6", "Rule6"]
 
