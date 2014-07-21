@@ -5,8 +5,10 @@ from subprocess import Popen, PIPE
 try:
     from sysconfig import get_config_var
 except ImportError:
-    def get_config_var():
-        return '.so'
+    def get_config_var(name):
+        if name == 'SO':
+            return '.so'
+        raise Exception('Not implemented')
 
 
 def _insert_ko(modprobe, modname):
