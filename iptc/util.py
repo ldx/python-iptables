@@ -2,6 +2,7 @@ import re
 import ctypes
 import ctypes.util
 from subprocess import Popen, PIPE
+from sysconfig import get_config_var
 
 
 def _insert_ko(modprobe, modname):
@@ -58,8 +59,9 @@ def _do_find_library(name):
 
 
 def _find_library(*names):
+    ext = get_config_var('SO')
     for name in names:
-        for n in (name, "lib" + name, name + ".so", "lib" + name + ".so"):
+        for n in (name, "lib" + name, name + ext, "lib" + name + ext):
             lib = _do_find_library(n)
             if lib is not None:
                 yield lib
