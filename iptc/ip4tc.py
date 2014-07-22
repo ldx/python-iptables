@@ -479,6 +479,10 @@ class Match(IPTCModule):
             return True
         return False
 
+    def __hash__(self):
+        basesz = ct.sizeof(xt_entry_match)
+        return hash(self.match.u.match_size) ^ hash(self.match.u.user.name) ^ hash(self.match.u.user.revision) + hash(bytes(self.match_buf))
+
     def __ne__(self, match):
         return not self.__eq__(match)
 
