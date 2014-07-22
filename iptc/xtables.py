@@ -787,8 +787,8 @@ class xtables(object):
         self.proto = proto
         self._xt_globals = xtables_globals()
         self._xt_globals.option_offset = 0
-        self._xt_globals.program_name = version.__pkgname__
-        self._xt_globals.program_version = version.__version__
+        self._xt_globals.program_name = version.__pkgname__.encode()
+        self._xt_globals.program_version = version.__version__.encode()
         self._xt_globals.orig_opts = None
         self._xt_globals.opts = None
         self._xt_globals.exit_err = _xt_exit
@@ -888,6 +888,8 @@ class xtables(object):
             raise XTablesError("Unknown protocol %d" % (self.proto))
 
     def _try_register(self, name):
+        if isinstance(name, bytes):
+            name = name.decode()
         if self._try_extinit(name, _lib_xtables):
             return
         prefix = self._get_prefix()
@@ -899,7 +901,7 @@ class xtables(object):
 
     @preserve_globals
     def find_match(self, name):
-        name = self._check_extname(name)
+        name = self._check_extname(name.encode())
         match = xtables._xtables_find_match(name, XTF_TRY_LOAD, None)
         if not match:
             self._try_register(name)
@@ -912,8 +914,9 @@ class xtables(object):
 
     @preserve_globals
     def find_target(self, name):
-        name = self._check_extname(name)
+        name = self._check_extname(name.encode())
         target = xtables._xtables_find_target(name, XTF_TRY_LOAD)
+        return ct.cast(target, ct.POINTER(self._target_struct))
         if not target:
             self._try_register(name)
             target = xtables._xtables_find_target(name, XTF_TRY_LOAD)
