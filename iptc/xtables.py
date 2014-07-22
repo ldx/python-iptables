@@ -920,7 +920,6 @@ class xtables(object):
             name = name.encode()
         name = self._check_extname(name)
         target = xtables._xtables_find_target(name, XTF_TRY_LOAD)
-        return ct.cast(target, ct.POINTER(self._target_struct))
         if not target:
             self._try_register(name)
             target = xtables._xtables_find_target(name, XTF_TRY_LOAD)
