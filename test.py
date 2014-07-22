@@ -3,6 +3,11 @@
 
 import sys
 
+try:
+    input = raw_input
+except NameError:
+    pass
+
 print("WARNING: this test will manipulate iptables rules.")
 print("Don't do this on a production machine.")
 while True:

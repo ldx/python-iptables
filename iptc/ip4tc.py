@@ -1031,7 +1031,7 @@ class Rule(object):
             intf = "!"
 
         iface = self.entry.ip.iniface.decode()
-        mask = self.entry.ip.iniface_mask.decode()
+        mask = self.entry.ip.iniface_mask
 
         if len(mask) == 0:
             return None
@@ -1057,10 +1057,10 @@ class Rule(object):
             intf = intf[:-1]
             masklen -= 2
 
-        self.entry.ip.iniface = ("".join([intf, '\x00' * (_IFNAMSIZ -
-                                                         len(intf))])).encode()
-        self.entry.ip.iniface_mask = ("".join(['\xff' * masklen, '\x00' *
-                                              (_IFNAMSIZ - masklen)])).encode()
+        self.entry.ip.iniface = b"".join([intf.encode(), b'\x00' * (_IFNAMSIZ -
+                                                         len(intf))])
+        self.entry.ip.iniface_mask = b"".join([b'\xff' * masklen, b'\x00' *
+                                              (_IFNAMSIZ - masklen)])
 
     in_interface = property(get_in_interface, set_in_interface)
     """This is the input network interface e.g. *eth0*.  A wildcard match can
@@ -1072,7 +1072,7 @@ class Rule(object):
             intf = "!"
 
         iface = self.entry.ip.outiface.decode()
-        mask = self.entry.ip.outiface_mask.decode()
+        mask = self.entry.ip.outiface_mask
 
         if len(mask) == 0:
             return None
@@ -1098,10 +1098,10 @@ class Rule(object):
             intf = intf[:-1]
             masklen -= 2
 
-        self.entry.ip.outiface = ("".join([intf, '\x00' * (_IFNAMSIZ -
-                                                          len(intf))])).encode()
-        self.entry.ip.outiface_mask = ("".join(['\xff' * masklen, '\x00' *
-                                               (_IFNAMSIZ - masklen)])).encode()
+        self.entry.ip.outiface = b"".join([intf.encode(), b'\x00' * (_IFNAMSIZ -
+                                                          len(intf))])
+        self.entry.ip.outiface_mask = b"".join([b'\xff' * masklen, b'\x00' *
+                                               (_IFNAMSIZ - masklen)])
 
     out_interface = property(get_out_interface, set_out_interface)
     """This is the output network interface e.g. *eth0*.  A wildcard match can

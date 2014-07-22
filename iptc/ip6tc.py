@@ -266,14 +266,14 @@ class Rule6(Rule):
         return bits
 
     def _create_mask(self, plen):
-        mask = bytes()
+        mask = []
         for i in range(16):
             if plen >= 8:
-                mask += bytes([0xff])
+                mask.append(0xff)
             elif plen > 0:
-                mask += bytes([2 ** plen - 1])
+                mask.append(2 ** plen - 1)
             else:
-                mask += bytes([0x00])
+                mask.append(0x00)
             plen -= 8
         return mask
 
@@ -336,8 +336,7 @@ class Rule6(Rule):
             plen = int(netm)
             if plen < 0 or plen > 128:
                 raise ValueError("invalid prefix length %d" % (plen))
-            self.entry.ipv6.smsk.s6_addr = arr.from_buffer_copy(
-                self._create_mask(plen))
+            self.entry.ipv6.smsk.s6_addr = arr(*self._create_mask(plen))
             return
 
         # nope, we got an IPv6 address-style prefix
@@ -392,8 +391,7 @@ class Rule6(Rule):
             plen = int(netm)
             if plen < 0 or plen > 128:
                 raise ValueError("invalid prefix length %d" % (plen))
-            self.entry.ipv6.dmsk.s6_addr = arr.from_buffer_copy(
-                self._create_mask(plen))
+            self.entry.ipv6.dmsk.s6_addr = arr(*self._create_mask(plen))
             return
 
         # nope, we got an IPv6 address-style prefix
