@@ -326,7 +326,7 @@ class IPTCModule(object):
         return self._save(name, self.rule.get_ip())
 
     def _save(self, name, ip):
-        buf = self._get_saved_buf(ip)
+        buf = self._get_saved_buf(ip).decode()
         if buf is None:
             return None
         if not self._module or not self._module.save:
