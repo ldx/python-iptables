@@ -266,16 +266,16 @@ class Rule6(Rule):
         return bits
 
     def _create_mask(self, plen):
-        mask = [0 for x in range(16)]
-        i = 0
-        while plen > 0:
+        mask = bytes()
+        for i in range(16):
             if plen >= 8:
-                mask[i] = 0xff
+                mask += bytes([0xff])
+            elif plen > 0:
+                mask += bytes([2 ** plen - 1])
             else:
-                mask[i] = 2 ** plen - 1
-            i += 1
+                mask += bytes([0x00])
             plen -= 8
-        return "".join([chr(x) for x in mask])
+        return mask
 
     def get_src(self):
         src = ""

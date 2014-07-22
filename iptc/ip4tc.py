@@ -492,7 +492,7 @@ class Match(IPTCModule):
         # will be used to parse parameters, since the 'real' extension
         # probably won't understand them.
         if getattr(module, "real_name", None) is not None and module.real_name:
-            self._real_name = module.real_name
+            self._real_name = module.real_name.decode()
         if getattr(module, "alias", None) is not None and module.alias:
             self._alias_name = module.alias(match)
             alias = self._xt.find_match(self._alias_name)
