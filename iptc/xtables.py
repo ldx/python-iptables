@@ -846,8 +846,8 @@ class xtables(object):
         xtables._xtables_pending_targets.value = self._pending_targets
 
     def _check_extname(self, name):
-        if name in ["", "ACCEPT", "DROP", "QUEUE", "RETURN"]:
-            name = "standard"
+        if name in [b"", b"ACCEPT", b"DROP", b"QUEUE", b"RETURN"]:
+            name = b"standard"
         return name
 
     def _loaded(self, name):
