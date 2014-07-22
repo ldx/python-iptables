@@ -901,7 +901,9 @@ class xtables(object):
 
     @preserve_globals
     def find_match(self, name):
-        name = self._check_extname(name.encode())
+        if isinstance(name, str):
+            name = name.encode()
+        name = self._check_extname(name)
         match = xtables._xtables_find_match(name, XTF_TRY_LOAD, None)
         if not match:
             self._try_register(name)
@@ -914,7 +916,9 @@ class xtables(object):
 
     @preserve_globals
     def find_target(self, name):
-        name = self._check_extname(name.encode())
+        if isinstance(name, str):
+            name = name.encode()
+        name = self._check_extname(name)
         target = xtables._xtables_find_target(name, XTF_TRY_LOAD)
         return ct.cast(target, ct.POINTER(self._target_struct))
         if not target:

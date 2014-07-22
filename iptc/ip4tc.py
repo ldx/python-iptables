@@ -442,7 +442,7 @@ class Match(IPTCModule):
         if not name and not match:
             raise ValueError("can't create match based on nothing")
         if not name:
-            name = match.u.user.name
+            name = match.u.user.name.decode()
         self._name = name
         self._rule = rule
         self._alias = None
@@ -534,9 +534,9 @@ class Match(IPTCModule):
     def _update_name(self):
         m = self._ptr[0]
         if self._real_name is not None:
-            m.u.user.name = self._real_name.encode("ascii")
+            m.u.user.name = self._real_name.encode()
         else:
-            m.u.user.name = self.name.encode("ascii")
+            m.u.user.name = self.name.encode()
 
     def reset(self):
         """Reset the match.
@@ -643,7 +643,7 @@ class Target(IPTCModule):
         # will be used to parse parameters, since the 'real' extension
         # probably won't understand them.
         if getattr(module, "real_name", None) is not None and module.real_name:
-            self._real_name = module.real_name
+            self._real_name = module.real_name.decode()
         if getattr(module, "alias", None) is not None and module.alias:
             self._alias_name = module.alias(target)
             alias = self._xt.find_target(self._alias_name)
@@ -1480,7 +1480,7 @@ class Table(object):
         """Returns *True* if *chain* is a built-in chain."""
         if isinstance(chain, Chain):
             chain = chain.name
-        if self._iptc.iptc_builtin(chain.encode("ascii"), self._handle):
+        if self._iptc.iptc_builtin(chain.encode(), self._handle):
             return True
         else:
             return False
