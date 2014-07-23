@@ -2,6 +2,7 @@
 
 import os
 import re
+import sys
 import ctypes as ct
 import socket
 import struct
@@ -294,6 +295,8 @@ class IPTCModule(object):
 
         # redirect C stdout to a pipe and read back the output of m->save
 
+        # Flush stdout to avoid getting buffered results
+        sys.stdout.flush()
         # Save the current C stdout.
         stdout = os.dup(1)
         try:
