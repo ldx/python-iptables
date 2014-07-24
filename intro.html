@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Introduction &mdash; python-iptables 0.3.0 documentation</title>
+    <title>Introduction &mdash; python-iptables 0.4.0-dev documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.3.0',
+        VERSION:     '0.4.0-dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="python-iptables 0.3.0 documentation" href="index.html" />
+    <link rel="top" title="python-iptables 0.4.0-dev documentation" href="index.html" />
     <link rel="next" title="Usage" href="usage.html" />
     <link rel="prev" title="Welcome to python-iptables’s documentation!" href="index.html" /> 
   </head>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="index.html" title="Welcome to python-iptables’s documentation!"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">python-iptables 0.3.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">python-iptables 0.4.0-dev documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -74,11 +74,13 @@ meant primarily for dynamic and/or complex routers and firewalls, where rules
 are often updated or changed, or Python programs wish to interface with the
 Linux iptables framework..</p>
 <p><img alt="buildstatus" src="https://travis-ci.org/ldx/python-iptables.png?branch=master" /></p>
+<p><img alt="Bitdeli" src="https://d2weczhvl823v0.cloudfront.net/ldx/python-iptables/trend.png" /></p>
 </div>
 <div class="section" id="installing-via-pip">
 <h2>Installing via pip<a class="headerlink" href="#installing-via-pip" title="Permalink to this headline">¶</a></h2>
 <p>The usual way:</p>
-<div class="highlight-python"><pre>pip install --upgrade python-iptables</pre>
+<div class="highlight-python"><div class="highlight"><pre>pip install --upgrade python-iptables
+</pre></div>
 </div>
 </div>
 <div class="section" id="compiling-from-source">
@@ -88,12 +90,14 @@ it by default). <tt class="docutils literal"><span class="pre">Python-iptables</
 and <tt class="docutils literal"><span class="pre">libxtables.so</span></tt> coming with iptables, they are installed in <tt class="docutils literal"><span class="pre">/lib</span></tt> on
 Ubuntu.</p>
 <p>You can compile <tt class="docutils literal"><span class="pre">python-iptables</span></tt> in the usual distutils way:</p>
-<div class="highlight-python"><pre>% cd python-iptables
-% python setup.py build</pre>
+<div class="highlight-python"><div class="highlight"><pre>% cd python-iptables
+% python setup.py build
+</pre></div>
 </div>
 <p>If you like, <tt class="docutils literal"><span class="pre">python-iptables</span></tt> can also be installed into a <tt class="docutils literal"><span class="pre">virtualenv</span></tt>:</p>
-<div class="highlight-python"><pre>% mkvirtualenv python-iptables
-% python setup.py install</pre>
+<div class="highlight-python"><div class="highlight"><pre>% mkvirtualenv python-iptables
+% python setup.py install
+</pre></div>
 </div>
 <p>If you install <tt class="docutils literal"><span class="pre">python-iptables</span></tt> as a system package, make sure the
 directory where <tt class="docutils literal"><span class="pre">distutils</span></tt> installs shared libraries is in the dynamic
@@ -101,20 +105,22 @@ linker&#8217;s search path (it&#8217;s in <tt class="docutils literal"><span cla
 the folder <tt class="docutils literal"><span class="pre">/etc/ld.co.conf.d</span></tt>).  Under Ubuntu <tt class="docutils literal"><span class="pre">distutils</span></tt> by default
 installs into <tt class="docutils literal"><span class="pre">/usr/local/lib</span></tt>.</p>
 <p>Now you can run the tests:</p>
-<div class="highlight-python"><pre>% sudo PATH=$PATH ./test.py
+<div class="highlight-python"><div class="highlight"><pre>% sudo PATH=$PATH ./test.py
 WARNING: this test will manipulate iptables rules.
-Don't do this on a production machine.
+Don&#39;t do this on a production machine.
 Would you like to continue? y/n y
-[...]</pre>
+[...]
+</pre></div>
 </div>
 <p>The <tt class="docutils literal"><span class="pre">PATH=$PATH</span></tt> part is necessary after <tt class="docutils literal"><span class="pre">sudo</span></tt> if you have installed into
 a <tt class="docutils literal"><span class="pre">virtualenv</span></tt>, since <tt class="docutils literal"><span class="pre">sudo</span></tt> will reset your environment to a system
 setting otherwise..</p>
 <p>Once everything is in place you can fire up python to check whether the
 package can be imported:</p>
-<div class="highlight-python"><pre>% sudo PATH=$PATH python
+<div class="highlight-python"><div class="highlight"><pre>% sudo PATH=$PATH python
 &gt;&gt;&gt; import iptc
-&gt;&gt;&gt;</pre>
+&gt;&gt;&gt;
+</pre></div>
 </div>
 <p>Of course you need to be root to be able to use iptables.</p>
 </div>
@@ -184,13 +190,13 @@ are supported as well.</p>
         <li class="right" >
           <a href="index.html" title="Welcome to python-iptables’s documentation!"
              >previous</a> |</li>
-        <li><a href="index.html">python-iptables 0.3.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">python-iptables 0.4.0-dev documentation</a> &raquo;</li> 
       </ul>
     </div>
 
     <div class="footer">
         &copy; Copyright 2010-2013, Nilvec.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 

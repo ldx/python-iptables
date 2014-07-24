@@ -65,10 +65,11 @@ class TestTable(unittest.TestCase):
     def setUp(self):
         self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER),
                                 "iptc_test_chain")
+
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
-        iptc.Table(iptc.Table.FILTER).delete_chain(self.chain)
+        iptc.Table(iptc.Table.FILTER).flush()
 
     def test_table(self):
         filt = None
@@ -106,6 +107,47 @@ class TestTable(unittest.TestCase):
         rule.protocol = "tcp"
         self.chain.insert_rule(rule)
         self.chain.delete_rule(rule)
+
+    def test_flush_user_chains(self):
+
+        chain1 = iptc.Chain(iptc.Table(iptc.Table.FILTER),
+                                "iptc_test_flush_chain1")
+        chain2 = iptc.Chain(iptc.Table(iptc.Table.FILTER),
+                                "iptc_test_flush_chain2")
+        iptc.Table(iptc.Table.FILTER).create_chain(chain1)
+        iptc.Table(iptc.Table.FILTER).create_chain(chain2)
+
+        rule = iptc.Rule()
+        rule.target = iptc.Target(rule, chain2.name)
+        chain1.append_rule(rule)
+
+        rule = iptc.Rule()
+        rule.target = iptc.Target(rule, chain1.name)
+        chain2.append_rule(rule)
+
+        self.assertEquals(len(chain1.rules), 1)
+        self.assertEquals(len(chain2.rules), 1)
+
+        filter_table = iptc.Table(iptc.Table.FILTER)
+        filter_table.flush()
+
+        self.assertTrue(not filter_table.is_chain(chain1.name))
+        self.assertTrue(not filter_table.is_chain(chain2.name))
+
+    def test_flush_builtin(self):
+        filter_table = iptc.Table(iptc.Table.FILTER)
+        output_rule_count = len(iptc.Chain(filter_table, "OUTPUT").rules)
+
+        rule = iptc.Rule()
+        rule.target = iptc.Target(rule, "ACCEPT")
+
+        iptc.Chain(filter_table, "OUTPUT").append_rule(rule)
+
+        self.assertEquals(len(iptc.Chain(filter_table, "OUTPUT").rules), output_rule_count + 1)
+        
+        filter_table.flush()
+
+        self.assertEquals(len(iptc.Chain(filter_table, "OUTPUT").rules), 0)
 
 
 class TestChain(unittest.TestCase):
@@ -512,22 +554,43 @@ class TestRule6(unittest.TestCase):
 
 class TestRule(unittest.TestCase):
     def setUp(self):
-        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER),
-                                "iptc_test_chain")
-        iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
+        self.table = iptc.Table(iptc.Table.FILTER)
+        self.chain = iptc.Chain(self.table, "iptc_test_chain")
+        try:
+            self.table.create_chain(self.chain)
+        except:
+            self.chain.flush()
+        if is_table_available(iptc.Table.NAT):
+            self.table_nat = iptc.Table(iptc.Table.NAT)
+            self.chain_nat = iptc.Chain(self.table_nat, "iptc_test_nat_chain")
+            try:
+                self.table_nat.create_chain(self.chain_nat)
+            except:
+                self.chain_nat.flush()
 
     def tearDown(self):
+        self.table.autocommit = True
         self.chain.flush()
         self.chain.delete()
+        if is_table_available(iptc.Table.NAT):
+            self.table_nat.autocommit = True
+            self.chain_nat.flush()
+            self.chain_nat.delete()
 
     def test_rule_address(self):
         # valid addresses
         rule = iptc.Rule()
-        for addr in ["127.0.0.1/255.255.255.0", "!127.0.0.1/255.255.255.0"]:
-            rule.src = addr
-            self.assertEquals(rule.src, addr)
-            rule.dst = addr
-            self.assertEquals(rule.dst, addr)
+        for addr in [("127.0.0.1/255.255.255.0", "127.0.0.1/255.255.255.0"), 
+                    ("!127.0.0.1/255.255.255.0", "!127.0.0.1/255.255.255.0"), 
+                    ("127.0.0.1/255.255.128.0", "127.0.0.1/255.255.128.0"),
+                    ("127.0.0.1/16", "127.0.0.1/255.255.0.0"), 
+                    ("127.0.0.1/24", "127.0.0.1/255.255.255.0"),
+                    ("127.0.0.1/17", "127.0.0.1/255.255.128.0"),
+                    ("!127.0.0.1/17", "!127.0.0.1/255.255.128.0")]:
+            rule.src = addr[0]
+            self.assertEquals(rule.src, addr[1])
+            rule.dst = addr[0]
+            self.assertEquals(rule.dst, addr[1])
         addr = "127.0.0.1"
         rule.src = addr
         self.assertEquals("127.0.0.1/255.255.255.255", rule.src)
@@ -536,7 +599,8 @@ class TestRule(unittest.TestCase):
 
         # invalid addresses
         for addr in ["127.256.0.1/255.255.255.0", "127.0.1/255.255.255.0",
-                     "127.0.0.1/255.255.255.", "127.0.0.1 255.255.255.0"]:
+                     "127.0.0.1/255.255.255.", "127.0.0.1 255.255.255.0",
+                     "127.0.0.1/33", "127.0.0.1/-5", "127.0.0.1/255.5"]:
             try:
                 rule.src = addr
             except ValueError:
@@ -550,6 +614,7 @@ class TestRule(unittest.TestCase):
             else:
                 self.fail("rule accepted invalid address %s" % (addr))
 
+
     def test_rule_interface(self):
         # valid interfaces
         rule = iptc.Rule()
@@ -558,6 +623,12 @@ class TestRule(unittest.TestCase):
             self.assertEquals(intf, rule.in_interface)
             rule.out_interface = intf
             self.assertEquals(intf, rule.out_interface)
+            rule.create_target("ACCEPT")
+            self.chain.insert_rule(rule)
+            r = self.chain.rules[0]
+            eq = r == rule
+            self.chain.flush()
+            self.assertTrue(eq)
 
         # invalid interfaces
         for intf in ["itsaverylonginterfacename"]:
@@ -698,6 +769,49 @@ class TestRule(unittest.TestCase):
         for rule in rules:
             self.failUnless(rule in crules)
             crules.remove(rule)
+
+    def test_rule_delete(self):
+        self.table.autocommit = False
+        self.table.refresh()
+        for p in ['8001', '8002', '8003']:
+            rule = iptc.Rule()
+            rule.dst = "127.0.0.1"
+            rule.protocol = "tcp"
+            rule.dport = "8080"
+            target = rule.create_target("REJECT")
+            target.reject_with = "icmp-host-unreachable"
+            self.chain.insert_rule(rule)
+        self.table.commit()
+        self.table.refresh()
+
+        rules = self.chain.rules
+        for rule in rules:
+            self.chain.delete_rule(rule)
+        self.table.commit()
+        self.table.refresh()
+
+    def test_rule_delete_nat(self):
+        if not is_table_available(iptc.Table.NAT):
+            return
+
+        self.table_nat.autocommit = False
+        self.table_nat.refresh()
+        for p in ['8001', '8002', '8003']:
+            rule = iptc.Rule()
+            rule.dst = "127.0.0.1"
+            rule.protocol = "udp"
+            rule.dport = "8080"
+            target = rule.create_target("DNAT")
+            target.to_destination = '127.0.0.0:' + p
+            self.chain_nat.insert_rule(rule)
+        self.table_nat.commit()
+        self.table_nat.refresh()
+
+        rules = self.chain_nat.rules
+        for rule in rules:
+            self.chain_nat.delete_rule(rule)
+        self.table_nat.commit()
+        self.table_nat.refresh()
 
 
 def suite():

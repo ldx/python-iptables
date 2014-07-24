@@ -4,6 +4,9 @@ import unittest
 import iptc
 
 
+is_table6_available = iptc.is_table6_available
+
+
 class TestMatch(unittest.TestCase):
     def setUp(self):
         pass
@@ -197,6 +200,36 @@ class TestXTLimitMatch(unittest.TestCase):
                 self.fail("inserted rule does not match original")
 
 
+class TestIcmpv6Match(unittest.TestCase):
+    def setUp(self):
+        self.rule = iptc.Rule6()
+        self.rule.protocol = "icmpv6"
+        self.rule.in_interface = "eth0"
+
+        self.target = self.rule.create_target("ACCEPT")
+
+        self.match = self.rule.create_match("icmp6")
+        self.match.icmpv6_type = "echo-request"
+
+        self.table = iptc.Table6(iptc.Table6.FILTER)
+
+        self.chain = iptc.Chain(self.table, "ip6tc_test_icmpv6")
+        try:
+            self.table.delete_chain(self.chain)
+        except:
+            pass
+        self.table.create_chain(self.chain)
+
+    def tearDown(self):
+        self.chain.flush()
+        self.chain.delete()
+
+    def test_icmpv6(self):
+        self.chain.insert_rule(self.rule)
+        rule = self.chain.rules[0]
+        self.assertEquals(self.rule, rule)
+
+
 class TestCommentMatch(unittest.TestCase):
     def setUp(self):
         self.rule = iptc.Rule()
@@ -216,9 +249,9 @@ class TestCommentMatch(unittest.TestCase):
     def test_comment(self):
         comment = "comment test"
         self.match.reset()
-        self.match.comment = "\"%s\"" % (comment)
+        self.match.comment = comment
         self.chain.insert_rule(self.rule)
-        self.assertEquals(self.match.comment.replace('"', ''), comment)
+        self.assertEquals(self.match.comment, comment)
 
 
 class TestIprangeMatch(unittest.TestCase):
@@ -298,6 +331,40 @@ class TestXTStateMatch(unittest.TestCase):
         self.assertEquals(m.state, "RELATED,ESTABLISHED")
 
 
+class TestXTConntrackMatch(unittest.TestCase):
+    def setUp(self):
+        self.rule = iptc.Rule()
+        self.rule.src = "127.0.0.1"
+        self.rule.protocol = "tcp"
+        self.rule.target = iptc.Target(self.rule, "ACCEPT")
+
+        self.match = iptc.Match(self.rule, "conntrack")
+
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER),
+                                "iptc_test_conntrack")
+        self.table = iptc.Table(iptc.Table.FILTER)
+        try:
+            self.chain.flush()
+            self.chain.delete()
+        except:
+            pass
+        self.table.create_chain(self.chain)
+
+    def tearDown(self):
+        self.chain.flush()
+        self.chain.delete()
+        pass
+
+    def test_state(self):
+        self.match.ctstate = "NEW,RELATED"
+        self.rule.add_match(self.match)
+        self.chain.insert_rule(self.rule)
+        rule = self.chain.rules[0]
+        m = rule.matches[0]
+        self.assertTrue(m.name, ["conntrack"])
+        self.assertEquals(m.ctstate, "NEW,RELATED")
+
+
 def suite():
     suite_match = unittest.TestLoader().loadTestsFromTestCase(TestMatch)
     suite_udp = unittest.TestLoader().loadTestsFromTestCase(TestXTUdpMatch)
@@ -308,9 +375,16 @@ def suite():
     suite_iprange = unittest.TestLoader().loadTestsFromTestCase(
         TestIprangeMatch)
     suite_state = unittest.TestLoader().loadTestsFromTestCase(TestXTStateMatch)
+    suite_conntrack = unittest.TestLoader().loadTestsFromTestCase(
+        TestXTConntrackMatch)
+    extra_suites = []
+    if is_table6_available(iptc.Table6.FILTER):
+        extra_suites += unittest.TestLoader().loadTestsFromTestCase(
+            TestIcmpv6Match)
+
     return unittest.TestSuite([suite_match, suite_udp, suite_mark,
                                suite_limit, suite_comment, suite_iprange,
-                               suite_state])
+                               suite_state, suite_conntrack] + extra_suites)
 
 
 def run_tests():

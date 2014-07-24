@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Usage &mdash; python-iptables 0.3.0 documentation</title>
+    <title>Usage &mdash; python-iptables 0.4.0-dev documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.3.0',
+        VERSION:     '0.4.0-dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="python-iptables 0.3.0 documentation" href="index.html" />
+    <link rel="top" title="python-iptables 0.4.0-dev documentation" href="index.html" />
     <link rel="next" title="Examples" href="examples.html" />
     <link rel="prev" title="Introduction" href="intro.html" /> 
   </head>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="intro.html" title="Introduction"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">python-iptables 0.3.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">python-iptables 0.4.0-dev documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -147,7 +147,7 @@ low-level details from the user.</p>
 
 <dl class="attribute">
 <dt id="iptc.Table.chains">
-<tt class="descname">chains</tt><em class="property"> None</em><a class="headerlink" href="#iptc.Table.chains" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">chains</tt><a class="headerlink" href="#iptc.Table.chains" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of chains in the table.</p>
 </dd></dl>
 
@@ -406,7 +406,7 @@ not specified, else <em>rule</em> is inserted in the given position.</p>
 
 <dl class="attribute">
 <dt id="iptc.Chain.rules">
-<tt class="descname">rules</tt><em class="property"> None</em><a class="headerlink" href="#iptc.Chain.rules" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">rules</tt><a class="headerlink" href="#iptc.Chain.rules" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the list of rules currently in the chain.</p>
 </dd></dl>
 
@@ -491,13 +491,13 @@ they usually only work with certain kernel versions. Python-iptables
 by default will use the latest revision available.</p>
 <dl class="attribute">
 <dt id="iptc.Match.match">
-<tt class="descname">match</tt><em class="property"> None</em><a class="headerlink" href="#iptc.Match.match" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">match</tt><a class="headerlink" href="#iptc.Match.match" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the C structure used by the extension.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="iptc.Match.match_buf">
-<tt class="descname">match_buf</tt><em class="property"> None</em><a class="headerlink" href="#iptc.Match.match_buf" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">match_buf</tt><a class="headerlink" href="#iptc.Match.match_buf" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the buffer holding the C structure used by the extension.</p>
 </dd></dl>
 
@@ -510,13 +510,13 @@ by default will use the latest revision available.</p>
 
 <dl class="attribute">
 <dt id="iptc.Match.size">
-<tt class="descname">size</tt><em class="property"> None</em><a class="headerlink" href="#iptc.Match.size" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">size</tt><a class="headerlink" href="#iptc.Match.size" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the full size of the underlying C structure.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="iptc.Match.usersize">
-<tt class="descname">usersize</tt><em class="property"> None</em><a class="headerlink" href="#iptc.Match.usersize" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">usersize</tt><a class="headerlink" href="#iptc.Match.usersize" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the size of the part of the underlying C structure that is used
 in userspace.</p>
 </dd></dl>
@@ -559,13 +559,13 @@ flags are cleared.</p>
 
 <dl class="attribute">
 <dt id="iptc.Target.size">
-<tt class="descname">size</tt><em class="property"> None</em><a class="headerlink" href="#iptc.Target.size" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">size</tt><a class="headerlink" href="#iptc.Target.size" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the full size of the underlying C structure.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="iptc.Target.standard_target">
-<tt class="descname">standard_target</tt><em class="property"> None</em><a class="headerlink" href="#iptc.Target.standard_target" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">standard_target</tt><a class="headerlink" href="#iptc.Target.standard_target" title="Permalink to this definition">¶</a></dt>
 <dd><p>This attribute is used for standard targets.  It can be set to
 <em>ACCEPT</em>, <em>DROP</em>, <em>RETURN</em> or to a name of a chain the rule should jump
 into.</p>
@@ -573,13 +573,13 @@ into.</p>
 
 <dl class="attribute">
 <dt id="iptc.Target.target">
-<tt class="descname">target</tt><em class="property"> None</em><a class="headerlink" href="#iptc.Target.target" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">target</tt><a class="headerlink" href="#iptc.Target.target" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the C structure used by the extension.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="iptc.Target.usersize">
-<tt class="descname">usersize</tt><em class="property"> None</em><a class="headerlink" href="#iptc.Target.usersize" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">usersize</tt><a class="headerlink" href="#iptc.Target.usersize" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the size of the part of the underlying C structure that is used
 in userspace.</p>
 </dd></dl>
@@ -617,15 +617,9 @@ use.</p>
 
 <dl class="attribute">
 <dt id="iptc.Rule6.dst">
-<tt class="descname">dst</tt><em class="property"> None</em><a class="headerlink" href="#iptc.Rule6.dst" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">dst</tt><a class="headerlink" href="#iptc.Rule6.dst" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the destination network address with an optional network mask
 in string form.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="iptc.Rule6.final_check">
-<tt class="descname">final_check</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Rule6.final_check" title="Permalink to this definition">¶</a></dt>
-<dd><p>Do a final check on the target and the matches.</p>
 </dd></dl>
 
 <dl class="method">
@@ -637,21 +631,21 @@ the rule.</p>
 
 <dl class="attribute">
 <dt id="iptc.Rule6.in_interface">
-<tt class="descname">in_interface</tt><em class="property"> None</em><a class="headerlink" href="#iptc.Rule6.in_interface" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">in_interface</tt><a class="headerlink" href="#iptc.Rule6.in_interface" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the input network interface e.g. <em>eth0</em>.  A wildcard match can
 be achieved via <em>+</em> e.g. <em>ppp+</em> matches any <em>ppp</em> interface.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="iptc.Rule6.out_interface">
-<tt class="descname">out_interface</tt><em class="property"> None</em><a class="headerlink" href="#iptc.Rule6.out_interface" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">out_interface</tt><a class="headerlink" href="#iptc.Rule6.out_interface" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the output network interface e.g. <em>eth0</em>.  A wildcard match can
 be achieved via <em>+</em> e.g. <em>ppp+</em> matches any <em>ppp</em> interface.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="iptc.Rule6.protocol">
-<tt class="descname">protocol</tt><em class="property"> None</em><a class="headerlink" href="#iptc.Rule6.protocol" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">protocol</tt><a class="headerlink" href="#iptc.Rule6.protocol" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the transport layer protocol.</p>
 </dd></dl>
 
@@ -663,14 +657,14 @@ be achieved via <em>+</em> e.g. <em>ppp+</em> matches any <em>ppp</em> interface
 
 <dl class="attribute">
 <dt id="iptc.Rule6.src">
-<tt class="descname">src</tt><em class="property"> None</em><a class="headerlink" href="#iptc.Rule6.src" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">src</tt><a class="headerlink" href="#iptc.Rule6.src" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the source network address with an optional prefix length in
 string form.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="iptc.Rule6.tables">
-<tt class="descname">tables</tt><em class="property"> None</em><a class="headerlink" href="#iptc.Rule6.tables" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">tables</tt><a class="headerlink" href="#iptc.Rule6.tables" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the list of tables for our protocol.</p>
 </dd></dl>
 
@@ -751,13 +745,13 @@ executing an iptables operation.</p>
         <li class="right" >
           <a href="intro.html" title="Introduction"
              >previous</a> |</li>
-        <li><a href="index.html">python-iptables 0.3.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">python-iptables 0.4.0-dev documentation</a> &raquo;</li> 
       </ul>
     </div>
 
     <div class="footer">
         &copy; Copyright 2010-2013, Nilvec.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 

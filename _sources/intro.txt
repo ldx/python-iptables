@@ -31,6 +31,10 @@ Linux iptables framework..
 
 .. |buildstatus| image:: https://travis-ci.org/ldx/python-iptables.png?branch=master
 
+|Bitdeli|
+
+.. |Bitdeli| image:: https://d2weczhvl823v0.cloudfront.net/ldx/python-iptables/trend.png
+
 Installing via pip
 ------------------
 

@@ -4,9 +4,9 @@ import ctypes as ct
 import socket
 import weakref
 
-from ip4tc import Rule, Table, IPTCError
-from util import find_library, load_kernel
-from xtables import (XT_INV_PROTO, NFPROTO_IPV6, xt_align, xt_counters)
+from .ip4tc import Rule, Table, IPTCError
+from .util import find_library, load_kernel
+from .xtables import (XT_INV_PROTO, NFPROTO_IPV6, xt_align, xt_counters)
 
 __all__ = ["Table6", "Rule6"]
 
@@ -82,7 +82,7 @@ _libiptc, _ = find_library("ip6tc", "iptc")  # old iptables versions use iptc
 class ip6tc(object):
     """This class contains all libip6tc API calls."""
     iptc_init = _libiptc.ip6tc_init
-    iptc_init.restype = ct.c_void_p
+    iptc_init.restype = ct.POINTER(ct.c_int)
     iptc_init.argstype = [ct.c_char_p]
 
     iptc_free = _libiptc.ip6tc_free
@@ -99,11 +99,11 @@ class ip6tc(object):
 
     iptc_first_chain = _libiptc.ip6tc_first_chain
     iptc_first_chain.restype = ct.c_char_p
-    iptc_first_chain.argstype = [ct.c_char_p, ct.c_void_p]
+    iptc_first_chain.argstype = [ct.c_void_p]
 
     iptc_next_chain = _libiptc.ip6tc_next_chain
     iptc_next_chain.restype = ct.c_char_p
-    iptc_next_chain.argstype = [ct.c_char_p, ct.c_void_p]
+    iptc_next_chain.argstype = [ct.c_void_p]
 
     iptc_is_chain = _libiptc.ip6tc_is_chain
     iptc_is_chain.restype = ct.c_int
