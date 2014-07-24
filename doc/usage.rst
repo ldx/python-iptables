@@ -76,6 +76,13 @@ Target
    :members:
    :inherited-members:
 
+Rule
+----
+
+.. autoclass:: Rule
+   :members:
+   :inherited-members:
+
 Rule6
 -----
 
