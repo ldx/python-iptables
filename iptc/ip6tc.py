@@ -266,16 +266,16 @@ class Rule6(Rule):
         return bits
 
     def _create_mask(self, plen):
-        mask = [0 for x in xrange(16)]
-        i = 0
-        while plen > 0:
+        mask = []
+        for i in range(16):
             if plen >= 8:
-                mask[i] = 0xff
+                mask.append(0xff)
+            elif plen > 0:
+                mask.append(2 ** plen - 1)
             else:
-                mask[i] = 2 ** plen - 1
-            i += 1
+                mask.append(0x00)
             plen -= 8
-        return "".join([chr(x) for x in mask])
+        return mask
 
     def get_src(self):
         src = ""
@@ -336,8 +336,7 @@ class Rule6(Rule):
             plen = int(netm)
             if plen < 0 or plen > 128:
                 raise ValueError("invalid prefix length %d" % (plen))
-            self.entry.ipv6.smsk.s6_addr = arr.from_buffer_copy(
-                self._create_mask(plen))
+            self.entry.ipv6.smsk.s6_addr = arr(*self._create_mask(plen))
             return
 
         # nope, we got an IPv6 address-style prefix
@@ -392,8 +391,7 @@ class Rule6(Rule):
             plen = int(netm)
             if plen < 0 or plen > 128:
                 raise ValueError("invalid prefix length %d" % (plen))
-            self.entry.ipv6.dmsk.s6_addr = arr.from_buffer_copy(
-                self._create_mask(plen))
+            self.entry.ipv6.dmsk.s6_addr = arr(*self._create_mask(plen))
             return
 
         # nope, we got an IPv6 address-style prefix
@@ -419,7 +417,7 @@ class Rule6(Rule):
         mask[:len(self.entry.ipv6.iniface_mask)] = self.entry.ipv6.iniface_mask
         if mask[0] == 0:
             return None
-        for i in xrange(_IFNAMSIZ):
+        for i in range(_IFNAMSIZ):
             if mask[i] != 0:
                 intf = "".join([intf, chr(iface[i])])
             else:
@@ -444,10 +442,10 @@ class Rule6(Rule):
             intf = intf[:-1]
             masklen -= 2
 
-        self.entry.ipv6.iniface = "".join([intf, '\x00' * (_IFNAMSIZ -
-                                                           len(intf))])
-        self.entry.ipv6.iniface_mask = "".join(['\x01' * masklen, '\x00' *
-                                                (_IFNAMSIZ - masklen)])
+        self.entry.ipv6.iniface = ("".join([intf, '\x00' * (_IFNAMSIZ -
+                                                           len(intf))])).encode()
+        self.entry.ipv6.iniface_mask = ("".join(['\x01' * masklen, '\x00' *
+                                                (_IFNAMSIZ - masklen)])).encode()
 
     in_interface = property(get_in_interface, set_in_interface)
     """This is the input network interface e.g. *eth0*.  A wildcard match can
@@ -464,7 +462,7 @@ class Rule6(Rule):
             self.entry.ipv6.outiface_mask
         if mask[0] == 0:
             return None
-        for i in xrange(_IFNAMSIZ):
+        for i in range(_IFNAMSIZ):
             if mask[i] != 0:
                 intf = "".join([intf, chr(iface[i])])
             else:
@@ -489,10 +487,10 @@ class Rule6(Rule):
             intf = intf[:-1]
             masklen -= 2
 
-        self.entry.ipv6.outiface = "".join([intf, '\x00' * (_IFNAMSIZ -
-                                                            len(intf))])
-        self.entry.ipv6.outiface_mask = "".join(['\x01' * masklen, '\x00' *
-                                                 (_IFNAMSIZ - masklen)])
+        self.entry.ipv6.outiface = ("".join([intf, '\x00' * (_IFNAMSIZ -
+                                                            len(intf))])).encode()
+        self.entry.ipv6.outiface_mask = ("".join(['\x01' * masklen, '\x00' *
+                                                 (_IFNAMSIZ - masklen)])).encode()
 
     out_interface = property(get_out_interface, set_out_interface)
     """This is the output network interface e.g. *eth0*.  A wildcard match can
@@ -558,15 +556,15 @@ class Table6(Table):
     low-level details from the user.
     """
 
-    FILTER = b"filter"
+    FILTER = "filter"
     """This is the constant for the filter table."""
-    MANGLE = b"mangle"
+    MANGLE = "mangle"
     """This is the constant for the mangle table."""
-    RAW = b"raw"
+    RAW = "raw"
     """This is the constant for the raw table."""
-    SECURITY = b"security"
+    SECURITY = "security"
     """This is the constant for the security table."""
-    ALL = [b"filter", b"mangle", b"raw", b"security"]
+    ALL = ["filter", "mangle", "raw", "security"]
     """This is the constant for all tables."""
 
     _cache = dict()
