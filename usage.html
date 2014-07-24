@@ -587,6 +587,137 @@ in userspace.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="rule">
+<h2>Rule<a class="headerlink" href="#rule" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="iptc.Rule">
+<em class="property">class </em><tt class="descclassname">iptc.</tt><tt class="descname">Rule</tt><big>(</big><em>entry=None</em>, <em>chain=None</em><big>)</big><a class="headerlink" href="#iptc.Rule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rules are entries in chains.</p>
+<dl class="docutils">
+<dt>Each rule has three parts:</dt>
+<dd><ul class="first last simple">
+<li>An entry with protocol family attributes like source and destination
+address, transport protocol, etc.  If the packet does not match the
+attributes set here, then processing continues with the next rule or
+the chain policy is applied at the end of the chain.</li>
+<li>Any number of matches.  They are optional, and make it possible to
+match for further packet attributes.</li>
+<li>One target.  This determines what happens with the packet if it is
+matched.</li>
+</ul>
+</dd>
+</dl>
+<p><em>entry</em> is the ipt_entry buffer or None if the caller does not have
+it.  <em>chain</em> is the chain object this rule belongs to.</p>
+<dl class="method">
+<dt id="iptc.Rule.add_match">
+<tt class="descname">add_match</tt><big>(</big><em>match</em><big>)</big><a class="headerlink" href="#iptc.Rule.add_match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a match to the rule.  One can add any number of matches.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Rule.create_match">
+<tt class="descname">create_match</tt><big>(</big><em>name</em>, <em>revision=None</em><big>)</big><a class="headerlink" href="#iptc.Rule.create_match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a <em>match</em>, and add it to the list of matches in this rule.
+<em>name</em> is the name of the match extension, <em>revision</em> is the revision
+to use.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Rule.create_target">
+<tt class="descname">create_target</tt><big>(</big><em>name</em>, <em>revision=None</em><big>)</big><a class="headerlink" href="#iptc.Rule.create_target" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new <em>target</em>, and set it as this rule&#8217;s target. <em>name</em> is
+the name of the target extension, <em>revision</em> is the revision to
+use.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Rule.dst">
+<tt class="descname">dst</tt><a class="headerlink" href="#iptc.Rule.dst" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the destination network address with an optional network mask
+in string form.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Rule.fragment">
+<tt class="descname">fragment</tt><a class="headerlink" href="#iptc.Rule.fragment" title="Permalink to this definition">¶</a></dt>
+<dd><p>This means that the rule refers to the second and further fragments of
+fragmented packets.  It can be <em>True</em> or <em>False</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Rule.get_counters">
+<tt class="descname">get_counters</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Rule.get_counters" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method returns a tuple pair of the packet and byte counters of
+the rule.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Rule.in_interface">
+<tt class="descname">in_interface</tt><a class="headerlink" href="#iptc.Rule.in_interface" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the input network interface e.g. <em>eth0</em>.  A wildcard match can
+be achieved via <em>+</em> e.g. <em>ppp+</em> matches any <em>ppp</em> interface.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Rule.mask">
+<tt class="descname">mask</tt><a class="headerlink" href="#iptc.Rule.mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the raw mask buffer as iptables uses it when removing rules.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Rule.matches">
+<tt class="descname">matches</tt><a class="headerlink" href="#iptc.Rule.matches" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the list of matches held in this rule.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Rule.out_interface">
+<tt class="descname">out_interface</tt><a class="headerlink" href="#iptc.Rule.out_interface" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the output network interface e.g. <em>eth0</em>.  A wildcard match can
+be achieved via <em>+</em> e.g. <em>ppp+</em> matches any <em>ppp</em> interface.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Rule.protocol">
+<tt class="descname">protocol</tt><a class="headerlink" href="#iptc.Rule.protocol" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the transport layer protocol.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Rule.remove_match">
+<tt class="descname">remove_match</tt><big>(</big><em>match</em><big>)</big><a class="headerlink" href="#iptc.Rule.remove_match" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes <em>match</em> from the list of matches.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Rule.rule">
+<tt class="descname">rule</tt><a class="headerlink" href="#iptc.Rule.rule" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the raw rule buffer as iptables expects and returns it.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Rule.src">
+<tt class="descname">src</tt><a class="headerlink" href="#iptc.Rule.src" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the source network address with an optional network mask in
+string form.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Rule.tables">
+<tt class="descname">tables</tt><a class="headerlink" href="#iptc.Rule.tables" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the list of tables for our protocol.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="iptc.Rule.target">
+<tt class="descname">target</tt><a class="headerlink" href="#iptc.Rule.target" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the target of the rule.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="rule6">
 <h2>Rule6<a class="headerlink" href="#rule6" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
@@ -699,6 +830,7 @@ executing an iptables operation.</p>
 <li><a class="reference internal" href="#policy">Policy</a></li>
 <li><a class="reference internal" href="#match">Match</a></li>
 <li><a class="reference internal" href="#target">Target</a></li>
+<li><a class="reference internal" href="#rule">Rule</a></li>
 <li><a class="reference internal" href="#rule6">Rule6</a></li>
 <li><a class="reference internal" href="#iptcerror">IPTCError</a></li>
 </ul>
