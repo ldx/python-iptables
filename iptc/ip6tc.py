@@ -266,7 +266,7 @@ class Rule6(Rule):
         return bits
 
     def _create_mask(self, plen):
-        mask = [0 for x in xrange(16)]
+        mask = [0 for x in range(16)]
         i = 0
         while plen > 0:
             if plen >= 8:
@@ -558,15 +558,15 @@ class Table6(Table):
     low-level details from the user.
     """
 
-    FILTER = b"filter"
+    FILTER = "filter"
     """This is the constant for the filter table."""
-    MANGLE = b"mangle"
+    MANGLE = "mangle"
     """This is the constant for the mangle table."""
-    RAW = b"raw"
+    RAW = "raw"
     """This is the constant for the raw table."""
-    SECURITY = b"security"
+    SECURITY = "security"
     """This is the constant for the security table."""
-    ALL = [b"filter", b"mangle", b"raw", b"security"]
+    ALL = ["filter", "mangle", "raw", "security"]
     """This is the constant for all tables."""
 
     _cache = dict()

@@ -787,8 +787,8 @@ class xtables(object):
         self.proto = proto
         self._xt_globals = xtables_globals()
         self._xt_globals.option_offset = 0
-        self._xt_globals.program_name = version.__pkgname__
-        self._xt_globals.program_version = version.__version__
+        self._xt_globals.program_name = version.__pkgname__.encode()
+        self._xt_globals.program_version = version.__version__.encode()
         self._xt_globals.orig_opts = None
         self._xt_globals.opts = None
         self._xt_globals.exit_err = _xt_exit
@@ -913,10 +913,10 @@ class xtables(object):
     @preserve_globals
     def find_target(self, name):
         name = self._check_extname(name)
-        target = xtables._xtables_find_target(name, XTF_TRY_LOAD)
+        target = xtables._xtables_find_target(name.encode(), XTF_TRY_LOAD)
         if not target:
             self._try_register(name)
-            target = xtables._xtables_find_target(name, XTF_TRY_LOAD)
+            target = xtables._xtables_find_target(name.encode(), XTF_TRY_LOAD)
             if not target:
                 return target
         self._loaded(name)
