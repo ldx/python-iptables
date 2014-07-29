@@ -359,6 +359,12 @@ class IPTCModule(object):
         ip = self.rule.get_ip()
         buf = self._get_saved_buf(ip)
         if buf is not None:
+            res = re.findall(IPTCModule.pattern, buf)
+            if len(res) == 0:
+                return params
+            # for x in res:
+            #     params[x[1]] = "%s%s" % ((x[0] or x[2]) and "!" or "", x[3])
+
             res = shlex.split(buf)
             key, p = res[0], res[1:]
             if len(p) == 1:
