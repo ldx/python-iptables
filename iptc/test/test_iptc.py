@@ -288,7 +288,7 @@ class TestChain(unittest.TestCase):
         for chain in (chain for table in tables for chain in table.chains):
             counters = chain.get_counters()
             fails = 0
-            for x in xrange(3):  # try 3 times
+            for x in range(3):  # try 3 times
                 chain.zero_counters()
                 counters = chain.get_counters()
                 if counters:   # only built-in chains

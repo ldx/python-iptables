@@ -7,9 +7,9 @@
 .. moduleauthor:: Nilvec <nilvec@nilvec.com>
 """
 
-from ip4tc import (is_table_available, Table, Chain, Rule, Match, Target,
+from iptc.ip4tc import (is_table_available, Table, Chain, Rule, Match, Target,
                    Policy, IPTCError)
-from ip6tc import is_table6_available, Table6, Rule6
-from xtables import XTablesError
+from iptc.ip6tc import is_table6_available, Table6, Rule6
+from iptc.xtables import XTablesError
 
 __all__ = []

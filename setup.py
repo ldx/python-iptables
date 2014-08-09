@@ -7,7 +7,7 @@ from distutils.core import setup, Extension
 # make pyflakes happy
 __pkgname__ = None
 __version__ = None
-execfile("iptc/version.py")
+exec(open("iptc/version.py").read())
 
 # build/install python-iptables
 setup(
