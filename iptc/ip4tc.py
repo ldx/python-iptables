@@ -2,6 +2,7 @@
 
 import os
 import re
+import shlex
 import sys
 import ctypes as ct
 import socket
@@ -263,20 +264,19 @@ class IPTCModule(object):
             raise AttributeError("%s: invalid parameter %s" %
                                  (self._module.name, parameter))
 
-        parameter = parameter.rstrip().lstrip()
-        value = value.rstrip().lstrip()
-        if value.startswith("!"):
+        parameter = parameter.strip()
+
+        inv = ct.c_int(0)
+        if value and value[0] == "!":
             inv = ct.c_int(1)
             value = value[1:]
-        else:
-            inv = ct.c_int(0)
-
-        N = 1
-        if isinstance(value, list):
-            args = value
-        else:
+        if isinstance(value, str):
             args = [value]
+        else:
+            args = value
+
         N = len(args)
+
         argv = (ct.c_char_p * (N + 1))()
         argv[0] = parameter
         for i in xrange(N):
@@ -359,9 +359,11 @@ class IPTCModule(object):
         ip = self.rule.get_ip()
         buf = self._get_saved_buf(ip)
         if buf is not None:
-            res = re.findall(IPTCModule.pattern, buf)
-            for x in res:
-                params[x[1]] = "%s%s" % ((x[0] or x[2]) and "!" or "", x[3])
+            res = shlex.split(buf)
+            key, p = res[0], res[1:]
+            if len(p) == 1:
+               p = p[0]
+            params[key[2:]] = p
         return params
 
     def __setattr__(self, name, value):
