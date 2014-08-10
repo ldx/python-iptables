@@ -260,8 +260,8 @@ class IPTCModule(object):
         raise NotImplementedError()
 
     def parse(self, parameter, value):
-        if isinstance(parameter, str):
-            parameter = parameter.encode()
+        # Parameter name must always be a string.
+        parameter = parameter.encode()
 
         # Check if we are dealing with an inverted parameter value.
         inv = ct.c_int(0)
