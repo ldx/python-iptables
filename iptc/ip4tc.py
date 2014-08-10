@@ -262,23 +262,30 @@ class IPTCModule(object):
     def parse(self, parameter, value):
         if isinstance(parameter, str):
             parameter = parameter.encode()
+
+        # Check if we are dealing with an inverted parameter value.
+        inv = ct.c_int(0)
+        if len(value) > 0 and value[0] == "!":
+            inv = ct.c_int(1)
+            value = value[1:]
+
+        # Value can be either a string, or a list of strings, e.g. "8888",
+        # "!0:65535" or ["!", "example_set", "dst"].
+        args = []
         if isinstance(value, str):
-            value = value.encode()
+            args = [value.encode()]
+        else:
+            try:
+                args = [val.encode() for val in value]
+            except:
+                raise TypeError("Invalid parameter value: "
+                                "must be string or list of strings")
 
         if not self._module.extra_opts and not self._module.x6_options:
             raise AttributeError("%s: invalid parameter %s" %
                                  (self._module.name, parameter))
 
         parameter = parameter.strip()
-
-        inv = ct.c_int(0)
-        if value and value[0] == b"!":
-            inv = ct.c_int(1)
-            value = value[1:]
-        if isinstance(value, str):
-            args = [value]
-        else:
-            args = value
 
         N = len(args)
 
