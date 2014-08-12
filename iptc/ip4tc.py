@@ -2,6 +2,7 @@
 
 import os
 import re
+import shlex
 import sys
 import ctypes as ct
 import socket
@@ -259,27 +260,38 @@ class IPTCModule(object):
         raise NotImplementedError()
 
     def parse(self, parameter, value):
+        # Parameter name must always be a string.
+        parameter = parameter.encode()
+
+        # Check if we are dealing with an inverted parameter value.
+        inv = ct.c_int(0)
+        if len(value) > 0 and value[0] == "!":
+            inv = ct.c_int(1)
+            value = value[1:]
+
+        # Value can be either a string, or a list of strings, e.g. "8888",
+        # "!0:65535" or ["!", "example_set", "dst"].
+        args = []
+        if isinstance(value, str):
+            args = [value.encode()]
+        else:
+            try:
+                args = [val.encode() for val in value]
+            except:
+                raise TypeError("Invalid parameter value: "
+                                "must be string or list of strings")
+
         if not self._module.extra_opts and not self._module.x6_options:
             raise AttributeError("%s: invalid parameter %s" %
                                  (self._module.name, parameter))
 
-        parameter = parameter.rstrip().lstrip()
-        value = value.rstrip().lstrip()
-        if value.startswith("!"):
-            inv = ct.c_int(1)
-            value = value[1:]
-        else:
-            inv = ct.c_int(0)
+        parameter = parameter.strip()
 
-        N = 1
-        if isinstance(value, list):
-            args = value
-        else:
-            args = [value]
         N = len(args)
+
         argv = (ct.c_char_p * (N + 1))()
         argv[0] = parameter
-        for i in xrange(N):
+        for i in range(N):
             argv[i + 1] = args[i]
 
         entry = self._rule.entry and ct.pointer(self._rule.entry) or None
@@ -324,7 +336,7 @@ class IPTCModule(object):
         return self._save(name, self.rule.get_ip())
 
     def _save(self, name, ip):
-        buf = self._get_saved_buf(ip)
+        buf = self._get_saved_buf(ip).decode()
         if buf is None:
             return None
         if not self._module or not self._module.save:
@@ -359,9 +371,11 @@ class IPTCModule(object):
         ip = self.rule.get_ip()
         buf = self._get_saved_buf(ip)
         if buf is not None:
-            res = re.findall(IPTCModule.pattern, buf)
-            for x in res:
-                params[x[1]] = "%s%s" % ((x[0] or x[2]) and "!" or "", x[3])
+            res = shlex.split(buf)
+            key, p = res[0], res[1:]
+            if len(p) == 1:
+               p = p[0]
+            params[key[2:]] = p
         return params
 
     def __setattr__(self, name, value):
@@ -440,7 +454,7 @@ class Match(IPTCModule):
         if not name and not match:
             raise ValueError("can't create match based on nothing")
         if not name:
-            name = match.u.user.name
+            name = match.u.user.name.decode()
         self._name = name
         self._rule = rule
         self._alias = None
@@ -477,6 +491,10 @@ class Match(IPTCModule):
             return True
         return False
 
+    def __hash__(self):
+        basesz = ct.sizeof(xt_entry_match)
+        return hash(self.match.u.match_size) ^ hash(self.match.u.user.name) ^ hash(self.match.u.user.revision) ^ hash(bytes(self.match_buf))
+
     def __ne__(self, match):
         return not self.__eq__(match)
 
@@ -486,7 +504,7 @@ class Match(IPTCModule):
         # will be used to parse parameters, since the 'real' extension
         # probably won't understand them.
         if getattr(module, "real_name", None) is not None and module.real_name:
-            self._real_name = module.real_name
+            self._real_name = module.real_name.decode()
         if getattr(module, "alias", None) is not None and module.alias:
             self._alias_name = module.alias(match)
             alias = self._xt.find_match(self._alias_name)
@@ -532,9 +550,9 @@ class Match(IPTCModule):
     def _update_name(self):
         m = self._ptr[0]
         if self._real_name is not None:
-            m.u.user.name = self._real_name
+            m.u.user.name = self._real_name.encode()
         else:
-            m.u.user.name = self.name
+            m.u.user.name = self.name.encode()
 
     def reset(self):
         """Reset the match.
@@ -590,7 +608,7 @@ class Target(IPTCModule):
         if name is None and target is None:
             raise ValueError("can't create target based on nothing")
         if name is None:
-            name = target.u.user.name
+            name = target.u.user.name.decode()
         self._name = name
         self._rule = rule
 
@@ -599,6 +617,7 @@ class Target(IPTCModule):
         module = (self._is_standard_target() and
                   self._xt.find_target('standard') or
                   self._xt.find_target(name))
+
         if not module:
             raise XTablesError("can't find target %s" % (name))
         self._module = module[0]
@@ -619,12 +638,12 @@ class Target(IPTCModule):
             self.target.u.user.name != targ.target.u.user.name or
             self.target.u.user.revision != targ.target.u.user.revision):
             return False
-        if (self.target.u.user.name == "" or
-            self.target.u.user.name == "standard" or
-            self.target.u.user.name == "ACCEPT" or
-            self.target.u.user.name == "DROP" or
-            self.target.u.user.name == "RETURN" or
-            self.target.u.user.name == "ERROR"):
+        if (self.target.u.user.name == b"" or
+            self.target.u.user.name == b"standard" or
+            self.target.u.user.name == b"ACCEPT" or
+            self.target.u.user.name == b"DROP" or
+            self.target.u.user.name == b"RETURN" or
+            self.target.u.user.name == b"ERROR"):
             return True
         if (self._target_buf[basesz:self.usersize] ==
             targ._target_buf[basesz:targ.usersize]):
@@ -640,7 +659,7 @@ class Target(IPTCModule):
         # will be used to parse parameters, since the 'real' extension
         # probably won't understand them.
         if getattr(module, "real_name", None) is not None and module.real_name:
-            self._real_name = module.real_name
+            self._real_name = module.real_name.decode()
         if getattr(module, "alias", None) is not None and module.alias:
             self._alias_name = module.alias(target)
             alias = self._xt.find_target(self._alias_name)
@@ -692,11 +711,15 @@ class Target(IPTCModule):
 
     def _get_standard_target(self):
         t = self._ptr[0]
-        return t.u.user.name
+        return t.u.user.name.decode()
 
     def _set_standard_target(self, name):
         t = self._ptr[0]
+        if isinstance(name, str):
+            name = name.encode()
         t.u.user.name = name
+        if isinstance(name, bytes):
+            name = name.decode()
         self._name = name
     standard_target = property(_get_standard_target, _set_standard_target)
     """This attribute is used for standard targets.  It can be set to
@@ -716,9 +739,9 @@ class Target(IPTCModule):
     def _update_name(self):
         m = self._ptr[0]
         if self._real_name is not None:
-            m.u.user.name = self._real_name
+            m.u.user.name = self._real_name.encode()
         else:
-            m.u.user.name = self.name
+            m.u.user.name = self.name.encode()
 
     def reset(self):
         """Reset the target.  Parameters are set to their default values, any
@@ -1017,22 +1040,19 @@ class Rule(object):
     def get_in_interface(self):
         intf = ""
         if self.entry.ip.invflags & ipt_ip.IPT_INV_VIA_IN:
-            intf = "".join(["!", intf])
-        iface = bytearray(_IFNAMSIZ)
-        iface[:len(self.entry.ip.iniface)] = self.entry.ip.iniface
-        mask = bytearray(_IFNAMSIZ)
-        mask[:len(self.entry.ip.iniface_mask)] = self.entry.ip.iniface_mask
-        if mask[0] == 0:
+            intf = "!"
+
+        iface = self.entry.ip.iniface.decode()
+        mask = self.entry.ip.iniface_mask
+
+        if len(mask) == 0:
             return None
-        for i in xrange(_IFNAMSIZ):
-            if mask[i] != 0:
-                intf = "".join([intf, chr(iface[i])])
-            else:
-                if iface[i - 1] != 0:
-                    intf = "".join([intf, "+"])
-                else:
-                    intf = intf[:-1]
-                break
+
+        intf += iface
+        if len(iface) == len(mask):
+            intf += '+'
+        intf = intf[:_IFNAMSIZ]
+
         return intf
 
     def set_in_interface(self, intf):
@@ -1049,9 +1069,9 @@ class Rule(object):
             intf = intf[:-1]
             masklen -= 2
 
-        self.entry.ip.iniface = "".join([intf, '\x00' * (_IFNAMSIZ -
+        self.entry.ip.iniface = b"".join([intf.encode(), b'\x00' * (_IFNAMSIZ -
                                                          len(intf))])
-        self.entry.ip.iniface_mask = "".join(['\xff' * masklen, '\x00' *
+        self.entry.ip.iniface_mask = b"".join([b'\xff' * masklen, b'\x00' *
                                               (_IFNAMSIZ - masklen)])
 
     in_interface = property(get_in_interface, set_in_interface)
@@ -1061,22 +1081,19 @@ class Rule(object):
     def get_out_interface(self):
         intf = ""
         if self.entry.ip.invflags & ipt_ip.IPT_INV_VIA_OUT:
-            intf = "".join(["!", intf])
-        iface = bytearray(_IFNAMSIZ)
-        iface[:len(self.entry.ip.outiface)] = self.entry.ip.outiface
-        mask = bytearray(_IFNAMSIZ)
-        mask[:len(self.entry.ip.outiface_mask)] = self.entry.ip.outiface_mask
-        if mask[0] == 0:
+            intf = "!"
+
+        iface = self.entry.ip.outiface.decode()
+        mask = self.entry.ip.outiface_mask
+
+        if len(mask) == 0:
             return None
-        for i in xrange(_IFNAMSIZ):
-            if mask[i] != 0:
-                intf = "".join([intf, chr(iface[i])])
-            else:
-                if iface[i - 1] != 0:
-                    intf = "".join([intf, "+"])
-                else:
-                    intf = intf[:-1]
-                break
+
+        intf += iface
+        if len(iface) == len(mask):
+            intf += '+'
+        intf = intf[:_IFNAMSIZ]
+
         return intf
 
     def set_out_interface(self, intf):
@@ -1093,9 +1110,9 @@ class Rule(object):
             intf = intf[:-1]
             masklen -= 2
 
-        self.entry.ip.outiface = "".join([intf, '\x00' * (_IFNAMSIZ -
+        self.entry.ip.outiface = b"".join([intf.encode(), b'\x00' * (_IFNAMSIZ -
                                                           len(intf))])
-        self.entry.ip.outiface_mask = "".join(['\xff' * masklen, '\x00' *
+        self.entry.ip.outiface_mask = b"".join([b'\xff' * masklen, b'\x00' *
                                                (_IFNAMSIZ - masklen)])
 
     out_interface = property(get_out_interface, set_out_interface)
@@ -1237,14 +1254,14 @@ class Rule(object):
 
         # fill it out
         pos = 0
-        for i in xrange(pos, pos + entrysz):
+        for i in range(pos, pos + entrysz):
             mask[i] = 0xff
         pos += entrysz
         for m in self._matches:
-            for i in xrange(pos, pos + m.usersize):
+            for i in range(pos, pos + m.usersize):
                 mask[i] = 0xff
             pos += m.size
-        for i in xrange(pos, pos + self._target.usersize):
+        for i in range(pos, pos + self._target.usersize):
             mask[i] = 0xff
 
         return mask
@@ -1448,7 +1465,7 @@ class Table(object):
         try:
             if self.autocommit:
                 self.commit()
-        except IPTCError, e:
+        except IPTCError as e:
             if not ignore_exc:
                 raise e
         finally:
@@ -1460,7 +1477,7 @@ class Table(object):
         if self._handle:
             self._free()
 
-        handle = self._iptc.iptc_init(self.name)
+        handle = self._iptc.iptc_init(self.name.encode())
         if not handle:
             raise IPTCError("can't initialize %s: %s" % (self.name,
                                                          self.strerror()))
@@ -1470,7 +1487,7 @@ class Table(object):
         """Returns *True* if *chain* exists as a chain."""
         if isinstance(chain, Chain):
             chain = chain.name
-        if self._iptc.iptc_is_chain(chain, self._handle):
+        if self._iptc.iptc_is_chain(chain.encode(), self._handle):
             return True
         else:
             return False
@@ -1479,7 +1496,7 @@ class Table(object):
         """Returns *True* if *chain* is a built-in chain."""
         if isinstance(chain, Chain):
             chain = chain.name
-        if self._iptc.iptc_builtin(chain, self._handle):
+        if self._iptc.iptc_builtin(chain.encode(), self._handle):
             return True
         else:
             return False
@@ -1496,7 +1513,7 @@ class Table(object):
         """Create a new chain *chain*."""
         if isinstance(chain, Chain):
             chain = chain.name
-        rv = self._iptc.iptc_create_chain(chain, self._handle)
+        rv = self._iptc.iptc_create_chain(chain.encode(), self._handle)
         if rv != 1:
             raise IPTCError("can't create chain %s: %s" % (chain,
                                                            self.strerror()))
@@ -1507,7 +1524,7 @@ class Table(object):
         """Delete chain *chain* from the table."""
         if isinstance(chain, Chain):
             chain = chain.name
-        rv = self._iptc.iptc_delete_chain(chain, self._handle)
+        rv = self._iptc.iptc_delete_chain(chain.encode(), self._handle)
         if rv != 1:
             raise IPTCError("can't delete chain %s: %s" % (chain,
                                                            self.strerror()))
@@ -1517,7 +1534,7 @@ class Table(object):
         """Rename chain *chain* to *new_name*."""
         if isinstance(chain, Chain):
             chain = chain.name
-        rv = self._iptc.iptc_rename_chain(chain, new_name, self._handle)
+        rv = self._iptc.iptc_rename_chain(chain.encode(), new_name.encode(), self._handle)
         if rv != 1:
             raise IPTCError("can't rename chain %s: %s" % (chain,
                                                            self.strerror()))
@@ -1527,7 +1544,7 @@ class Table(object):
         """Flush all rules from *chain*."""
         if isinstance(chain, Chain):
             chain = chain.name
-        rv = self._iptc.iptc_flush_entries(chain, self._handle)
+        rv = self._iptc.iptc_flush_entries(chain.encode(), self._handle)
         if rv != 1:
             raise IPTCError("can't flush chain %s: %s" % (chain,
                                                           self.strerror()))
@@ -1537,7 +1554,7 @@ class Table(object):
         """Zero the packet and byte counters of *chain*."""
         if isinstance(chain, Chain):
             chain = chain.name
-        rv = self._iptc.iptc_zero_entries(chain, self._handle)
+        rv = self._iptc.iptc_zero_entries(chain.encode(), self._handle)
         if rv != 1:
             raise IPTCError("can't zero chain %s counters: %s" %
                             (chain, self.strerror()))
@@ -1557,7 +1574,7 @@ class Table(object):
             cntrs = ct.pointer(cntrs)
         else:
             cntrs = None
-        rv = self._iptc.iptc_set_policy(chain, policy, cntrs, self._handle)
+        rv = self._iptc.iptc_set_policy(chain.encode(), policy.encode(), cntrs, self._handle)
         if rv != 1:
             raise IPTCError("can't set policy %s on chain %s: %s)" %
                             (policy, chain, self.strerror()))
@@ -1570,8 +1587,8 @@ class Table(object):
         if not self.builtin_chain(chain):
             return None, None
         cntrs = xt_counters()
-        pol = self._iptc.iptc_get_policy(chain, ct.pointer(cntrs),
-                                         self._handle)
+        pol = self._iptc.iptc_get_policy(chain.encode(), ct.pointer(cntrs),
+                                         self._handle).decode()
         if not pol:
             raise IPTCError("can't get policy on chain %s: %s" %
                             (chain, self.strerror()))
@@ -1580,7 +1597,7 @@ class Table(object):
     @autocommit
     def append_entry(self, chain, entry):
         """Appends rule *entry* to *chain*."""
-        rv = self._iptc.iptc_append_entry(chain, ct.cast(entry, ct.c_void_p),
+        rv = self._iptc.iptc_append_entry(chain.encode(), ct.cast(entry, ct.c_void_p),
                                           self._handle)
         if rv != 1:
             raise IPTCError("can't append entry to chain %s: %s)" %
@@ -1589,7 +1606,7 @@ class Table(object):
     @autocommit
     def insert_entry(self, chain, entry, position):
         """Inserts rule *entry* into *chain* at position *position*."""
-        rv = self._iptc.iptc_insert_entry(chain, ct.cast(entry, ct.c_void_p),
+        rv = self._iptc.iptc_insert_entry(chain.encode(), ct.cast(entry, ct.c_void_p),
                                           position, self._handle)
         if rv != 1:
             raise IPTCError("can't insert entry into chain %s: %s)" %
@@ -1598,7 +1615,7 @@ class Table(object):
     @autocommit
     def delete_entry(self, chain, entry, mask):
         """Removes rule *entry* with *mask* from *chain*."""
-        rv = self._iptc.iptc_delete_entry(chain, ct.cast(entry, ct.c_void_p),
+        rv = self._iptc.iptc_delete_entry(chain.encode(), ct.cast(entry, ct.c_void_p),
                                           mask, self._handle)
         if rv != 1:
             raise IPTCError("can't delete entry from chain %s: %s)" %
@@ -1606,7 +1623,7 @@ class Table(object):
 
     def first_rule(self, chain):
         """Returns the first rule in *chain* or *None* if it is empty."""
-        rule = self._iptc.iptc_first_rule(chain, self._handle)
+        rule = self._iptc.iptc_first_rule(chain.encode(), self._handle)
         if rule:
             return rule[0]
         else:
@@ -1630,6 +1647,7 @@ class Table(object):
         chains = []
         chain = self._iptc.iptc_first_chain(self._handle)
         while chain:
+            chain = chain.decode()
             chains.append(Chain(self, chain))
             chain = self._iptc.iptc_next_chain(self._handle)
         return chains
