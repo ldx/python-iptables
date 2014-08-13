@@ -27,6 +27,8 @@ meant primarily for dynamic and/or complex routers and firewalls, where rules
 are often updated or changed, or Python programs wish to interface with the
 Linux iptables framework..
 
+``Python-iptables`` supports Python 2.6, 2.7 and 3.4.
+
 |buildstatus|
 
 .. |buildstatus| image:: https://travis-ci.org/ldx/python-iptables.png?branch=master
