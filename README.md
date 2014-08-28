@@ -31,8 +31,6 @@ wish to interface with the Linux iptables framework..
 
 ![buildstatus](https://travis-ci.org/ldx/python-iptables.png?branch=master)
 
-![Bitdeli](https://d2weczhvl823v0.cloudfront.net/ldx/python-iptables/trend.png)
-
 Installing via pip
 ------------------
 
