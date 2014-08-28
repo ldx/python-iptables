@@ -99,3 +99,6 @@ gh-pages:
 	git reset --hard
 	git clean -f ..
 	git checkout master
+
+markdown: intro.rst examples.rst
+	pandoc -o ../README.md -f rst -t markdown intro.rst examples.rst
