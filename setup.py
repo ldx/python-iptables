@@ -34,6 +34,12 @@ setup(
         "Topic :: Software Development :: Libraries",
         "Topic :: System :: Networking :: Firewalls",
         "Topic :: System :: Systems Administration",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: Implementation :: CPython",
     ],
     license="Apache License, Version 2.0",
 )
