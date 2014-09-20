@@ -507,10 +507,13 @@ class Rule6(Rule):
     def set_protocol(self, proto):
         if proto[0] == "!":
             self.entry.ipv6.invflags |= ip6t_ip6.IP6T_INV_PROTO
+            self.entry.ipv6.flags &= (~ip6t_ip6.IP6T_F_PROTO &
+                                      ip6t_ip6.IP6T_F_MASK)
             proto = proto[1:]
         else:
             self.entry.ipv6.invflags &= (~ip6t_ip6.IP6T_INV_PROTO &
                                          ip6t_ip6.IP6T_INV_MASK)
+            self.entry.ipv6.flags |= ip6t_ip6.IP6T_F_PROTO
         for p in self.protocols.items():
             if proto.lower() == p[1]:
                 self.entry.ipv6.proto = p[0]
