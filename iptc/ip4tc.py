@@ -372,6 +372,8 @@ class IPTCModule(object):
         buf = self._get_saved_buf(ip)
         if buf is not None:
             res = shlex.split(buf)
+            if len(res) == 0:
+                return params
             key, p = res[0], res[1:]
             if len(p) == 1:
                p = p[0]
