@@ -370,14 +370,17 @@ class IPTCModule(object):
         params = {}
         ip = self.rule.get_ip()
         buf = self._get_saved_buf(ip)
-        if buf is not None:
-            res = shlex.split(buf)
-            if len(res) == 0:
-                return params
-            key, p = res[0], res[1:]
-            if len(p) == 1:
-               p = p[0]
-            params[key[2:]] = p
+        if buf is None:
+            return params
+        res = shlex.split(buf)
+        res.reverse()
+        while len(res) > 0:
+            x = res.pop()
+            if x.startswith('--'):  # This is a parameter name.
+                key = x[2:]
+                params[key] = []
+                continue
+            params[key].append(x)  # This is a parameter value.
         return params
 
     def __setattr__(self, name, value):
