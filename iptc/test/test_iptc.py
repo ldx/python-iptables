@@ -144,7 +144,7 @@ class TestTable(unittest.TestCase):
         iptc.Chain(filter_table, "OUTPUT").append_rule(rule)
 
         self.assertEquals(len(iptc.Chain(filter_table, "OUTPUT").rules), output_rule_count + 1)
-        
+
         filter_table.flush()
 
         self.assertEquals(len(iptc.Chain(filter_table, "OUTPUT").rules), 0)
@@ -580,10 +580,10 @@ class TestRule(unittest.TestCase):
     def test_rule_address(self):
         # valid addresses
         rule = iptc.Rule()
-        for addr in [("127.0.0.1/255.255.255.0", "127.0.0.1/255.255.255.0"), 
-                    ("!127.0.0.1/255.255.255.0", "!127.0.0.1/255.255.255.0"), 
+        for addr in [("127.0.0.1/255.255.255.0", "127.0.0.1/255.255.255.0"),
+                    ("!127.0.0.1/255.255.255.0", "!127.0.0.1/255.255.255.0"),
                     ("127.0.0.1/255.255.128.0", "127.0.0.1/255.255.128.0"),
-                    ("127.0.0.1/16", "127.0.0.1/255.255.0.0"), 
+                    ("127.0.0.1/16", "127.0.0.1/255.255.0.0"),
                     ("127.0.0.1/24", "127.0.0.1/255.255.255.0"),
                     ("127.0.0.1/17", "127.0.0.1/255.255.128.0"),
                     ("!127.0.0.1/17", "!127.0.0.1/255.255.128.0")]:
