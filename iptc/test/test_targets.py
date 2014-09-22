@@ -419,8 +419,7 @@ def suite():
     suite_ct = unittest.TestLoader().loadTestsFromTestCase(TestXTCtTarget)
     suites.extend([suite_target, suite_cluster, suite_tos])
     if is_table_available(iptc.Table.NAT):
-        suites.extend([suite_target, suite_cluster, suite_redir, suite_tos,
-                       suite_masq, suite_dnat])
+        suites.extend([suite_redir, suite_masq, suite_dnat])
     if is_table_available(iptc.Table.RAW):
         suites.extend([suite_notrack, suite_ct])
     return unittest.TestSuite(suites)

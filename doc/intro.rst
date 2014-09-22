@@ -27,13 +27,16 @@ meant primarily for dynamic and/or complex routers and firewalls, where rules
 are often updated or changed, or Python programs wish to interface with the
 Linux iptables framework..
 
+``Python-iptables`` supports Python 2.6, 2.7 and 3.4.
+
 |buildstatus|
 
 .. |buildstatus| image:: https://travis-ci.org/ldx/python-iptables.png?branch=master
 
-|Bitdeli|
+|Flattr|
 
-.. |Bitdeli| image:: https://d2weczhvl823v0.cloudfront.net/ldx/python-iptables/trend.png
+.. |Flattr| image:: http://api.flattr.com/button/flattr-badge-large.png
+   :target: https://flattr.com/submit/auto?user_id=ldx&url=https%3A%2F%2Fgithub.com%2Fldx%2Fpython-iptables
 
 Installing via pip
 ------------------

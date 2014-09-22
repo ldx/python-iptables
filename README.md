@@ -27,9 +27,11 @@ output. It is meant primarily for dynamic and/or complex routers and
 firewalls, where rules are often updated or changed, or Python programs
 wish to interface with the Linux iptables framework..
 
+`Python-iptables` supports Python 2.6, 2.7 and 3.4.
+
 ![buildstatus](https://travis-ci.org/ldx/python-iptables.png?branch=master)
 
-![Bitdeli](https://d2weczhvl823v0.cloudfront.net/ldx/python-iptables/trend.png)
+[![Flattr](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=ldx&url=https%3A%2F%2Fgithub.com%2Fldx%2Fpython-iptables)
 
 Installing via pip
 ------------------
@@ -439,3 +441,46 @@ counters:
     >>> for rule in chain.rules:
     >>>         (packets, bytes) = rule.get_counters()
     >>>         print packets, bytes
+
+Autocommit
+----------
+
+`Python-iptables` by default automatically performs an iptables commit
+after each operation. That is, after you add a rule in
+`python-iptables`, that will take effect immediately.
+
+It may happen that you want to batch together certain operations. A
+typical use case is traversing a chain and removing rules matching a
+specific criteria. If you do this with autocommit enabled, after the
+first delete operation, your chain's state will chain and you have to
+restart the traversal. You can do something like this:
+
+    >>> import iptc
+    >>> table = iptc.Table(iptc.Table.FILTER)
+    >>> removed = True
+    >>> chain = iptc.Chain(table, "FORWARD")
+    >>> while removed == True:
+    >>>     removed = False
+    >>>     for rule in chain.rules:
+    >>>         if rule.out_interface and "eth0" in rule.out_interface:
+    >>>             chain.delete_rule(rule)
+    >>>             removed = True
+    >>>             break
+
+This is clearly not ideal and the code is not very readable. An
+alternative is to disable autocommits, traverse the chain, removing one
+or more rules, than commit it:
+
+    >>> import iptc
+    >>> table = iptc.Table(iptc.Table.FILTER)
+    >>> table.autocommit = False
+    >>> chain = iptc.Chain(table, "FORWARD")
+    >>> for rule in chain.rules:
+    >>>     if rule.out_interface and "eth0" in rule.out_interface:
+    >>>         chain.delete_rule(rule)
+    >>> table.commit()
+    >>> table.autocommit = True
+
+The drawback is that Table is a singleton, and if you disable
+autocommit, it will be disabled for all instances of that Table.
+

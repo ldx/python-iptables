@@ -7,15 +7,14 @@ from distutils.core import setup, Extension
 # make pyflakes happy
 __pkgname__ = None
 __version__ = None
-execfile("iptc/version.py")
+exec(open("iptc/version.py").read())
 
 # build/install python-iptables
 setup(
     name=__pkgname__,
     version=__version__,
     description="Python bindings for iptables",
-    author="Nilvec",
-    author_email="nilvec@nilvec.com",
+    author="Vilmos Nebehaj",
     url="https://github.com/ldx/python-iptables",
     packages=["iptc"],
     package_dir={"iptc": "iptc"},
@@ -35,6 +34,12 @@ setup(
         "Topic :: Software Development :: Libraries",
         "Topic :: System :: Networking :: Firewalls",
         "Topic :: System :: Systems Administration",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: Implementation :: CPython",
     ],
     license="Apache License, Version 2.0",
 )
