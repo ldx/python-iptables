@@ -372,6 +372,12 @@ class IPTCModule(object):
         buf = self._get_saved_buf(ip)
         if buf is None:
             return params
+
+        # Marek: is that check required?
+        res = re.findall(IPTCModule.pattern, buf)
+        if len(res) == 0:
+            return params
+
         res = shlex.split(buf)
         res.reverse()
         while len(res) > 0:
