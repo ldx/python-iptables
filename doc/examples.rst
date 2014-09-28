@@ -261,7 +261,7 @@ matches::
     >>> match.dst_range = "172.22.33.106"
     >>> rule.add_match(match)
     >>> rule.target = iptc.Target(rule, "DROP")
-    >>> chain = iptc.Chain(iptc.Table.(iptc.Table.FILTER), "INPUT")
+    >>> chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "INPUT")
     >>> chain.insert_rule(rule)
 
 This is the ``python-iptables`` equivalent of the following iptables command::
