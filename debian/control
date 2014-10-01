@@ -2,17 +2,40 @@ Source: python-iptables
 Section: net
 Priority: extra
 Maintainer: Juliano Martinez <juliano@martinez.io>
-Build-Depends: cdbs (>= 0.4.49), debhelper (>= 7), python (>= 2.4), python-support, python-all-dev (>= 2.3.5-11)
-XS-Python-Version: >= 2.6
+Build-depends: python-all-dev (>= 2.7), python-all-dbg (>= 2.7), python3-all-dev (>= 3.2), python3-all-dbg, debhelper (>= 7), python-support (>= 0.90)
+X-Python-Version: >= 2.7
+X-Python3-Version: >= 3.2
 Standards-Version: 3.8.4
 Homepage: https://github.com/ldx/python-iptables
 
 Package: python-iptables
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}
+Provides: ${python:Provides}
 Description: Python bindings for iptables
  Python-iptables is a Python project that provides bindings to the iptables C libraries in Linux.
  Interoperability with iptables is achieved using the iptables C libraries (libiptc, libxtables,
  and iptables extensions), not calling the iptables executable and parsing its output as most other
  iptables wrapper libraries do; this makes python-iptables faster and not prone to parsing errors,
  at the same time leveraging all available iptables match and target extensions without further work.
+
+Package: python-iptables-dbg
+Section: debug
+Priority: extra
+Architecture: any
+Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends}, python-iptables (= ${binary:Version})
+Provides: ${python:Provides}
+Description: Python bindings for iptables
+
+Package: python3-iptables
+Architecture: any
+Depends: ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends}
+Description: Python3 bindings for iptables
+
+Package: python3-iptables-dbg
+Section: debug
+Priority: extra
+Architecture: any
+Depends: ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends}, python3-iptables (= ${binary:Version})
+Description: Python3 bindings for iptables
+

@@ -1,3 +1,12 @@
+python-iptables (0.5-git-20140925) precise; urgency=low
+
+  * update debian/
+    remove cdbs
+    build python3 packages
+    build debug packages
+
+ -- Markus Kötter <koetter@rrzn.uni-hannover.de>  Thu, 25 Sep 2014 10:48:41 +0200
+
 python-iptables (0.1.1) unstable; urgency=low
 
   * Initial Release.
