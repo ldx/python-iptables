@@ -93,8 +93,8 @@ will work. However, if you change the `state` parameter::
         argv[1]))
     iptc.xtables.XTablesError: state: parameter error -2 (RELATED,ESTABLISHED,FOOBAR)
 
-In certain cases you might need to use quoting inside the parameter string, for
-example::
+Certain parameters take a string that optionally consists of multiple words.
+The comment match is a good example::
 
     >>> rule = iptc.Rule()
     >>> rule.src = "127.0.0.1"
@@ -105,11 +105,23 @@ example::
     >>> chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "INPUT")
     >>> chain.insert_rule(rule)
 
-will only add the comment `this` instead of the expected `this is a test
-comment`. Use quoting inside the comment string itself::
+Note that this is still just one parameter value.
 
-    >>> comment = "this is a test comment"
-    >>> match.comment = "\"%s\"" % (comment)
+However, when a match or a target takes multiple parameter values, that needs
+to be passed in as a list. Let's assume you have created and set up an
+``ipset`` called ``blacklist`` via the ``ipset`` command. To create a rule
+with a match for this set::
+
+    >>> rule = iptc.Rule()
+    >>> m = rule.create_match("set")
+    >>> m.match_set = ['blacklist', 'src']
+
+Note how this time a list was used for the parameter value, since the ``set``
+match ``match_set`` parameter expects two values. See the ``iptables``
+manpages to find out what the extensions you use expect. See ipset_ for more
+information.
+
+.. _ipset: http://ipset.netfilter.org/
 
 When you are ready constructing your rule, add them to the chain you want it
 to show up in::
