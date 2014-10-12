@@ -31,6 +31,12 @@ wish to interface with the Linux iptables framework..
 
 ![buildstatus](https://travis-ci.org/ldx/python-iptables.png?branch=master)
 
+![latest\_release](https://pypip.in/v/python-iptables/badge.png)
+
+![number\_of\_downloads](https://pypip.in/d/python-iptables/badge.png)
+
+![license](https://pypip.in/license/python-iptables/badge.png)
+
 [![Flattr](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=ldx&url=https%3A%2F%2Fgithub.com%2Fldx%2Fpython-iptables)
 
 Installing via pip

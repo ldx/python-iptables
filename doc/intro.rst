@@ -33,6 +33,18 @@ Linux iptables framework..
 
 .. |buildstatus| image:: https://travis-ci.org/ldx/python-iptables.png?branch=master
 
+|latest_release|
+
+.. |latest_release| image:: https://pypip.in/v/python-iptables/badge.png
+
+|number_of_downloads|
+
+.. |number_of_downloads| image:: https://pypip.in/d/python-iptables/badge.png
+
+|license|
+
+.. |license| image:: https://pypip.in/license/python-iptables/badge.png
+
 |Flattr|
 
 .. |Flattr| image:: http://api.flattr.com/button/flattr-badge-large.png
