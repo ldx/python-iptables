@@ -365,6 +365,46 @@ class TestXTConntrackMatch(unittest.TestCase):
         self.assertEquals(m.ctstate, "NEW,RELATED")
 
 
+class TestHashlimitMatch(unittest.TestCase):
+    def setUp(self):
+        self.rule = iptc.Rule()
+        self.rule.src = "127.0.0.1"
+        self.rule.protocol = "udp"
+        self.rule.target = iptc.Target(self.rule, "ACCEPT")
+
+        self.match = iptc.Match(self.rule, "hashlimit")
+
+        self.chain = iptc.Chain(iptc.Table(iptc.Table.FILTER),
+                                "iptc_test_hashlimit")
+        self.table = iptc.Table(iptc.Table.FILTER)
+        try:
+            self.chain.flush()
+            self.chain.delete()
+        except:
+            pass
+        self.table.create_chain(self.chain)
+
+    def tearDown(self):
+        self.chain.flush()
+        self.chain.delete()
+
+    def test_hashlimit(self):
+        self.match.hashlimit_name = 'foo'
+        self.match.hashlimit_mode = 'srcip'
+        self.match.hashlimit_upto = '200/sec'
+        self.match.hashlimit_burst = '5'
+        self.match.hashlimit_htable_expire = '1000'
+        self.rule.add_match(self.match)
+        self.chain.insert_rule(self.rule)
+        rule = self.chain.rules[0]
+        m = rule.matches[0]
+        self.assertTrue(m.name, ["hashlimit"])
+        self.assertEquals(m.hashlimit_name, "foo")
+        self.assertEquals(m.hashlimit_mode, "srcip")
+        self.assertEquals(m.hashlimit_upto, "200/sec")
+        self.assertEquals(m.hashlimit_burst, "5")
+
+
 def suite():
     suite_match = unittest.TestLoader().loadTestsFromTestCase(TestMatch)
     suite_udp = unittest.TestLoader().loadTestsFromTestCase(TestXTUdpMatch)
@@ -377,6 +417,8 @@ def suite():
     suite_state = unittest.TestLoader().loadTestsFromTestCase(TestXTStateMatch)
     suite_conntrack = unittest.TestLoader().loadTestsFromTestCase(
         TestXTConntrackMatch)
+    suite_hashlimit = unittest.TestLoader().loadTestsFromTestCase(
+        TestHashlimitMatch)
     extra_suites = []
     if is_table6_available(iptc.Table6.FILTER):
         extra_suites += unittest.TestLoader().loadTestsFromTestCase(
@@ -384,7 +426,8 @@ def suite():
 
     return unittest.TestSuite([suite_match, suite_udp, suite_mark,
                                suite_limit, suite_comment, suite_iprange,
-                               suite_state, suite_conntrack] + extra_suites)
+                               suite_state, suite_conntrack,
+                               suite_hashlimit] + extra_suites)
 
 
 def run_tests():
