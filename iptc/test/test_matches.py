@@ -63,6 +63,15 @@ class TestMatch(unittest.TestCase):
         m.reset()
         self.failUnless(len(m.parameters) == 0)
 
+    def test_get_all_parameters(self):
+        m = iptc.Match(iptc.Rule(), "udp")
+        m.sport = "12345:55555"
+        m.dport = "!33333"
+
+        params = m.get_all_parameters()
+        self.assertEquals(set(params['sport']), set(['12345:55555']))
+        self.assertEquals(set(params['dport']), set(['!', '33333']))
+
 
 class TestXTUdpMatch(unittest.TestCase):
     def setUp(self):

@@ -374,11 +374,20 @@ class IPTCModule(object):
             return params
         res = shlex.split(buf)
         res.reverse()
+        inv = False
         while len(res) > 0:
             x = res.pop()
+            if x == '!':
+                # Next parameter is negated.
+                inv = True
+                continue
             if x.startswith('--'):  # This is a parameter name.
                 key = x[2:]
-                params[key] = []
+                if inv:
+                    params[key] = ['!']
+                else:
+                    params[key] = []
+                inv = False
                 continue
             params[key].append(x)  # This is a parameter value.
         return params
