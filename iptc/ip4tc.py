@@ -372,7 +372,7 @@ class IPTCModule(object):
         buf = self._get_saved_buf(ip)
         if buf is None:
             return params
-        res = shlex.split(buf)
+        res = shlex.split(buf.decode())
         res.reverse()
         inv = False
         while len(res) > 0:
