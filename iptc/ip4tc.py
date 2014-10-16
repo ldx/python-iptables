@@ -372,7 +372,10 @@ class IPTCModule(object):
         buf = self._get_saved_buf(ip)
         if buf is None:
             return params
-        res = [s.decode() for s in shlex.split(buf.encode())]
+        if type(buf) != str:
+            # In Python3, string and bytes are different types.
+            buf = buf.decode()
+        res = shlex.split(buf)
         res.reverse()
         inv = False
         while len(res) > 0:
