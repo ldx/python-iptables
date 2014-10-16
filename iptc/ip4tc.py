@@ -370,12 +370,29 @@ class IPTCModule(object):
         params = {}
         ip = self.rule.get_ip()
         buf = self._get_saved_buf(ip)
-        if buf is not None:
-            res = shlex.split(buf)
-            key, p = res[0], res[1:]
-            if len(p) == 1:
-               p = p[0]
-            params[key[2:]] = p
+        if buf is None:
+            return params
+        if type(buf) != str:
+            # In Python3, string and bytes are different types.
+            buf = buf.decode()
+        res = shlex.split(buf)
+        res.reverse()
+        inv = False
+        while len(res) > 0:
+            x = res.pop()
+            if x == '!':
+                # Next parameter is negated.
+                inv = True
+                continue
+            if x.startswith('--'):  # This is a parameter name.
+                key = x[2:]
+                if inv:
+                    params[key] = ['!']
+                else:
+                    params[key] = []
+                inv = False
+                continue
+            params[key].append(x)  # This is a parameter value.
         return params
 
     def __setattr__(self, name, value):
@@ -566,6 +583,9 @@ class Match(IPTCModule):
         if self._module.init:
             self._module.init(self._ptr)
         self._module.mflags = 0
+        if self._module.udata_size > 0:
+            udata_buf = (ct.c_ubyte * self._module.udata_size)()
+            self._module.udata = ct.cast(ct.byref(udata_buf), ct.c_void_p)
 
     def _get_match(self):
         return ct.cast(ct.byref(self.match_buf), ct.POINTER(xt_entry_match))[0]
@@ -754,6 +774,9 @@ class Target(IPTCModule):
         if self._module.init:
             self._module.init(self._ptr)
         self._module.tflags = 0
+        if self._module.udata_size > 0:
+            udata_buf = (ct.c_ubyte * self._module.udata_size)()
+            self._module.udata = ct.cast(ct.byref(udata_buf), ct.c_void_p)
 
     def _get_target(self):
         return self._ptr[0]

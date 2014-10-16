@@ -137,8 +137,8 @@ this:</p>
 iptc.xtables.XTablesError: state: parameter error -2 (RELATED,ESTABLISHED,FOOBAR)
 </pre></div>
 </div>
-<p>In certain cases you might need to use quoting inside the parameter string, for
-example:</p>
+<p>Certain parameters take a string that optionally consists of multiple words.
+The comment match is a good example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Rule</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">src</span> <span class="o">=</span> <span class="s">&quot;127.0.0.1&quot;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="s">&quot;udp&quot;</span>
@@ -149,12 +149,20 @@ example:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span><span class="o">.</span><span class="n">insert_rule</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>will only add the comment <cite>this</cite> instead of the expected <cite>this is a test
-comment</cite>. Use quoting inside the comment string itself:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">comment</span> <span class="o">=</span> <span class="s">&quot;this is a test comment&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">match</span><span class="o">.</span><span class="n">comment</span> <span class="o">=</span> <span class="s">&quot;</span><span class="se">\&quot;</span><span class="si">%s</span><span class="se">\&quot;</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">comment</span><span class="p">)</span>
+<p>Note that this is still just one parameter value.</p>
+<p>However, when a match or a target takes multiple parameter values, that needs
+to be passed in as a list. Let&#8217;s assume you have created and set up an
+<tt class="docutils literal"><span class="pre">ipset</span></tt> called <tt class="docutils literal"><span class="pre">blacklist</span></tt> via the <tt class="docutils literal"><span class="pre">ipset</span></tt> command. To create a rule
+with a match for this set:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Rule</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">create_match</span><span class="p">(</span><span class="s">&quot;set&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">match_set</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;blacklist&#39;</span><span class="p">,</span> <span class="s">&#39;src&#39;</span><span class="p">]</span>
 </pre></div>
 </div>
+<p>Note how this time a list was used for the parameter value, since the <tt class="docutils literal"><span class="pre">set</span></tt>
+match <tt class="docutils literal"><span class="pre">match_set</span></tt> parameter expects two values. See the <tt class="docutils literal"><span class="pre">iptables</span></tt>
+manpages to find out what the extensions you use expect. See <a class="reference external" href="http://ipset.netfilter.org/">ipset</a> for more
+information.</p>
 <p>When you are ready constructing your rule, add them to the chain you want it
 to show up in:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">FILTER</span><span class="p">),</span> <span class="s">&quot;INPUT&quot;</span><span class="p">)</span>
@@ -301,7 +309,7 @@ matches:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">match</span><span class="o">.</span><span class="n">dst_range</span> <span class="o">=</span> <span class="s">&quot;172.22.33.106&quot;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">add_match</span><span class="p">(</span><span class="n">match</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rule</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Target</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="s">&quot;DROP&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">FILTER</span><span class="p">),</span> <span class="s">&quot;INPUT&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">FILTER</span><span class="p">),</span> <span class="s">&quot;INPUT&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span><span class="o">.</span><span class="n">insert_rule</span><span class="p">(</span><span class="n">rule</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -484,7 +492,7 @@ will be disabled for all instances of that <cite>Table</cite>.</p>
 
     <div class="footer">
         &copy; Copyright 2010-2013, Nilvec.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
 <script type="text/javascript">
 

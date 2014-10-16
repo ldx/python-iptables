@@ -144,7 +144,7 @@ class TestTable(unittest.TestCase):
         iptc.Chain(filter_table, "OUTPUT").append_rule(rule)
 
         self.assertEquals(len(iptc.Chain(filter_table, "OUTPUT").rules), output_rule_count + 1)
-        
+
         filter_table.flush()
 
         self.assertEquals(len(iptc.Chain(filter_table, "OUTPUT").rules), 0)
@@ -580,10 +580,10 @@ class TestRule(unittest.TestCase):
     def test_rule_address(self):
         # valid addresses
         rule = iptc.Rule()
-        for addr in [("127.0.0.1/255.255.255.0", "127.0.0.1/255.255.255.0"), 
-                    ("!127.0.0.1/255.255.255.0", "!127.0.0.1/255.255.255.0"), 
+        for addr in [("127.0.0.1/255.255.255.0", "127.0.0.1/255.255.255.0"),
+                    ("!127.0.0.1/255.255.255.0", "!127.0.0.1/255.255.255.0"),
                     ("127.0.0.1/255.255.128.0", "127.0.0.1/255.255.128.0"),
-                    ("127.0.0.1/16", "127.0.0.1/255.255.0.0"), 
+                    ("127.0.0.1/16", "127.0.0.1/255.255.0.0"),
                     ("127.0.0.1/24", "127.0.0.1/255.255.255.0"),
                     ("127.0.0.1/17", "127.0.0.1/255.255.128.0"),
                     ("!127.0.0.1/17", "!127.0.0.1/255.255.128.0")]:
@@ -769,6 +769,31 @@ class TestRule(unittest.TestCase):
         for rule in rules:
             self.failUnless(rule in crules)
             crules.remove(rule)
+
+    def test_rule_multiple_parameters(self):
+        self.table.autocommit = False
+        self.table.refresh()
+        rule = iptc.Rule()
+        rule.dst = "127.0.0.1"
+        rule.protocol = "tcp"
+        match = rule.create_match('tcp')
+        match.sport = "1234"
+        match.dport = "8080"
+        target = rule.create_target("REJECT")
+        target.reject_with = "icmp-host-unreachable"
+        self.chain.insert_rule(rule)
+        self.table.commit()
+        self.table.refresh()
+        self.assertEquals(len(self.chain.rules), 1)
+        r = self.chain.rules[0]
+        self.assertEquals(r.src, '0.0.0.0/0.0.0.0')
+        self.assertEquals(r.dst, '127.0.0.1/255.255.255.255')
+        self.assertEquals(r.protocol, 'tcp')
+        self.assertEquals(len(r.matches), 1)
+        m = r.matches[0]
+        self.assertEquals(m.name, 'tcp')
+        self.assertEquals(m.sport, '1234')
+        self.assertEquals(m.dport, '8080')
 
     def test_rule_delete(self):
         self.table.autocommit = False

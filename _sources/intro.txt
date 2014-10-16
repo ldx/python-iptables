@@ -33,9 +33,22 @@ Linux iptables framework..
 
 .. |buildstatus| image:: https://travis-ci.org/ldx/python-iptables.png?branch=master
 
-|Bitdeli|
+|latest_release|
 
-.. |Bitdeli| image:: https://d2weczhvl823v0.cloudfront.net/ldx/python-iptables/trend.png
+.. |latest_release| image:: https://pypip.in/v/python-iptables/badge.png
+
+|number_of_downloads|
+
+.. |number_of_downloads| image:: https://pypip.in/d/python-iptables/badge.png
+
+|license|
+
+.. |license| image:: https://pypip.in/license/python-iptables/badge.png
+
+|Flattr|
+
+.. |Flattr| image:: http://api.flattr.com/button/flattr-badge-large.png
+   :target: https://flattr.com/submit/auto?user_id=ldx&url=https%3A%2F%2Fgithub.com%2Fldx%2Fpython-iptables
 
 Installing via pip
 ------------------

@@ -2,6 +2,7 @@ import re
 import ctypes
 import ctypes.util
 from subprocess import Popen, PIPE
+from sys import version_info
 try:
     from sysconfig import get_config_var
 except ImportError:
@@ -66,6 +67,8 @@ def _do_find_library(name):
 
 def _find_library(*names):
     ext = get_config_var('SO')
+    if version_info > (3, ) and version_info < (3, 4):
+        ext = '.cpython-%i%i' % (version_info.major, version_info.minor) + ext
     for name in names:
         for n in (name, "lib" + name, name + ext, "lib" + name + ext):
             lib = _do_find_library(n)
