@@ -15,6 +15,7 @@ setup(
     version=__version__,
     description="Python bindings for iptables",
     author="Vilmos Nebehaj",
+    author_email="v.nebehaj@gmail.com",
     url="https://github.com/ldx/python-iptables",
     packages=["iptc"],
     package_dir={"iptc": "iptc"},
