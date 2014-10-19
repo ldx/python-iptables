@@ -29,15 +29,15 @@ wish to interface with the Linux iptables framework..
 
 `Python-iptables` supports Python 2.6, 2.7 and 3.4.
 
-![buildstatus](https://travis-ci.org/ldx/python-iptables.png?branch=master)
-
-![latest\_release](https://pypip.in/v/python-iptables/badge.png)
-
-![number\_of\_downloads](https://pypip.in/d/python-iptables/badge.png)
-
-![license](https://pypip.in/license/python-iptables/badge.png)
+[![Build Status](https://travis-ci.org/ldx/python-iptables.png?branch=master)](https://travis-ci.org/ldx/python-iptables)
 
 [![Flattr](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=ldx&url=https%3A%2F%2Fgithub.com%2Fldx%2Fpython-iptables)
+
+[![Latest Release](https://pypip.in/v/python-iptables/badge.png)](https://pypi.python.org/pypi/python-iptables)
+
+[![Number of Downloads](https://pypip.in/d/python-iptables/badge.png)](https://pypi.python.org/pypi/python-iptables)
+
+[![License](https://pypip.in/license/python-iptables/badge.png)](https://pypi.python.org/pypi/python-iptables)
 
 Installing via pip
 ------------------
