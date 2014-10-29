@@ -663,7 +663,8 @@ class Target(IPTCModule):
             self.target.u.user.name == b"ACCEPT" or
             self.target.u.user.name == b"DROP" or
             self.target.u.user.name == b"RETURN" or
-            self.target.u.user.name == b"ERROR"):
+            self.target.u.user.name == b"ERROR" or
+            self._is_standard_target()):
             return True
         if (self._target_buf[basesz:self.usersize] ==
             targ._target_buf[basesz:targ.usersize]):
