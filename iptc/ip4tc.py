@@ -583,8 +583,9 @@ class Match(IPTCModule):
         if self._module.init:
             self._module.init(self._ptr)
         self._module.mflags = 0
-        if self._module.udata_size > 0:
-            udata_buf = (ct.c_ubyte * self._module.udata_size)()
+        udata_size = getattr(self._module, 'udata_size', 0)
+        if udata_size > 0:
+            udata_buf = (ct.c_ubyte * udata_size)()
             self._module.udata = ct.cast(ct.byref(udata_buf), ct.c_void_p)
 
     def _get_match(self):
@@ -774,8 +775,9 @@ class Target(IPTCModule):
         if self._module.init:
             self._module.init(self._ptr)
         self._module.tflags = 0
-        if self._module.udata_size > 0:
-            udata_buf = (ct.c_ubyte * self._module.udata_size)()
+        udata_size = getattr(self._module, 'udata_size', 0)
+        if udata_size > 0:
+            udata_buf = (ct.c_ubyte * udata_size)()
             self._module.udata = ct.cast(ct.byref(udata_buf), ct.c_void_p)
 
     def _get_target(self):
