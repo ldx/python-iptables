@@ -1375,6 +1375,13 @@ class Chain(object):
             raise ValueError("invalid rule")
         self.table.insert_entry(self.name, rbuf, position)
 
+    def replace_rule(self, rule, position=0):
+        """Replace existing rule in the chain at *position* with given *rule*"""
+        rbuf = rule.rule
+        if not rbuf:
+            raise ValueError("invalid rule")
+        self.table.replace_entry(self.name, rbuf, position)
+
     def delete_rule(self, rule):
         """Removes *rule* from the chain."""
         rbuf = rule.rule
@@ -1636,6 +1643,15 @@ class Table(object):
                                           position, self._handle)
         if rv != 1:
             raise IPTCError("can't insert entry into chain %s: %s)" %
+                            (chain, self.strerror()))
+
+    @autocommit
+    def replace_entry(self, chain, entry, position):
+        """Replace existing rule in *chain* at *position* with given *rule*."""
+        rv = self._iptc.iptc_replace_entry(chain.encode(), ct.cast(entry, ct.c_void_p),
+                                          position, self._handle)
+        if rv != 1:
+            raise IPTCError("can't replace entry in chain %s: %s)" %
                             (chain, self.strerror()))
 
     @autocommit
