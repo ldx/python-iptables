@@ -770,6 +770,23 @@ class TestRule(unittest.TestCase):
             self.failUnless(rule in crules)
             crules.remove(rule)
 
+    def test_rule_replace(self):
+        rule = iptc.Rule()
+        rule.protocol = "tcp"
+        rule.src = "127.0.0.1"
+        target = iptc.Target(rule, "ACCEPT")
+        rule.target = target
+        self.chain.insert_rule(rule, 0)
+
+        rule = iptc.Rule()
+        rule.protocol = "udp"
+        rule.src = "127.0.0.1"
+        target = iptc.Target(rule, "ACCEPT")
+        rule.target = target
+
+        self.chain.replace_rule(rule, 0)
+        self.failUnless(self.chain.rules[0] == rule)
+
     def test_rule_multiple_parameters(self):
         self.table.autocommit = False
         self.table.refresh()
