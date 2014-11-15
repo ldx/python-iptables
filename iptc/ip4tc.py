@@ -272,7 +272,7 @@ class IPTCModule(object):
         # Value can be either a string, or a list of strings, e.g. "8888",
         # "!0:65535" or ["!", "example_set", "dst"].
         args = []
-        if isinstance(value, str):
+        if isinstance(value, str) or isinstance(value, unicode):
             args = [value.encode()]
         else:
             try:
