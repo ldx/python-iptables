@@ -73,6 +73,44 @@ class TestMatch(unittest.TestCase):
         self.assertEquals(set(params['dport']), set(['!', '33333']))
 
 
+class TestMultiportMatch(unittest.TestCase):
+    def setUp(self):
+        self.rule = iptc.Rule()
+        self.rule.src = "127.0.0.1"
+        self.rule.protocol = "udp"
+        self.rule.create_target("ACCEPT")
+
+        self.match = self.rule.create_match("multiport")
+
+        table = iptc.Table(iptc.Table.FILTER)
+        self.chain = iptc.Chain(table, "iptc_test_udp")
+        try:
+            self.chain.flush()
+            self.chain.delete()
+        except:
+            pass
+
+        iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
+
+    def tearDown(self):
+        self.chain.flush()
+        self.chain.delete()
+
+    def test_multiport(self):
+        self.match.dports = '1111,2222'
+        self.chain.insert_rule(self.rule)
+        rule = self.chain.rules[0]
+        match = rule.matches[0]
+        self.assertEquals(match.dports, '1111,2222')
+
+    def test_unicode_multiport(self):
+        self.match.dports = u'1111,2222'
+        self.chain.insert_rule(self.rule)
+        rule = self.chain.rules[0]
+        match = rule.matches[0]
+        self.assertEquals(match.dports, '1111,2222')
+
+
 class TestXTUdpMatch(unittest.TestCase):
     def setUp(self):
         self.rule = iptc.Rule()
@@ -419,6 +457,8 @@ def suite():
     suite_udp = unittest.TestLoader().loadTestsFromTestCase(TestXTUdpMatch)
     suite_mark = unittest.TestLoader().loadTestsFromTestCase(TestXTMarkMatch)
     suite_limit = unittest.TestLoader().loadTestsFromTestCase(TestXTLimitMatch)
+    suite_mport = unittest.TestLoader().loadTestsFromTestCase(
+        TestMultiportMatch)
     suite_comment = unittest.TestLoader().loadTestsFromTestCase(
         TestCommentMatch)
     suite_iprange = unittest.TestLoader().loadTestsFromTestCase(
@@ -434,8 +474,8 @@ def suite():
             TestIcmpv6Match)
 
     return unittest.TestSuite([suite_match, suite_udp, suite_mark,
-                               suite_limit, suite_comment, suite_iprange,
-                               suite_state, suite_conntrack,
+                               suite_limit, suite_mport, suite_comment,
+                               suite_iprange, suite_state, suite_conntrack,
                                suite_hashlimit] + extra_suites)
 
 
