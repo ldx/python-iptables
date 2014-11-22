@@ -4,7 +4,7 @@
 .. module:: iptc
    :synopsis: Python bindings for libiptc.
 
-.. moduleauthor:: Nilvec <nilvec@nilvec.com>
+.. moduleauthor:: Vilmos Nebehaj
 """
 
 from iptc.ip4tc import (is_table_available, Table, Chain, Rule, Match, Target,
