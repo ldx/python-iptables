@@ -301,6 +301,13 @@ class IPTCModule(object):
     def _parse(self, argv, inv, entry):
         raise NotImplementedError()
 
+    def final_check(self):
+        if self._module:
+            self._final_check()  # subclasses override this
+
+    def _final_check(self):
+        raise NotImplementedError()
+
     def _get_saved_buf(self, ip):
         if not self._module or not self._module.save:
             return None
@@ -394,6 +401,12 @@ class IPTCModule(object):
                 continue
             params[key].append(x)  # This is a parameter value.
         return params
+
+    def _update_parameters(self):
+        params = self.get_all_parameters().iteritems()
+        self.reset()
+        for k, v in params:
+            self.__setattr__(k, v)
 
     def __setattr__(self, name, value):
         if not name.startswith('_') and name not in dir(self):
@@ -495,6 +508,7 @@ class Match(IPTCModule):
         if match:
             ct.memmove(ct.byref(self._match_buf), ct.byref(match), self.size)
             self._update_pointers()
+            self._update_parameters()
         else:
             self.reset()
 
@@ -533,6 +547,13 @@ class Match(IPTCModule):
     def _store_buffer(self, module):
         self._buffer = _Buffer()
         self._buffer.buffer = ct.cast(module, ct.POINTER(ct.c_ubyte))
+
+    def _final_check(self):
+        if self._alias is not None:
+            module = self._alias
+        else:
+            module = self._module
+        self._xt.final_check_match(module)
 
     def _parse(self, argv, inv, entry):
         if self._alias is not None:
@@ -696,6 +717,7 @@ class Target(IPTCModule):
         if target:
             ct.memmove(self._target_buf, ct.byref(target), self.size)
             self._update_pointers()
+            self._update_parameters()
         else:
             self.reset()
 
@@ -704,6 +726,13 @@ class Target(IPTCModule):
             if t.is_chain(self._name):
                 return True
         return False
+
+    def _final_check(self):
+        if self._alias is not None:
+            module = self._alias
+        else:
+            module = self._module
+        self._xt.final_check_target(module)
 
     def _parse(self, argv, inv, entry):
         if self._alias is not None:
@@ -899,6 +928,13 @@ class Rule(object):
         return [Table(t) for t in Table.ALL if is_table_available(t)]
     tables = property(_get_tables)
     """This is the list of tables for our protocol."""
+
+    def final_check(self):
+        """Do a final check on the target and the matches."""
+        if self.target:
+            self.target.final_check()
+        for match in self.matches:
+            match.final_check()
 
     def create_match(self, name, revision=None):
         """Create a *match*, and add it to the list of matches in this rule.
@@ -1362,6 +1398,7 @@ class Chain(object):
 
     def append_rule(self, rule):
         """Append *rule* to the end of the chain."""
+        rule.final_check()
         rbuf = rule.rule
         if not rbuf:
             raise ValueError("invalid rule")
@@ -1370,6 +1407,7 @@ class Chain(object):
     def insert_rule(self, rule, position=0):
         """Insert *rule* as the first entry in the chain if *position* is 0 or
         not specified, else *rule* is inserted in the given position."""
+        rule.final_check()
         rbuf = rule.rule
         if not rbuf:
             raise ValueError("invalid rule")
@@ -1384,6 +1422,7 @@ class Chain(object):
 
     def delete_rule(self, rule):
         """Removes *rule* from the chain."""
+        rule.final_check()
         rbuf = rule.rule
         if not rbuf:
             raise ValueError("invalid rule")
