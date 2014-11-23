@@ -272,7 +272,7 @@ class IPTCModule(object):
         # Value can be either a string, or a list of strings, e.g. "8888",
         # "!0:65535" or ["!", "example_set", "dst"].
         args = []
-        if isinstance(value, str):
+        if isinstance(value, str) or isinstance(value, unicode):
             args = [value.encode()]
         else:
             try:
@@ -583,8 +583,9 @@ class Match(IPTCModule):
         if self._module.init:
             self._module.init(self._ptr)
         self._module.mflags = 0
-        if self._module.udata_size > 0:
-            udata_buf = (ct.c_ubyte * self._module.udata_size)()
+        udata_size = getattr(self._module, 'udata_size', 0)
+        if udata_size > 0:
+            udata_buf = (ct.c_ubyte * udata_size)()
             self._module.udata = ct.cast(ct.byref(udata_buf), ct.c_void_p)
 
     def _get_match(self):
@@ -663,7 +664,8 @@ class Target(IPTCModule):
             self.target.u.user.name == b"ACCEPT" or
             self.target.u.user.name == b"DROP" or
             self.target.u.user.name == b"RETURN" or
-            self.target.u.user.name == b"ERROR"):
+            self.target.u.user.name == b"ERROR" or
+            self._is_standard_target()):
             return True
         if (self._target_buf[basesz:self.usersize] ==
             targ._target_buf[basesz:targ.usersize]):
@@ -774,8 +776,9 @@ class Target(IPTCModule):
         if self._module.init:
             self._module.init(self._ptr)
         self._module.tflags = 0
-        if self._module.udata_size > 0:
-            udata_buf = (ct.c_ubyte * self._module.udata_size)()
+        udata_size = getattr(self._module, 'udata_size', 0)
+        if udata_size > 0:
+            udata_buf = (ct.c_ubyte * udata_size)()
             self._module.udata = ct.cast(ct.byref(udata_buf), ct.c_void_p)
 
     def _get_target(self):
@@ -1372,6 +1375,13 @@ class Chain(object):
             raise ValueError("invalid rule")
         self.table.insert_entry(self.name, rbuf, position)
 
+    def replace_rule(self, rule, position=0):
+        """Replace existing rule in the chain at *position* with given *rule*"""
+        rbuf = rule.rule
+        if not rbuf:
+            raise ValueError("invalid rule")
+        self.table.replace_entry(self.name, rbuf, position)
+
     def delete_rule(self, rule):
         """Removes *rule* from the chain."""
         rbuf = rule.rule
@@ -1633,6 +1643,15 @@ class Table(object):
                                           position, self._handle)
         if rv != 1:
             raise IPTCError("can't insert entry into chain %s: %s)" %
+                            (chain, self.strerror()))
+
+    @autocommit
+    def replace_entry(self, chain, entry, position):
+        """Replace existing rule in *chain* at *position* with given *rule*."""
+        rv = self._iptc.iptc_replace_entry(chain.encode(), ct.cast(entry, ct.c_void_p),
+                                          position, self._handle)
+        if rv != 1:
+            raise IPTCError("can't replace entry in chain %s: %s)" %
                             (chain, self.strerror()))
 
     @autocommit

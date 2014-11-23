@@ -39,7 +39,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'python-iptables'
-copyright = u'2010-2013, Nilvec'
+copyright = u'2010-2014, Vilmos Nebehaj'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -174,7 +174,7 @@ htmlhelp_basename = 'python-iptablesdoc'
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'python-iptables.tex', u'python-iptables Documentation',
-   u'Nilvec', 'manual'),
+   u'Vilmos Nebehaj', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

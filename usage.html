@@ -404,6 +404,12 @@ not specified, else <em>rule</em> is inserted in the given position.</p>
 <dd><p>Rename chain to <em>new_name</em>.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="iptc.Chain.replace_rule">
+<tt class="descname">replace_rule</tt><big>(</big><em>rule</em>, <em>position=0</em><big>)</big><a class="headerlink" href="#iptc.Chain.replace_rule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace existing rule in the chain at <em>position</em> with given <em>rule</em></p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="iptc.Chain.rules">
 <tt class="descname">rules</tt><a class="headerlink" href="#iptc.Chain.rules" title="Permalink to this definition">¶</a></dt>
@@ -638,6 +644,12 @@ use.</p>
 in string form.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="iptc.Rule.final_check">
+<tt class="descname">final_check</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Rule.final_check" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do a final check on the target and the matches.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="iptc.Rule.fragment">
 <tt class="descname">fragment</tt><a class="headerlink" href="#iptc.Rule.fragment" title="Permalink to this definition">¶</a></dt>
@@ -751,6 +763,12 @@ use.</p>
 <tt class="descname">dst</tt><a class="headerlink" href="#iptc.Rule6.dst" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the destination network address with an optional network mask
 in string form.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Rule6.final_check">
+<tt class="descname">final_check</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Rule6.final_check" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do a final check on the target and the matches.</p>
 </dd></dl>
 
 <dl class="method">
@@ -882,7 +900,7 @@ executing an iptables operation.</p>
     </div>
 
     <div class="footer">
-        &copy; Copyright 2010-2013, Nilvec.
+        &copy; Copyright 2010-2014, Vilmos Nebehaj.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
 <script type="text/javascript">

@@ -29,26 +29,25 @@ Linux iptables framework..
 
 ``Python-iptables`` supports Python 2.6, 2.7 and 3.4.
 
-|buildstatus|
+.. image:: https://travis-ci.org/ldx/python-iptables.png?branch=master
+   :target: https://travis-ci.org/ldx/python-iptables
+   :alt: Build Status
 
-.. |buildstatus| image:: https://travis-ci.org/ldx/python-iptables.png?branch=master
-
-|latest_release|
-
-.. |latest_release| image:: https://pypip.in/v/python-iptables/badge.png
-
-|number_of_downloads|
-
-.. |number_of_downloads| image:: https://pypip.in/d/python-iptables/badge.png
-
-|license|
-
-.. |license| image:: https://pypip.in/license/python-iptables/badge.png
-
-|Flattr|
-
-.. |Flattr| image:: http://api.flattr.com/button/flattr-badge-large.png
+.. image:: http://api.flattr.com/button/flattr-badge-large.png
    :target: https://flattr.com/submit/auto?user_id=ldx&url=https%3A%2F%2Fgithub.com%2Fldx%2Fpython-iptables
+   :alt: Flattr
+
+.. image:: https://pypip.in/v/python-iptables/badge.png
+   :target: https://pypi.python.org/pypi/python-iptables
+   :alt: Latest Release
+
+.. image:: https://pypip.in/d/python-iptables/badge.png
+   :target: https://pypi.python.org/pypi/python-iptables
+   :alt: Number of Downloads
+
+.. image:: https://pypip.in/license/python-iptables/badge.png
+   :target: https://pypi.python.org/pypi/python-iptables
+   :alt: License
 
 Installing via pip
 ------------------
