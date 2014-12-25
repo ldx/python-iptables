@@ -956,22 +956,22 @@ class xtables(object):
     # Dispatch arguments to the appropriate parse function, based upon the
     # extension's choice of API.
     @preserve_globals
-    def parse_target(self, argv, invert, t, fw, ptr):
-        _optarg.value = argv[1]
-        _optind.value = 2
+    def parse_target(self, argv, invert, t, fw, ptr, x6_parse, x6_options):
+        _optarg.value = len(argv) > 1 and argv[1] or None
+        _optind.value = len(argv) - 1
 
-        x6_options = None
-        x6_parse = None
         try:
             # new API?
-            x6_options = t.x6_options
-            x6_parse = t.x6_parse
+            if x6_options is None:
+                x6_options = t.x6_options
+            if x6_parse is None:
+                x6_parse = t.x6_parse
         except AttributeError:
             pass
 
         if x6_options and x6_parse:
             # new API
-            entry = self._option_lookup(t.x6_options, argv[0])
+            entry = self._option_lookup(x6_options, argv[0])
             if not entry:
                 raise XTablesError("%s: no such parameter %s" % (t.name,
                                                                  argv[0]))
@@ -986,7 +986,7 @@ class xtables(object):
             cb.target = ct.pointer(t.t)
             cb.xt_entry = ct.cast(fw, ct.c_void_p)
             cb.udata = t.udata
-            rv = _wrap_x6fn(t.x6_parse, ct.pointer(cb))
+            rv = _wrap_x6fn(x6_parse, ct.pointer(cb))
             if rv != 0:
                 raise XTablesError("%s: parameter error %d (%s)" % (t.name, rv,
                                                                     argv[1]))
@@ -1001,22 +1001,22 @@ class xtables(object):
     # Dispatch arguments to the appropriate parse function, based upon the
     # extension's choice of API.
     @preserve_globals
-    def parse_match(self, argv, invert, m, fw, ptr):
-        _optarg.value = argv[1]
-        _optind.value = 2
+    def parse_match(self, argv, invert, m, fw, ptr, x6_parse, x6_options):
+        _optarg.value = len(argv) > 1 and argv[1] or None
+        _optind.value = len(argv) - 1
 
-        x6_options = None
-        x6_parse = None
         try:
             # new API?
-            x6_options = m.x6_options
-            x6_parse = m.x6_parse
+            if x6_options is None:
+                x6_options = m.x6_options
+            if x6_parse is None:
+                x6_parse = m.x6_parse
         except AttributeError:
             pass
 
         if x6_options and x6_parse:
             # new API
-            entry = self._option_lookup(m.x6_options, argv[0])
+            entry = self._option_lookup(x6_options, argv[0])
             if not entry:
                 raise XTablesError("%s: no such parameter %s" % (m.name,
                                                                  argv[0]))
@@ -1031,10 +1031,10 @@ class xtables(object):
             cb.match = ct.pointer(m.m)
             cb.xt_entry = ct.cast(fw, ct.c_void_p)
             cb.udata = m.udata
-            rv = _wrap_x6fn(m.x6_parse, ct.pointer(cb))
+            rv = _wrap_x6fn(x6_parse, ct.pointer(cb))
             if rv != 0:
-                raise XTablesError("%s: parameter error %d (%s)" % (m.name, rv,
-                                                                    argv[1]))
+                raise XTablesError("%s: parameter '%s' error %d" % (
+                    m.name, len(argv) > 1 and argv[1] or "", rv))
             m.mflags |= cb.xflags
             return
 
