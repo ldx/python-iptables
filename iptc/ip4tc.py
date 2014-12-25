@@ -272,7 +272,15 @@ class IPTCModule(object):
         # Value can be either a string, or a list of strings, e.g. "8888",
         # "!0:65535" or ["!", "example_set", "dst"].
         args = []
-        if isinstance(value, str) or isinstance(value, unicode):
+
+        is_str = isinstance(value, str)
+        try:
+            if not is_str:
+                is_str = isinstance(value, unicode)
+        except:
+            pass
+
+        if is_str:
             args = [value.encode()]
         else:
             try:
@@ -299,6 +307,14 @@ class IPTCModule(object):
         self._parse(argv, inv, entry)
 
     def _parse(self, argv, inv, entry):
+        raise NotImplementedError()
+
+    def final_check(self):
+        if self._module:
+            self._update_parameters()
+            self._final_check()  # subclasses override this
+
+    def _final_check(self):
         raise NotImplementedError()
 
     def _get_saved_buf(self, ip):
@@ -395,6 +411,12 @@ class IPTCModule(object):
             params[key].append(x)  # This is a parameter value.
         return params
 
+    def _update_parameters(self):
+        params = self.get_all_parameters().items()
+        self.reset()
+        for k, v in params:
+            self.__setattr__(k, v)
+
     def __setattr__(self, name, value):
         if not name.startswith('_') and name not in dir(self):
             self.parse(name.replace("_", "-"), value)
@@ -474,14 +496,22 @@ class Match(IPTCModule):
             name = match.u.user.name.decode()
         self._name = name
         self._rule = rule
-        self._alias = None
-        self._real_name = None
+        self._orig_parse = None
+        self._orig_options = None
 
         self._xt = xtables(rule.nfproto)
 
         module = self._xt.find_match(name)
+        real_name = module and getattr(module[0], 'real_name', None) or None
+        if real_name:
+            # Alias name, look up real module.
+            self._name = real_name.decode()
+            self._orig_parse = getattr(module[0], 'x6_parse', None)
+            self._orig_options = getattr(module[0], 'x6_options', None)
+            module = self._xt.find_match(real_name)
         if not module:
             raise XTablesError("can't find match %s" % (name))
+
         self._module = module[0]
         self._module.mflags = 0
         if revision is not None:
@@ -515,32 +545,17 @@ class Match(IPTCModule):
     def __ne__(self, match):
         return not self.__eq__(match)
 
-    def _check_alias(self, module, match):
-        # This is ugly, but there are extensions using an alias name. Check if
-        # that's the case, and load that extension as well if necessary. It
-        # will be used to parse parameters, since the 'real' extension
-        # probably won't understand them.
-        if getattr(module, "real_name", None) is not None and module.real_name:
-            self._real_name = module.real_name.decode()
-        if getattr(module, "alias", None) is not None and module.alias:
-            self._alias_name = module.alias(match)
-            alias = self._xt.find_match(self._alias_name)
-            if not alias:
-                raise XTablesError("can't find alias match %s" %
-                                   (self._alias_name))
-            self._alias = alias[0]
-
     def _store_buffer(self, module):
         self._buffer = _Buffer()
         self._buffer.buffer = ct.cast(module, ct.POINTER(ct.c_ubyte))
 
+    def _final_check(self):
+        self._xt.final_check_match(self._module)
+
     def _parse(self, argv, inv, entry):
-        if self._alias is not None:
-            module = self._alias
-        else:
-            module = self._module
-        self._xt.parse_match(argv, inv, module, entry,
-                             ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
+        self._xt.parse_match(argv, inv, self._module, entry,
+                             ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)),
+                             self._orig_parse, self._orig_options)
 
     def _get_size(self):
         return xt_align(self._module.size + ct.sizeof(xt_entry_match))
@@ -559,17 +574,11 @@ class Match(IPTCModule):
         self._ptrptr = ct.cast(ct.pointer(self._ptr),
                                ct.POINTER(ct.POINTER(xt_entry_match)))
         self._module.m = self._ptr
-        self._check_alias(self._module, self._module.m)
-        if self._alias is not None:
-            self._alias.m = self._ptr
         self._update_name()
 
     def _update_name(self):
         m = self._ptr[0]
-        if self._real_name is not None:
-            m.u.user.name = self._real_name.encode()
-        else:
-            m.u.user.name = self.name.encode()
+        m.u.user.name = self.name.encode()
 
     def reset(self):
         """Reset the match.
@@ -632,15 +641,24 @@ class Target(IPTCModule):
             name = target.u.user.name.decode()
         self._name = name
         self._rule = rule
+        self._orig_parse = None
+        self._orig_options = None
 
         self._xt = xtables(rule.nfproto)
 
         module = (self._is_standard_target() and
                   self._xt.find_target('standard') or
                   self._xt.find_target(name))
-
+        real_name = module and getattr(module[0], 'real_name', None) or None
+        if real_name:
+            # Alias name, look up real module.
+            self._name = real_name.decode()
+            self._orig_parse = getattr(module, 'x6_parse', None)
+            self._orig_options = getattr(module, 'x6_options', None)
+            module = self._xt.find_target(real_name)
         if not module:
             raise XTablesError("can't find target %s" % (name))
+
         self._module = module[0]
         self._module.tflags = 0
         if revision is not None:
@@ -675,21 +693,6 @@ class Target(IPTCModule):
     def __ne__(self, target):
         return not self.__eq__(target)
 
-    def _check_alias(self, module, target):
-        # This is ugly, but there are extensions using an alias name. Check if
-        # that's the case, and load that extension as well if necessary. It
-        # will be used to parse parameters, since the 'real' extension
-        # probably won't understand them.
-        if getattr(module, "real_name", None) is not None and module.real_name:
-            self._real_name = module.real_name.decode()
-        if getattr(module, "alias", None) is not None and module.alias:
-            self._alias_name = module.alias(target)
-            alias = self._xt.find_target(self._alias_name)
-            if not alias:
-                raise XTablesError("can't find alias target %s" %
-                                   (self._alias_name))
-            self._alias = alias[0]
-
     def _create_buffer(self, target):
         self._buffer = _Buffer(self.size)
         self._target_buf = self._buffer.buffer
@@ -705,13 +708,13 @@ class Target(IPTCModule):
                 return True
         return False
 
+    def _final_check(self):
+        self._xt.final_check_target(self._module)
+
     def _parse(self, argv, inv, entry):
-        if self._alias is not None:
-            module = self._alias
-        else:
-            module = self._module
-        self._xt.parse_target(argv, inv, module, entry,
-                              ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)))
+        self._xt.parse_target(argv, inv, self._module, entry,
+                              ct.cast(self._ptrptr, ct.POINTER(ct.c_void_p)),
+                              self._orig_parse, self._orig_options)
         self._target_buf = ct.cast(self._module.t, ct.POINTER(ct.c_ubyte))
         if self._buffer.buffer != self._target_buf:
             if self._buffer.buffer is not None:
@@ -753,17 +756,11 @@ class Target(IPTCModule):
         self._ptrptr = ct.cast(ct.pointer(self._ptr),
                                ct.POINTER(ct.POINTER(xt_entry_target)))
         self._module.t = self._ptr
-        self._check_alias(self._module, self._module.t)
-        if self._alias is not None:
-            self._alias.t = self._ptr
         self._update_name()
 
     def _update_name(self):
         m = self._ptr[0]
-        if self._real_name is not None:
-            m.u.user.name = self._real_name.encode()
-        else:
-            m.u.user.name = self.name.encode()
+        m.u.user.name = self.name.encode()
 
     def reset(self):
         """Reset the target.  Parameters are set to their default values, any
@@ -899,6 +896,13 @@ class Rule(object):
         return [Table(t) for t in Table.ALL if is_table_available(t)]
     tables = property(_get_tables)
     """This is the list of tables for our protocol."""
+
+    def final_check(self):
+        """Do a final check on the target and the matches."""
+        if self.target:
+            self.target.final_check()
+        for match in self.matches:
+            match.final_check()
 
     def create_match(self, name, revision=None):
         """Create a *match*, and add it to the list of matches in this rule.
@@ -1362,6 +1366,7 @@ class Chain(object):
 
     def append_rule(self, rule):
         """Append *rule* to the end of the chain."""
+        rule.final_check()
         rbuf = rule.rule
         if not rbuf:
             raise ValueError("invalid rule")
@@ -1370,6 +1375,7 @@ class Chain(object):
     def insert_rule(self, rule, position=0):
         """Insert *rule* as the first entry in the chain if *position* is 0 or
         not specified, else *rule* is inserted in the given position."""
+        rule.final_check()
         rbuf = rule.rule
         if not rbuf:
             raise ValueError("invalid rule")
@@ -1384,6 +1390,7 @@ class Chain(object):
 
     def delete_rule(self, rule):
         """Removes *rule* from the chain."""
+        rule.final_check()
         rbuf = rule.rule
         if not rbuf:
             raise ValueError("invalid rule")
