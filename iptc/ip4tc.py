@@ -404,7 +404,7 @@ class IPTCModule(object):
         return params
 
     def _update_parameters(self):
-        params = self.get_all_parameters().iteritems()
+        params = self.get_all_parameters().items()
         self.reset()
         for k, v in params:
             self.__setattr__(k, v)
