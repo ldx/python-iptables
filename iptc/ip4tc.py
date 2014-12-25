@@ -653,8 +653,8 @@ class Target(IPTCModule):
         if real_name:
             # Alias name, look up real module.
             self._name = real_name.decode()
-            self._orig_parse = getattr(module, 'x6_parse', None)
-            self._orig_options = getattr(module, 'x6_options', None)
+            self._orig_parse = getattr(module[0], 'x6_parse', None)
+            self._orig_options = getattr(module[0], 'x6_options', None)
             module = self._xt.find_target(real_name)
         if not module:
             raise XTablesError("can't find target %s" % (name))
