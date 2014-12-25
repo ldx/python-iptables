@@ -303,6 +303,7 @@ class IPTCModule(object):
 
     def final_check(self):
         if self._module:
+            self._update_parameters()
             self._final_check()  # subclasses override this
 
     def _final_check(self):
@@ -516,7 +517,6 @@ class Match(IPTCModule):
         if match:
             ct.memmove(ct.byref(self._match_buf), ct.byref(match), self.size)
             self._update_pointers()
-            self._update_parameters()
         else:
             self.reset()
 
@@ -691,7 +691,6 @@ class Target(IPTCModule):
         if target:
             ct.memmove(self._target_buf, ct.byref(target), self.size)
             self._update_pointers()
-            self._update_parameters()
         else:
             self.reset()
 
