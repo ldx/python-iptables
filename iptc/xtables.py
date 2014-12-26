@@ -773,6 +773,11 @@ class xtables(object):
     except ValueError:
         _xtables_pending_targets = ct.POINTER(None)
 
+    _real_name = {
+        'state': 'conntrack',
+        'NOTRACK': 'CT'
+    }
+
     _cache = weakref.WeakValueDictionary()
 
     def __new__(cls, proto):
@@ -783,8 +788,9 @@ class xtables(object):
             obj._xtinit(proto)
         return obj
 
-    def _xtinit(self, proto):
+    def _xtinit(self, proto, no_alias_check=False):
         self.proto = proto
+        self.no_alias_check = no_alias_check
         self._xt_globals = xtables_globals()
         self._xt_globals.option_offset = 0
         self._xt_globals.program_name = version.__pkgname__.encode()
@@ -865,6 +871,10 @@ class xtables(object):
         except AttributeError:
             prefix = self._get_prefix()
             initfn = getattr(lib, "%s%s_init" % (prefix, name), None)
+            if initfn is None and not self.no_alias_check:
+                if name in xtables._real_name:
+                    name = xtables._real_name[name]
+                    initfn = self._get_initfn_from_lib(name, lib)
         return initfn
 
     def _try_extinit(self, name, lib):
