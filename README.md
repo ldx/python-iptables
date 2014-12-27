@@ -458,6 +458,22 @@ counters:
     >>>         (packets, bytes) = rule.get_counters()
     >>>         print packets, bytes
 
+What is more, if you add 
+    
+    iptables -A OUTPUT -p tcp --sport 80
+    iptables -A OUTPUT -p tcp --sport 22
+
+you can query rule and chain counters together with the protocol and sport(or dport), e.g.:
+
+    >>> import iptc
+    >>> table = iptc.Table(iptc.Table.FILTER)
+    >>> chain = iptc.Chain(table, 'OUTPUT')
+    >>> for rule in chain.rules:
+    >>>         for match in rule.matches:
+    >>>             (packets, bytes) = rule.get_counters()
+    >>>             print packets, bytes, match.name, match.sport
+
+
 Autocommit
 ----------
 
