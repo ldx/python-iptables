@@ -27,6 +27,9 @@ output. It is meant primarily for dynamic and/or complex routers and
 firewalls, where rules are often updated or changed, or Python programs
 wish to interface with the Linux iptables framework..
 
+If you are looking for `ebtables` python bindings, check out
+[python-ebtables](https://github.com/ldx/python-ebtables/).
+
 `Python-iptables` supports Python 2.6, 2.7 and 3.4.
 
 [![Flattr](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=ldx&url=https%3A%2F%2Fgithub.com%2Fldx%2Fpython-iptables)
