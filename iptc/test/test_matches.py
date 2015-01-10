@@ -439,8 +439,8 @@ class TestHashlimitMatch(unittest.TestCase):
         self.match.hashlimit_name = 'foo'
         self.match.hashlimit_mode = 'srcip'
         self.match.hashlimit_upto = '200/sec'
-        self.match.hashlimit_burst = '5'
-        self.match.hashlimit_htable_expire = '1000'
+        self.match.hashlimit = '200'
+        self.match.hashlimit_htable_expire = '100'
         self.rule.add_match(self.match)
         self.chain.insert_rule(self.rule)
         rule = self.chain.rules[0]

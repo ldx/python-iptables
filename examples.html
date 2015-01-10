@@ -391,6 +391,22 @@ your rules. You have to refresh your table to get update your counters:</p>
 <span class="gp">&gt;&gt;&gt; </span>        <span class="k">print</span> <span class="n">packets</span><span class="p">,</span> <span class="nb">bytes</span>
 </pre></div>
 </div>
+<p>What is more, if you add:</p>
+<div class="highlight-python"><div class="highlight"><pre>iptables -A OUTPUT -p tcp --sport 80
+iptables -A OUTPUT -p tcp --sport 22
+</pre></div>
+</div>
+<p>you can query rule and chain counters together with the protocol and sport(or
+dport), e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">iptc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">FILTER</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Chain</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="s">&#39;OUTPUT&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">chain</span><span class="o">.</span><span class="n">rules</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">rule</span><span class="o">.</span><span class="n">matches</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>            <span class="p">(</span><span class="n">packets</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">get_counters</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span>            <span class="k">print</span> <span class="n">packets</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">sport</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="autocommit">
 <h2>Autocommit<a class="headerlink" href="#autocommit" title="Permalink to this headline">¶</a></h2>

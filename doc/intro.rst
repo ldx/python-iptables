@@ -29,10 +29,6 @@ Linux iptables framework..
 
 ``Python-iptables`` supports Python 2.6, 2.7 and 3.4.
 
-.. image:: https://travis-ci.org/ldx/python-iptables.png?branch=master
-   :target: https://travis-ci.org/ldx/python-iptables
-   :alt: Build Status
-
 .. image:: http://api.flattr.com/button/flattr-badge-large.png
    :target: https://flattr.com/submit/auto?user_id=ldx&url=https%3A%2F%2Fgithub.com%2Fldx%2Fpython-iptables
    :alt: Flattr
@@ -40,6 +36,10 @@ Linux iptables framework..
 .. image:: https://pypip.in/v/python-iptables/badge.png
    :target: https://pypi.python.org/pypi/python-iptables
    :alt: Latest Release
+
+.. image:: https://travis-ci.org/ldx/python-iptables.png?branch=master
+   :target: https://travis-ci.org/ldx/python-iptables
+   :alt: Build Status
 
 .. image:: https://pypip.in/d/python-iptables/badge.png
    :target: https://pypi.python.org/pypi/python-iptables

@@ -773,6 +773,11 @@ class xtables(object):
     except ValueError:
         _xtables_pending_targets = ct.POINTER(None)
 
+    _real_name = {
+        'state': 'conntrack',
+        'NOTRACK': 'CT'
+    }
+
     _cache = weakref.WeakValueDictionary()
 
     def __new__(cls, proto):
@@ -783,8 +788,9 @@ class xtables(object):
             obj._xtinit(proto)
         return obj
 
-    def _xtinit(self, proto):
+    def _xtinit(self, proto, no_alias_check=False):
         self.proto = proto
+        self.no_alias_check = no_alias_check
         self._xt_globals = xtables_globals()
         self._xt_globals.option_offset = 0
         self._xt_globals.program_name = version.__pkgname__.encode()
@@ -865,6 +871,10 @@ class xtables(object):
         except AttributeError:
             prefix = self._get_prefix()
             initfn = getattr(lib, "%s%s_init" % (prefix, name), None)
+            if initfn is None and not self.no_alias_check:
+                if name in xtables._real_name:
+                    name = xtables._real_name[name]
+                    initfn = self._get_initfn_from_lib(name, lib)
         return initfn
 
     def _try_extinit(self, name, lib):
@@ -956,22 +966,22 @@ class xtables(object):
     # Dispatch arguments to the appropriate parse function, based upon the
     # extension's choice of API.
     @preserve_globals
-    def parse_target(self, argv, invert, t, fw, ptr):
-        _optarg.value = argv[1]
-        _optind.value = 2
+    def parse_target(self, argv, invert, t, fw, ptr, x6_parse, x6_options):
+        _optarg.value = len(argv) > 1 and argv[1] or None
+        _optind.value = len(argv) - 1
 
-        x6_options = None
-        x6_parse = None
         try:
             # new API?
-            x6_options = t.x6_options
-            x6_parse = t.x6_parse
+            if x6_options is None:
+                x6_options = t.x6_options
+            if x6_parse is None:
+                x6_parse = t.x6_parse
         except AttributeError:
             pass
 
         if x6_options and x6_parse:
             # new API
-            entry = self._option_lookup(t.x6_options, argv[0])
+            entry = self._option_lookup(x6_options, argv[0])
             if not entry:
                 raise XTablesError("%s: no such parameter %s" % (t.name,
                                                                  argv[0]))
@@ -986,7 +996,7 @@ class xtables(object):
             cb.target = ct.pointer(t.t)
             cb.xt_entry = ct.cast(fw, ct.c_void_p)
             cb.udata = t.udata
-            rv = _wrap_x6fn(t.x6_parse, ct.pointer(cb))
+            rv = _wrap_x6fn(x6_parse, ct.pointer(cb))
             if rv != 0:
                 raise XTablesError("%s: parameter error %d (%s)" % (t.name, rv,
                                                                     argv[1]))
@@ -1001,22 +1011,22 @@ class xtables(object):
     # Dispatch arguments to the appropriate parse function, based upon the
     # extension's choice of API.
     @preserve_globals
-    def parse_match(self, argv, invert, m, fw, ptr):
-        _optarg.value = argv[1]
-        _optind.value = 2
+    def parse_match(self, argv, invert, m, fw, ptr, x6_parse, x6_options):
+        _optarg.value = len(argv) > 1 and argv[1] or None
+        _optind.value = len(argv) - 1
 
-        x6_options = None
-        x6_parse = None
         try:
             # new API?
-            x6_options = m.x6_options
-            x6_parse = m.x6_parse
+            if x6_options is None:
+                x6_options = m.x6_options
+            if x6_parse is None:
+                x6_parse = m.x6_parse
         except AttributeError:
             pass
 
         if x6_options and x6_parse:
             # new API
-            entry = self._option_lookup(m.x6_options, argv[0])
+            entry = self._option_lookup(x6_options, argv[0])
             if not entry:
                 raise XTablesError("%s: no such parameter %s" % (m.name,
                                                                  argv[0]))
@@ -1031,10 +1041,10 @@ class xtables(object):
             cb.match = ct.pointer(m.m)
             cb.xt_entry = ct.cast(fw, ct.c_void_p)
             cb.udata = m.udata
-            rv = _wrap_x6fn(m.x6_parse, ct.pointer(cb))
+            rv = _wrap_x6fn(x6_parse, ct.pointer(cb))
             if rv != 0:
-                raise XTablesError("%s: parameter error %d (%s)" % (m.name, rv,
-                                                                    argv[1]))
+                raise XTablesError("%s: parameter '%s' error %d" % (
+                    m.name, len(argv) > 1 and argv[1] or "", rv))
             m.mflags |= cb.xflags
             return
 
@@ -1042,3 +1052,96 @@ class xtables(object):
         flags = ct.pointer(ct.c_uint(0))
         self._parse(m, argv, invert, flags, fw, ptr)
         m.mflags |= flags[0]
+
+    # Check that all option constraints have been met. This effectively
+    # replaces ->final_check of the older API.
+    def _options_fcheck(self, name, xflags, table):
+        for entry in table:
+            if entry.name is None:
+                break
+            if entry.flags & XTOPT_MAND and not xflags & (1 << entry.id):
+                raise XTablesError("%s: --%s must be specified" % (name,
+                                                                   entry.name))
+                if not xflags & (1 << entry.id):
+                    continue
+            # XXX: check for conflicting options
+
+    def _fcheck_target_old(self, target):
+        # old API
+        if not target.final_check:
+            return
+        rv = _wrap_uintfn(target.final_check, target.tflags)
+        if rv:
+            raise XTablesError("%s.final_check() has failed" %
+                               (target.name))
+
+    def _fcheck_target_new(self, target):
+        # new API
+        cb = xt_fcheck_call()
+        cb.ext_name = target.name
+        cb.data = ct.cast(target.t[0].data, ct.c_void_p)
+        cb.xflags = target.tflags
+        cb.udata = target.udata
+        rv = _wrap_x6fn(target.x6_fcheck, ct.pointer(cb))
+        if rv:
+            raise XTablesError("%s.x6_fcheck has failed" % (target.name))
+        if target.x6_options:
+            self._options_fcheck(target.name, target.tflags,
+                                 target.x6_options)
+
+    # Dispatch arguments to the appropriate final_check function, based upon
+    # the extension's choice of API.
+    @preserve_globals
+    def final_check_target(self, target):
+        x6_fcheck = None
+        try:
+            # new API?
+            x6_fcheck = target.x6_fcheck
+        except AttributeError:
+            # old API
+            pass
+
+        if x6_fcheck:
+            self._fcheck_target_new(target)
+        else:
+            self._fcheck_target_old(target)
+
+    def _fcheck_match_old(self, match):
+        # old API
+        if not match.final_check:
+            return
+        rv = _wrap_uintfn(match.final_check, match.mflags)
+        if rv:
+            raise XTablesError("%s.final_check() has failed" %
+                               (match.name))
+
+    def _fcheck_match_new(self, match):
+        # new API
+        cb = xt_fcheck_call()
+        cb.ext_name = match.name
+        cb.data = ct.cast(match.m[0].data, ct.c_void_p)
+        cb.xflags = match.mflags
+        cb.udata = match.udata
+        rv = _wrap_x6fn(match.x6_fcheck, ct.pointer(cb))
+        if rv:
+            raise XTablesError("%s.x6_fcheck has failed" % (match.name))
+        if match.x6_options:
+            self._options_fcheck(match.name, match.mflags,
+                                 match.x6_options)
+
+    # Dispatch arguments to the appropriate final_check function, based upon
+    # the extension's choice of API.
+    @preserve_globals
+    def final_check_match(self, match):
+        x6_fcheck = None
+        try:
+            # new API?
+            x6_fcheck = match.x6_fcheck
+        except AttributeError:
+            # old API
+            pass
+
+        if x6_fcheck:
+            self._fcheck_match_new(match)
+        else:
+            self._fcheck_match_old(match)
