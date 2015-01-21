@@ -10,7 +10,10 @@ from .xtables import (XT_INV_PROTO, NFPROTO_IPV6, xt_align, xt_counters)
 
 __all__ = ["Table6", "Rule6"]
 
-load_kernel("ip6_tables")
+try:
+    load_kernel("ip6_tables")
+except:
+    pass
 
 _IFNAMSIZ = 16
 
