@@ -20,8 +20,12 @@ def _insert_ko(modprobe, modname):
 
 def _load_ko(modname):
     # this will return the full path for the modprobe binary
-    proc = open("/proc/sys/kernel/modprobe")
-    modprobe = proc.read(1024)
+    modprobe = "/sbin/modprobe"
+    try:
+        proc = open("/proc/sys/kernel/modprobe")
+        modprobe = proc.read(1024)
+    except:
+        pass
     if modprobe[-1] == '\n':
         modprobe = modprobe[:-1]
     return _insert_ko(modprobe, modname)
