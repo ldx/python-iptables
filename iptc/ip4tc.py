@@ -15,7 +15,10 @@ from .xtables import (XT_INV_PROTO, NFPROTO_IPV4, XTablesError, xtables,
 
 __all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError"]
 
-load_kernel("ip_tables")
+try:
+    load_kernel("ip_tables")
+except:
+    pass
 
 _IFNAMSIZ = 16
 
