@@ -402,6 +402,7 @@ class TestXTCtTarget(unittest.TestCase):
             self.assertEquals(t.name, "CT")
             self.assertTrue(t.notrack is not None)
         except:
+            import os
             os.system("iptables -t raw -L -n")
 
 
