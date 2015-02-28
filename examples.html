@@ -416,7 +416,7 @@ will take effect immediately.</p>
 <p>It may happen that you want to batch together certain operations. A typical
 use case is traversing a chain and removing rules matching a specific
 criteria. If you do this with autocommit enabled, after the first delete
-operation, your chain&#8217;s state will chain and you have to restart the
+operation, your chain&#8217;s state will change and you have to restart the
 traversal. You can do something like this:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">iptc</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">iptc</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">FILTER</span><span class="p">)</span>

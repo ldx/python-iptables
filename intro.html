@@ -73,6 +73,8 @@ extensions), not calling the iptables binary and parsing its output. It is
 meant primarily for dynamic and/or complex routers and firewalls, where rules
 are often updated or changed, or Python programs wish to interface with the
 Linux iptables framework..</p>
+<p>If you are looking for <tt class="docutils literal"><span class="pre">ebtables</span></tt> python bindings, check out
+<a class="reference external" href="https://github.com/ldx/python-ebtables/">python-ebtables</a>.</p>
 <p><tt class="docutils literal"><span class="pre">Python-iptables</span></tt> supports Python 2.6, 2.7 and 3.4.</p>
 <a class="reference external image-reference" href="https://flattr.com/submit/auto?user_id=ldx&amp;url=https%3A%2F%2Fgithub.com%2Fldx%2Fpython-iptables"><img alt="Flattr" src="http://api.flattr.com/button/flattr-badge-large.png" /></a>
 <a class="reference external image-reference" href="https://pypi.python.org/pypi/python-iptables"><img alt="Latest Release" src="https://pypip.in/v/python-iptables/badge.png" /></a>
@@ -128,6 +130,27 @@ package can be imported:</p>
 </div>
 <p>Of course you need to be root to be able to use iptables.</p>
 </div>
+<div class="section" id="using-a-custom-iptables-install">
+<h2>Using a custom iptables install<a class="headerlink" href="#using-a-custom-iptables-install" title="Permalink to this headline">¶</a></h2>
+<p>If you are stuck on a system with an old version of <tt class="docutils literal"><span class="pre">iptables</span></tt>, you can
+install a more up to date version to a custom location, and ask
+<tt class="docutils literal"><span class="pre">python-iptables</span></tt> to use libraries at that location.</p>
+<p>To install <tt class="docutils literal"><span class="pre">iptables</span></tt> to <tt class="docutils literal"><span class="pre">/tmp/iptables</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre>% git clone git://git.netfilter.org/iptables &amp;&amp; cd iptables
+% ./autogen.sh
+% ./configure --prefix=/tmp/iptables
+% make
+% make install
+</pre></div>
+</div>
+<p>Make sure the dependencies <tt class="docutils literal"><span class="pre">iptables</span></tt> needs are installed.</p>
+<p>Now you can point <tt class="docutils literal"><span class="pre">python-iptables</span></tt> to this install path via:</p>
+<div class="highlight-python"><div class="highlight"><pre>% sudo PATH=$PATH IPTABLES_LIBDIR=/tmp/iptables/lib XTABLES_LIBDIR=/tmp/iptables/lib/xtables python
+&gt;&gt;&gt; import iptc
+&gt;&gt;&gt;
+</pre></div>
+</div>
+</div>
 <div class="section" id="what-is-supported">
 <h2>What is supported<a class="headerlink" href="#what-is-supported" title="Permalink to this headline">¶</a></h2>
 <p>The basic iptables framework and all the match/target extensions are supported
@@ -149,6 +172,7 @@ are supported as well.</p>
 <li><a class="reference internal" href="#about-python-iptables">About python-iptables</a></li>
 <li><a class="reference internal" href="#installing-via-pip">Installing via pip</a></li>
 <li><a class="reference internal" href="#compiling-from-source">Compiling from source</a></li>
+<li><a class="reference internal" href="#using-a-custom-iptables-install">Using a custom iptables install</a></li>
 <li><a class="reference internal" href="#what-is-supported">What is supported</a></li>
 </ul>
 </li>

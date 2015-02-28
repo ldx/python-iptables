@@ -1,6 +1,10 @@
 import re
+import os
+import sys
 import ctypes
 import ctypes.util
+from distutils.sysconfig import get_python_lib
+from itertools import product
 from subprocess import Popen, PIPE
 from sys import version_info
 try:
@@ -20,8 +24,12 @@ def _insert_ko(modprobe, modname):
 
 def _load_ko(modname):
     # this will return the full path for the modprobe binary
-    proc = open("/proc/sys/kernel/modprobe")
-    modprobe = proc.read(1024)
+    modprobe = "/sbin/modprobe"
+    try:
+        proc = open("/proc/sys/kernel/modprobe")
+        modprobe = proc.read(1024)
+    except:
+        pass
     if modprobe[-1] == '\n':
         modprobe = modprobe[:-1]
     return _insert_ko(modprobe, modname)
@@ -46,8 +54,6 @@ def _do_find_library(name):
         return lib
 
     # probably we have been installed in a virtualenv
-    import os
-    from distutils.sysconfig import get_python_lib
     try:
         lib = ctypes.CDLL(os.path.join(get_python_lib(), name),
                           mode=ctypes.RTLD_GLOBAL)
@@ -55,7 +61,6 @@ def _do_find_library(name):
     except:
         pass
 
-    import sys
     for p in sys.path:
         try:
             lib = ctypes.CDLL(os.path.join(p, name), mode=ctypes.RTLD_GLOBAL)
@@ -66,11 +71,22 @@ def _do_find_library(name):
 
 
 def _find_library(*names):
-    ext = get_config_var('SO')
-    if version_info > (3, ) and version_info < (3, 4):
-        ext = '.cpython-%i%i' % (version_info.major, version_info.minor) + ext
+    if version_info > (3, ):
+        ext = get_config_var("EXT_SUFFIX")
+    else:
+        ext = get_config_var('SO')
     for name in names:
-        for n in (name, "lib" + name, name + ext, "lib" + name + ext):
+        libnames = [name, "lib" + name, name + ext, "lib" + name + ext]
+        libdir = os.environ.get('IPTABLES_LIBDIR', None)
+        if libdir is not None:
+            libdirs = libdir.split(':')
+            libs = [os.path.join(*p) for p in product(libdirs, libnames)]
+            libs.extend(libnames)
+        else:
+            libs = libnames
+        for n in libs:
+            while os.path.islink(n):
+                n = os.path.realpath(n)
             lib = _do_find_library(n)
             if lib is not None:
                 yield lib
@@ -79,7 +95,7 @@ def _find_library(*names):
 def find_library(*names):
     for lib in _find_library(*names):
         major = 0
-        m = re.search(r"\.so\.(\d+)", lib._name)
+        m = re.search(r"\.so\.(\d+).?", lib._name)
         if m:
             major = int(m.group(1))
         return lib, major

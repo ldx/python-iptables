@@ -378,7 +378,7 @@ will take effect immediately.
 It may happen that you want to batch together certain operations. A typical
 use case is traversing a chain and removing rules matching a specific
 criteria. If you do this with autocommit enabled, after the first delete
-operation, your chain's state will chain and you have to restart the
+operation, your chain's state will change and you have to restart the
 traversal. You can do something like this::
 
     >>> import iptc
