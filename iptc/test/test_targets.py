@@ -379,7 +379,7 @@ class TestXTCtTarget(unittest.TestCase):
         self.rule.out_interface = "eth0"
 
         self.target = iptc.Target(self.rule, "CT")
-        self.target.notrack = "true"
+        self.target.helper = "ftp"
         self.rule.target = self.target
 
         self.chain = iptc.Chain(iptc.Table(iptc.Table.RAW),
