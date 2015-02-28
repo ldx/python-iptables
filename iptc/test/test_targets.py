@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import unittest
 import iptc
 
@@ -402,12 +403,11 @@ class TestXTCtTarget(unittest.TestCase):
             self.assertEquals(t.name, "CT")
             self.assertTrue(t.notrack is not None)
         except:
-            import sys
-            print >> sys.stderr
-            print >> sys.stderr, self.rule
-            print >> sys.stderr, self.rule.target
-            print >> sys.stderr, self.rule.target.notrack
-            print >> sys.stderr
+            print()
+            print(self.rule)
+            print(self.rule.target)
+            print(self.rule.target.notrack)
+            print()
             import os
             os.system("iptables -t raw -L -n")
             raise
