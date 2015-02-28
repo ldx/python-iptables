@@ -809,7 +809,7 @@ class xtables(object):
             raise XTablesError("unknown xtables version %d" %
                                (_xtables_version))
 
-        self._loaded_exts = []
+        self._loaded_exts = set()
 
         # make sure we're initializing with clean state
         self._xt_params = ct.c_void_p(None).value
@@ -857,7 +857,7 @@ class xtables(object):
         return name
 
     def _loaded(self, name):
-        self._loaded_exts.append(name)
+        self._loaded_exts.add(name)
 
     def _is_loaded(self, name):
         if name in self._loaded_exts:
