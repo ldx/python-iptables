@@ -919,7 +919,7 @@ class xtables(object):
         match = xtables._xtables_find_match(name, XTF_TRY_LOAD, None)
         if not match:
             self._try_register(name)
-            match = xtables._xtables_find_match(name, XTF_TRY_LOAD, None)
+            match = xtables._xtables_find_match(name, XTF_DONT_LOAD, None)
             if not match:
                 return match
         self._loaded(name)
@@ -934,7 +934,7 @@ class xtables(object):
         target = xtables._xtables_find_target(name, XTF_TRY_LOAD)
         if not target:
             self._try_register(name)
-            target = xtables._xtables_find_target(name, XTF_TRY_LOAD)
+            target = xtables._xtables_find_target(name, XTF_DONT_LOAD)
             if not target:
                 return target
         self._loaded(name)
