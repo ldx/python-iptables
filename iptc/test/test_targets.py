@@ -2,6 +2,7 @@
 
 import unittest
 import iptc
+from iptc.xtables import xtables_version
 
 
 is_table_available = iptc.is_table_available
@@ -420,7 +421,7 @@ def suite():
     suites.extend([suite_target, suite_cluster, suite_tos])
     if is_table_available(iptc.Table.NAT):
         suites.extend([suite_redir, suite_masq, suite_dnat])
-    if is_table_available(iptc.Table.RAW):
+    if is_table_available(iptc.Table.RAW) and xtables_version >= 10:
         suites.extend([suite_notrack, suite_ct])
     return unittest.TestSuite(suites)
 
