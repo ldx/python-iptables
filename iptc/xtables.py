@@ -677,7 +677,7 @@ _libc, _ = find_library("c")
 _optind = ct.c_long.in_dll(_libc, "optind")
 _optarg = ct.c_char_p.in_dll(_libc, "optarg")
 
-_lib_xtables, _xtables_version = find_library("xtables")
+_lib_xtables, xtables_version = find_library("xtables")
 _xtables_libdir = os.getenv("XTABLES_LIBDIR")
 if _xtables_libdir is None:
     import os.path
@@ -800,14 +800,14 @@ class xtables(object):
         self._xt_globals.exit_err = _xt_exit
 
         thismodule = sys.modules[__name__]
-        matchname = "_xtables_match_v%d" % (_xtables_version)
-        targetname = "_xtables_target_v%d" % (_xtables_version)
+        matchname = "_xtables_match_v%d" % (xtables_version)
+        targetname = "_xtables_target_v%d" % (xtables_version)
         try:
             self._match_struct = getattr(thismodule, matchname)
             self._target_struct = getattr(thismodule, targetname)
         except:
             raise XTablesError("unknown xtables version %d" %
-                               (_xtables_version))
+                               (xtables_version))
 
         self._loaded_exts = set()
 
