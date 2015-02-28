@@ -1,6 +1,9 @@
 import re
+import os
+import sys
 import ctypes
 import ctypes.util
+from distutils.sysconfig import get_python_lib
 from subprocess import Popen, PIPE
 from sys import version_info
 try:
@@ -50,8 +53,6 @@ def _do_find_library(name):
         return lib
 
     # probably we have been installed in a virtualenv
-    import os
-    from distutils.sysconfig import get_python_lib
     try:
         lib = ctypes.CDLL(os.path.join(get_python_lib(), name),
                           mode=ctypes.RTLD_GLOBAL)
@@ -59,7 +60,6 @@ def _do_find_library(name):
     except:
         pass
 
-    import sys
     for p in sys.path:
         try:
             lib = ctypes.CDLL(os.path.join(p, name), mode=ctypes.RTLD_GLOBAL)
