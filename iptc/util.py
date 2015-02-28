@@ -4,6 +4,7 @@ import sys
 import ctypes
 import ctypes.util
 from distutils.sysconfig import get_python_lib
+from itertools import product
 from subprocess import Popen, PIPE
 from sys import version_info
 try:
@@ -75,7 +76,15 @@ def _find_library(*names):
     else:
         ext = get_config_var('SO')
     for name in names:
-        for n in (name, "lib" + name, name + ext, "lib" + name + ext):
+        libnames = [name, "lib" + name, name + ext, "lib" + name + ext]
+        libdir = os.environ.get('IPTABLES_LIBDIR', None)
+        if libdir is not None:
+            libdirs = libdir.split(':')
+            libs = [os.path.join(*p) for p in product(libdirs, libnames)]
+            libs.extend(libnames)
+        else:
+            libs = libnames
+        for n in libs:
             lib = _do_find_library(n)
             if lib is not None:
                 yield lib
