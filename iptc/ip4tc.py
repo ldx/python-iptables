@@ -262,6 +262,10 @@ class IPTCModule(object):
         self._ptrptr = None
         raise NotImplementedError()
 
+    def __repr__(self):
+        return '\n'.join(
+            [str(kv)for kv in self.get_all_parameters().iteritems()])
+
     def parse(self, parameter, value):
         # Parameter name must always be a string.
         parameter = parameter.encode()
