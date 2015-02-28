@@ -809,7 +809,7 @@ class xtables(object):
             raise XTablesError("unknown xtables version %d" %
                                (_xtables_version))
 
-        self._loaded_exts = []
+        self._loaded_exts = set()
 
         # make sure we're initializing with clean state
         self._xt_params = ct.c_void_p(None).value
@@ -857,7 +857,7 @@ class xtables(object):
         return name
 
     def _loaded(self, name):
-        self._loaded_exts.append(name)
+        self._loaded_exts.add(name)
 
     def _is_loaded(self, name):
         if name in self._loaded_exts:
@@ -898,6 +898,8 @@ class xtables(object):
             raise XTablesError("Unknown protocol %d" % (self.proto))
 
     def _try_register(self, name):
+        if self._is_loaded(name):
+            return
         if isinstance(name, bytes):
             name = name.decode()
         if self._try_extinit(name, _lib_xtables):
@@ -917,12 +919,13 @@ class xtables(object):
         match = xtables._xtables_find_match(name, XTF_TRY_LOAD, None)
         if not match:
             self._try_register(name)
-            match = xtables._xtables_find_match(name, XTF_TRY_LOAD, None)
+            match = xtables._xtables_find_match(name, XTF_DONT_LOAD, None)
             if not match:
                 return match
-        self._loaded(name)
 
-        return ct.cast(match, ct.POINTER(self._match_struct))
+        m = ct.cast(match, ct.POINTER(self._match_struct))
+        self._loaded(m[0].name)
+        return m
 
     @preserve_globals
     def find_target(self, name):
@@ -932,12 +935,13 @@ class xtables(object):
         target = xtables._xtables_find_target(name, XTF_TRY_LOAD)
         if not target:
             self._try_register(name)
-            target = xtables._xtables_find_target(name, XTF_TRY_LOAD)
+            target = xtables._xtables_find_target(name, XTF_DONT_LOAD)
             if not target:
                 return target
-        self._loaded(name)
 
-        return ct.cast(target, ct.POINTER(self._target_struct))
+        t = ct.cast(target, ct.POINTER(self._target_struct))
+        self._loaded(t[0].name)
+        return t
 
     @preserve_globals
     def save(self, module, ip, ptr):

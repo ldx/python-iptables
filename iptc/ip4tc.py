@@ -650,7 +650,7 @@ class Target(IPTCModule):
         self._xt = xtables(rule.nfproto)
 
         module = (self._is_standard_target() and
-                  self._xt.find_target('standard') or
+                  self._xt.find_target('') or
                   self._xt.find_target(name))
         real_name = module and getattr(module[0], 'real_name', None) or None
         if real_name:
