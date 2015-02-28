@@ -898,6 +898,8 @@ class xtables(object):
             raise XTablesError("Unknown protocol %d" % (self.proto))
 
     def _try_register(self, name):
+        if self._is_loaded(name):
+            return
         if isinstance(name, bytes):
             name = name.decode()
         if self._try_extinit(name, _lib_xtables):
