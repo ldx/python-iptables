@@ -922,9 +922,10 @@ class xtables(object):
             match = xtables._xtables_find_match(name, XTF_DONT_LOAD, None)
             if not match:
                 return match
-        self._loaded(name)
 
-        return ct.cast(match, ct.POINTER(self._match_struct))
+        m = ct.cast(match, ct.POINTER(self._match_struct))
+        self._loaded(m[0].name)
+        return m
 
     @preserve_globals
     def find_target(self, name):
@@ -937,9 +938,10 @@ class xtables(object):
             target = xtables._xtables_find_target(name, XTF_DONT_LOAD)
             if not target:
                 return target
-        self._loaded(name)
 
-        return ct.cast(target, ct.POINTER(self._target_struct))
+        t = ct.cast(target, ct.POINTER(self._target_struct))
+        self._loaded(t[0].name)
+        return t
 
     @preserve_globals
     def save(self, module, ip, ptr):
