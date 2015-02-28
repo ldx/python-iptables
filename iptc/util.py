@@ -85,6 +85,8 @@ def _find_library(*names):
         else:
             libs = libnames
         for n in libs:
+            while os.path.islink(n):
+                n = os.path.realpath(n)
             lib = _do_find_library(n)
             if lib is not None:
                 yield lib
@@ -93,7 +95,7 @@ def _find_library(*names):
 def find_library(*names):
     for lib in _find_library(*names):
         major = 0
-        m = re.search(r"\.so\.(\d+)", lib._name)
+        m = re.search(r"\.so\.(\d+).?", lib._name)
         if m:
             major = int(m.group(1))
         return lib, major
