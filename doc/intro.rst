@@ -104,6 +104,29 @@ package can be imported::
 
 Of course you need to be root to be able to use iptables.
 
+Using a custom iptables install
+-------------------------------
+
+If you are stuck on a system with an old version of ``iptables``, you can
+install a more up to date version to a custom location, and ask
+``python-iptables`` to use libraries at that location.
+
+To install ``iptables`` to ``/tmp/iptables``::
+
+    % git clone git://git.netfilter.org/iptables && cd iptables
+    % ./autogen.sh
+    % ./configure --prefix=/tmp/iptables
+    % make
+    % make install
+
+Make sure the dependencies ``iptables`` needs are installed.
+
+Now you can point ``python-iptables`` to this install path via::
+
+    % sudo PATH=$PATH IPTABLES_LIBDIR=/tmp/iptables/lib XTABLES_LIBDIR=/tmp/iptables/lib/xtables python
+    >>> import iptc
+    >>>
+
 What is supported
 -----------------
 
