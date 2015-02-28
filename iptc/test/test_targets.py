@@ -404,6 +404,7 @@ class TestXTCtTarget(unittest.TestCase):
         except:
             import os
             os.system("iptables -t raw -L -n")
+            raise
 
 
 def suite():
