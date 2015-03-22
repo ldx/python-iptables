@@ -265,6 +265,21 @@ class IPTCModule(object):
         self._ptrptr = None
         raise NotImplementedError()
 
+    def set_parameter(self, parameter, value=None):
+        """
+        Set a parameter for target or match extension, with an optional value.
+
+        @param parameter: name of the parameter to set
+        @type parameter: C{str}
+
+        @param value: optional value of the parameter to set, defaults to C{None}
+        @type value: C{str} or a C{list} of C{str}
+        """
+        if value is None:
+            value = ""
+
+        return self.parse(parameter.replace("_", "-"), value)
+
     def parse(self, parameter, value):
         # Parameter name must always be a string.
         parameter = parameter.encode()
