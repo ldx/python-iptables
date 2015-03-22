@@ -2,7 +2,6 @@
 
 import ctypes as ct
 import socket
-import weakref
 
 from .ip4tc import Rule, Table, IPTCError
 from .util import find_library, load_kernel
@@ -196,9 +195,9 @@ class ip6tc(object):
 
     # Check the packet `e' on chain `chain'.  Returns the verdict, or
     #   NULL and sets errno.
-    #iptc_check_packet = _libiptc.ip6tc_check_packet
-    #iptc_check_packet.restype = ct.c_char_p
-    #iptc_check_packet.argstype = [ct.c_char_p, ct.POINTER(ipt), ct.c_void_p]
+    # iptc_check_packet = _libiptc.ip6tc_check_packet
+    # iptc_check_packet.restype = ct.c_char_p
+    # iptc_check_packet.argstype = [ct.c_char_p, ct.POINTER(ipt), ct.c_void_p]
 
     # Get the number of references to this chain
     iptc_get_references = _libiptc.ip6tc_get_references
@@ -246,9 +245,9 @@ class Rule6(Rule):
                                       if x in self._matches]):
             return False
         if (self.src == rule.src and self.dst == rule.dst and
-            self.protocol == rule.protocol and
-            self.in_interface == rule.in_interface and
-            self.out_interface == rule.out_interface):
+                self.protocol == rule.protocol and
+                self.in_interface == rule.in_interface and
+                self.out_interface == rule.out_interface):
             return True
         return False
 
@@ -445,10 +444,10 @@ class Rule6(Rule):
             intf = intf[:-1]
             masklen -= 2
 
-        self.entry.ipv6.iniface = ("".join([intf, '\x00' * (_IFNAMSIZ -
-                                                           len(intf))])).encode()
-        self.entry.ipv6.iniface_mask = ("".join(['\x01' * masklen, '\x00' *
-                                                (_IFNAMSIZ - masklen)])).encode()
+        self.entry.ipv6.iniface = ("".join(
+            [intf, '\x00' * (_IFNAMSIZ - len(intf))])).encode()
+        self.entry.ipv6.iniface_mask = ("".join(
+            ['\x01' * masklen, '\x00' * (_IFNAMSIZ - masklen)])).encode()
 
     in_interface = property(get_in_interface, set_in_interface)
     """This is the input network interface e.g. *eth0*.  A wildcard match can
@@ -490,10 +489,10 @@ class Rule6(Rule):
             intf = intf[:-1]
             masklen -= 2
 
-        self.entry.ipv6.outiface = ("".join([intf, '\x00' * (_IFNAMSIZ -
-                                                            len(intf))])).encode()
-        self.entry.ipv6.outiface_mask = ("".join(['\x01' * masklen, '\x00' *
-                                                 (_IFNAMSIZ - masklen)])).encode()
+        self.entry.ipv6.outiface = ("".join(
+            [intf, '\x00' * (_IFNAMSIZ - len(intf))])).encode()
+        self.entry.ipv6.outiface_mask = ("".join(
+            ['\x01' * masklen, '\x00' * (_IFNAMSIZ - masklen)])).encode()
 
     out_interface = property(get_out_interface, set_out_interface)
     """This is the output network interface e.g. *eth0*.  A wildcard match can
