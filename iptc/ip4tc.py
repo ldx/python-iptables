@@ -32,6 +32,9 @@ _free = _libc.free
 _free.restype = None
 _free.argtypes = [ct.POINTER(ct.c_ubyte)]
 
+# Make sure xt_params is set up.
+xtables(NFPROTO_IPV4)
+
 
 def is_table_available(name):
     try:
