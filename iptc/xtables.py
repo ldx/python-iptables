@@ -23,6 +23,7 @@ XTF_DURING_LOAD = 0x01
 XTF_TRY_LOAD = 0x02
 XTF_LOAD_MUST_SUCCEED = 0x03
 
+
 XTOPT_INVERT = 1 << 0
 XTOPT_MAND = 1 << 1
 XTOPT_MULTI = 1 << 2
@@ -386,7 +387,8 @@ class _xtables_match_v10(ct.Structure):
                 ("save", ct.CFUNCTYPE(None, ct.c_void_p,
                                       ct.POINTER(xt_entry_match))),
                 # Print match name or alias
-                ("alias", ct.CFUNCTYPE(ct.c_char_p, ct.POINTER(xt_entry_match))),
+                ("alias", ct.CFUNCTYPE(ct.c_char_p,
+                                       ct.POINTER(xt_entry_match))),
                 # pointer to list of extra command-line options
                 ("extra_opts", ct.POINTER(option)),
 
@@ -635,7 +637,8 @@ class _xtables_target_v10(ct.Structure):
                 ("save", ct.CFUNCTYPE(None, ct.c_void_p,
                                       ct.POINTER(xt_entry_target))),
                 # Print target name or alias
-                ("alias", ct.CFUNCTYPE(ct.c_char_p, ct.POINTER(xt_entry_target))),
+                ("alias", ct.CFUNCTYPE(ct.c_char_p,
+                                       ct.POINTER(xt_entry_target))),
                 # pointer to list of extra command-line options
                 ("extra_opts", ct.POINTER(option)),
 
@@ -762,14 +765,14 @@ class xtables(object):
     _xtables_xt_params = ct.c_void_p.in_dll(_lib_xtables, "xt_params")
     _xtables_matches = (ct.c_void_p.in_dll(_lib_xtables, "xtables_matches"))
     try:
-        _xtables_pending_matches = (ct.c_void_p.in_dll(_lib_xtables,
-                                                       "xtables_pending_matches"))
+        _xtables_pending_matches = (ct.c_void_p.in_dll(
+            _lib_xtables, "xtables_pending_matches"))
     except ValueError:
         _xtables_pending_matches = ct.POINTER(None)
     _xtables_targets = (ct.c_void_p.in_dll(_lib_xtables, "xtables_targets"))
     try:
-        _xtables_pending_targets = (ct.c_void_p.in_dll(_lib_xtables,
-                                                       "xtables_pending_targets"))
+        _xtables_pending_targets = (ct.c_void_p.in_dll(
+            _lib_xtables, "xtables_pending_targets"))
     except ValueError:
         _xtables_pending_targets = ct.POINTER(None)
 

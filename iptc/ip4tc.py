@@ -32,6 +32,9 @@ _free = _libc.free
 _free.restype = None
 _free.argtypes = [ct.POINTER(ct.c_ubyte)]
 
+# Make sure xt_params is set up.
+xtables(NFPROTO_IPV4)
+
 
 def is_table_available(name):
     try:
@@ -217,9 +220,9 @@ class iptc(object):
 
     # Check the packet `e' on chain `chain'.  Returns the verdict, or
     #   NULL and sets errno.
-    #iptc_check_packet = _libiptc.iptc_check_packet
-    #iptc_check_packet.restype = ct.c_char_p
-    #iptc_check_packet.argstype = [ct.c_char_p, ct.POINTER(ipt), ct.c_void_p]
+    # iptc_check_packet = _libiptc.iptc_check_packet
+    # iptc_check_packet.restype = ct.c_char_p
+    # iptc_check_packet.argstype = [ct.c_char_p, ct.POINTER(ipt), ct.c_void_p]
 
     # Get the number of references to this chain
     iptc_get_references = _libiptc.iptc_get_references
@@ -261,6 +264,21 @@ class IPTCModule(object):
         self._ptr = None
         self._ptrptr = None
         raise NotImplementedError()
+
+    def set_parameter(self, parameter, value=None):
+        """
+        Set a parameter for target or match extension, with an optional value.
+
+        @param parameter: name of the parameter to set
+        @type parameter: C{str}
+
+        @param value: optional value of the parameter to set, defaults to C{None}
+        @type value: C{str} or a C{list} of C{str}
+        """
+        if value is None:
+            value = ""
+
+        return self.parse(parameter.replace("_", "-"), value)
 
     def parse(self, parameter, value):
         # Parameter name must always be a string.
@@ -537,13 +555,15 @@ class Match(IPTCModule):
             self.match.u.user.name == match.match.u.user.name and
             self.match.u.user.revision == match.match.u.user.revision and
             self.match_buf[basesz:self.usersize] ==
-            match.match_buf[basesz:match.usersize]):
+                match.match_buf[basesz:match.usersize]):
             return True
         return False
 
     def __hash__(self):
-        basesz = ct.sizeof(xt_entry_match)
-        return hash(self.match.u.match_size) ^ hash(self.match.u.user.name) ^ hash(self.match.u.user.revision) ^ hash(bytes(self.match_buf))
+        return (hash(self.match.u.match_size) ^
+                hash(self.match.u.user.name) ^
+                hash(self.match.u.user.revision) ^
+                hash(bytes(self.match_buf)))
 
     def __ne__(self, match):
         return not self.__eq__(match)
@@ -677,19 +697,19 @@ class Target(IPTCModule):
     def __eq__(self, targ):
         basesz = ct.sizeof(xt_entry_target)
         if (self.target.u.target_size != targ.target.u.target_size or
-            self.target.u.user.name != targ.target.u.user.name or
-            self.target.u.user.revision != targ.target.u.user.revision):
+                self.target.u.user.name != targ.target.u.user.name or
+                self.target.u.user.revision != targ.target.u.user.revision):
             return False
         if (self.target.u.user.name == b"" or
-            self.target.u.user.name == b"standard" or
-            self.target.u.user.name == b"ACCEPT" or
-            self.target.u.user.name == b"DROP" or
-            self.target.u.user.name == b"RETURN" or
-            self.target.u.user.name == b"ERROR" or
-            self._is_standard_target()):
+                self.target.u.user.name == b"standard" or
+                self.target.u.user.name == b"ACCEPT" or
+                self.target.u.user.name == b"DROP" or
+                self.target.u.user.name == b"RETURN" or
+                self.target.u.user.name == b"ERROR" or
+                self._is_standard_target()):
             return True
         if (self._target_buf[basesz:self.usersize] ==
-            targ._target_buf[basesz:targ.usersize]):
+                targ._target_buf[basesz:targ.usersize]):
             return True
         return False
 
@@ -885,10 +905,10 @@ class Rule(object):
                                       self._matches]):
             return False
         if (self.src == rule.src and self.dst == rule.dst and
-            self.protocol == rule.protocol and
-            self.fragment == rule.fragment and
-            self.in_interface == rule.in_interface and
-            self.out_interface == rule.out_interface):
+                self.protocol == rule.protocol and
+                self.fragment == rule.fragment and
+                self.in_interface == rule.in_interface and
+                self.out_interface == rule.out_interface):
             return True
         return False
 
@@ -1102,10 +1122,11 @@ class Rule(object):
             intf = intf[:-1]
             masklen -= 2
 
-        self.entry.ip.iniface = b"".join([intf.encode(), b'\x00' * (_IFNAMSIZ -
-                                                         len(intf))])
-        self.entry.ip.iniface_mask = b"".join([b'\xff' * masklen, b'\x00' *
-                                              (_IFNAMSIZ - masklen)])
+        self.entry.ip.iniface = b"".join([intf.encode(),
+                                          b'\x00' * (_IFNAMSIZ - len(intf))])
+        self.entry.ip.iniface_mask = b"".join([b'\xff' * masklen,
+                                               b'\x00' * (_IFNAMSIZ -
+                                                          masklen)])
 
     in_interface = property(get_in_interface, set_in_interface)
     """This is the input network interface e.g. *eth0*.  A wildcard match can
@@ -1143,10 +1164,11 @@ class Rule(object):
             intf = intf[:-1]
             masklen -= 2
 
-        self.entry.ip.outiface = b"".join([intf.encode(), b'\x00' * (_IFNAMSIZ -
-                                                          len(intf))])
-        self.entry.ip.outiface_mask = b"".join([b'\xff' * masklen, b'\x00' *
-                                               (_IFNAMSIZ - masklen)])
+        self.entry.ip.outiface = b"".join([intf.encode(),
+                                           b'\x00' * (_IFNAMSIZ - len(intf))])
+        self.entry.ip.outiface_mask = b"".join([b'\xff' * masklen,
+                                                b'\x00' * (_IFNAMSIZ -
+                                                           masklen)])
 
     out_interface = property(get_out_interface, set_out_interface)
     """This is the output network interface e.g. *eth0*.  A wildcard match can
@@ -1252,7 +1274,7 @@ class Rule(object):
 
         entrysz = self._entry_size()
         matchsz = entry.target_offset - entrysz
-        #targetsz = entry.next_offset - entry.target_offset
+        # targetsz = entry.next_offset - entry.target_offset
 
         # iterate over matches to create blob
         if matchsz:
@@ -1385,7 +1407,8 @@ class Chain(object):
         self.table.insert_entry(self.name, rbuf, position)
 
     def replace_rule(self, rule, position=0):
-        """Replace existing rule in the chain at *position* with given *rule*"""
+        """Replace existing rule in the chain at *position* with given
+        *rule*"""
         rbuf = rule.rule
         if not rbuf:
             raise ValueError("invalid rule")
@@ -1577,7 +1600,8 @@ class Table(object):
         """Rename chain *chain* to *new_name*."""
         if isinstance(chain, Chain):
             chain = chain.name
-        rv = self._iptc.iptc_rename_chain(chain.encode(), new_name.encode(), self._handle)
+        rv = self._iptc.iptc_rename_chain(chain.encode(), new_name.encode(),
+                                          self._handle)
         if rv != 1:
             raise IPTCError("can't rename chain %s: %s" % (chain,
                                                            self.strerror()))
@@ -1617,7 +1641,8 @@ class Table(object):
             cntrs = ct.pointer(cntrs)
         else:
             cntrs = None
-        rv = self._iptc.iptc_set_policy(chain.encode(), policy.encode(), cntrs, self._handle)
+        rv = self._iptc.iptc_set_policy(chain.encode(), policy.encode(),
+                                        cntrs, self._handle)
         if rv != 1:
             raise IPTCError("can't set policy %s on chain %s: %s)" %
                             (policy, chain, self.strerror()))
@@ -1640,7 +1665,8 @@ class Table(object):
     @autocommit
     def append_entry(self, chain, entry):
         """Appends rule *entry* to *chain*."""
-        rv = self._iptc.iptc_append_entry(chain.encode(), ct.cast(entry, ct.c_void_p),
+        rv = self._iptc.iptc_append_entry(chain.encode(),
+                                          ct.cast(entry, ct.c_void_p),
                                           self._handle)
         if rv != 1:
             raise IPTCError("can't append entry to chain %s: %s)" %
@@ -1649,7 +1675,8 @@ class Table(object):
     @autocommit
     def insert_entry(self, chain, entry, position):
         """Inserts rule *entry* into *chain* at position *position*."""
-        rv = self._iptc.iptc_insert_entry(chain.encode(), ct.cast(entry, ct.c_void_p),
+        rv = self._iptc.iptc_insert_entry(chain.encode(),
+                                          ct.cast(entry, ct.c_void_p),
                                           position, self._handle)
         if rv != 1:
             raise IPTCError("can't insert entry into chain %s: %s)" %
@@ -1658,8 +1685,9 @@ class Table(object):
     @autocommit
     def replace_entry(self, chain, entry, position):
         """Replace existing rule in *chain* at *position* with given *rule*."""
-        rv = self._iptc.iptc_replace_entry(chain.encode(), ct.cast(entry, ct.c_void_p),
-                                          position, self._handle)
+        rv = self._iptc.iptc_replace_entry(chain.encode(),
+                                           ct.cast(entry, ct.c_void_p),
+                                           position, self._handle)
         if rv != 1:
             raise IPTCError("can't replace entry in chain %s: %s)" %
                             (chain, self.strerror()))
@@ -1667,7 +1695,8 @@ class Table(object):
     @autocommit
     def delete_entry(self, chain, entry, mask):
         """Removes rule *entry* with *mask* from *chain*."""
-        rv = self._iptc.iptc_delete_entry(chain.encode(), ct.cast(entry, ct.c_void_p),
+        rv = self._iptc.iptc_delete_entry(chain.encode(),
+                                          ct.cast(entry, ct.c_void_p),
                                           mask, self._handle)
         if rv != 1:
             raise IPTCError("can't delete entry from chain %s: %s)" %

@@ -111,9 +111,9 @@ class TestTable(unittest.TestCase):
     def test_flush_user_chains(self):
 
         chain1 = iptc.Chain(iptc.Table(iptc.Table.FILTER),
-                                "iptc_test_flush_chain1")
+                            "iptc_test_flush_chain1")
         chain2 = iptc.Chain(iptc.Table(iptc.Table.FILTER),
-                                "iptc_test_flush_chain2")
+                            "iptc_test_flush_chain2")
         iptc.Table(iptc.Table.FILTER).create_chain(chain1)
         iptc.Table(iptc.Table.FILTER).create_chain(chain2)
 
@@ -143,7 +143,8 @@ class TestTable(unittest.TestCase):
 
         iptc.Chain(filter_table, "OUTPUT").append_rule(rule)
 
-        self.assertEquals(len(iptc.Chain(filter_table, "OUTPUT").rules), output_rule_count + 1)
+        self.assertEquals(len(iptc.Chain(filter_table, "OUTPUT").rules),
+                          output_rule_count + 1)
 
         filter_table.flush()
 
@@ -581,12 +582,12 @@ class TestRule(unittest.TestCase):
         # valid addresses
         rule = iptc.Rule()
         for addr in [("127.0.0.1/255.255.255.0", "127.0.0.1/255.255.255.0"),
-                    ("!127.0.0.1/255.255.255.0", "!127.0.0.1/255.255.255.0"),
-                    ("127.0.0.1/255.255.128.0", "127.0.0.1/255.255.128.0"),
-                    ("127.0.0.1/16", "127.0.0.1/255.255.0.0"),
-                    ("127.0.0.1/24", "127.0.0.1/255.255.255.0"),
-                    ("127.0.0.1/17", "127.0.0.1/255.255.128.0"),
-                    ("!127.0.0.1/17", "!127.0.0.1/255.255.128.0")]:
+                     ("!127.0.0.1/255.255.255.0", "!127.0.0.1/255.255.255.0"),
+                     ("127.0.0.1/255.255.128.0", "127.0.0.1/255.255.128.0"),
+                     ("127.0.0.1/16", "127.0.0.1/255.255.0.0"),
+                     ("127.0.0.1/24", "127.0.0.1/255.255.255.0"),
+                     ("127.0.0.1/17", "127.0.0.1/255.255.128.0"),
+                     ("!127.0.0.1/17", "!127.0.0.1/255.255.128.0")]:
             rule.src = addr[0]
             self.assertEquals(rule.src, addr[1])
             rule.dst = addr[0]
@@ -613,7 +614,6 @@ class TestRule(unittest.TestCase):
                 pass
             else:
                 self.fail("rule accepted invalid address %s" % (addr))
-
 
     def test_rule_interface(self):
         # valid interfaces

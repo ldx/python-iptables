@@ -23,6 +23,10 @@ def _insert_ko(modprobe, modname):
 
 
 def _load_ko(modname):
+    # only try to load modules on kernels that support them
+    if not os.path.exists("/proc/modules"):
+        return (0, None)
+
     # this will return the full path for the modprobe binary
     modprobe = "/sbin/modprobe"
     try:
