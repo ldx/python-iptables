@@ -731,17 +731,11 @@ _EXIT_FN = ct.CFUNCTYPE(None, ct.c_int, ct.c_char_p)
 _xt_exit = _EXIT_FN(_xt_exit)
 
 
-def preserve_globals(fn):
+def set_nfproto(fn):
     def new(*args):
-        obj = args[0]
-        obj._restore_globals()
-        try:
-            ret = fn(*args)
-        except Exception:
-            obj._save_globals()
-            raise
-        obj._save_globals()
-        return ret
+        xtobj = args[0]
+        xtables._xtables_set_nfproto(xtobj.proto)
+        return fn(*args)
     return new
 
 
@@ -817,45 +811,12 @@ class xtables(object):
             raise XTablesError("unknown xtables version %d" %
                                (xtables_version))
 
-        # make sure we're initializing with clean state
-        self._xt_params = ct.c_void_p(None).value
-        self._matches = ct.c_void_p(None).value
-        self._pending_matches = ct.c_void_p(None).value
-        self._targets = ct.c_void_p(None).value
-        self._pending_targets = ct.c_void_p(None).value
-
         rv = xtables._xtables_init_all(ct.pointer(_xt_globals), proto)
         if rv:
             raise XTablesError("xtables_init_all() failed: %d" % (rv))
-        self._save_globals()
 
     def __repr__(self):
         return "XTables for protocol %d" % (self.proto)
-
-    def _save_globals(self):
-        # Save our per-protocol libxtables global variables, and set them to
-        # NULL so that we don't interfere with other protocols.
-        null = ct.c_void_p(None)
-        self._xt_params = xtables._xtables_xt_params.value
-        xtables._xtables_xt_params.value = null.value
-        self._matches = xtables._xtables_matches.value
-        xtables._xtables_matches.value = null.value
-        self._pending_matches = xtables._xtables_pending_matches.value
-        xtables._xtables_pending_matches.value = null.value
-        self._targets = xtables._xtables_targets.value
-        xtables._xtables_targets.value = null.value
-        self._pending_targets = xtables._xtables_pending_targets.value
-        xtables._xtables_pending_targets.value = null.value
-
-    def _restore_globals(self):
-        # Restore per-protocol libxtables global variables saved in
-        # _save_globals().
-        xtables._xtables_set_nfproto(self.proto)
-        xtables._xtables_xt_params.value = self._xt_params
-        xtables._xtables_matches.value = self._matches
-        xtables._xtables_pending_matches.value = self._pending_matches
-        xtables._xtables_targets.value = self._targets
-        xtables._xtables_pending_targets.value = self._pending_targets
 
     def _check_extname(self, name):
         if name in [b"", b"ACCEPT", b"DROP", b"QUEUE", b"RETURN"]:
@@ -913,7 +874,7 @@ class xtables(object):
         ext = _loaded_exts.get('%s___%s' % (self.proto, name), None)
         return ext
 
-    @preserve_globals
+    @set_nfproto
     def find_match(self, name):
         if isinstance(name, str):
             name = name.encode()
@@ -922,6 +883,8 @@ class xtables(object):
         ext = self._get_loaded_ext(name)
         if ext is not None:
             return ext
+
+        xtables._xtables_matches.value = ct.c_void_p(None).value
 
         match = xtables._xtables_find_match(name, XTF_TRY_LOAD, None)
         if not match:
@@ -934,7 +897,7 @@ class xtables(object):
         self._loaded(m[0].name, m)
         return m
 
-    @preserve_globals
+    @set_nfproto
     def find_target(self, name):
         if isinstance(name, str):
             name = name.encode()
@@ -943,6 +906,8 @@ class xtables(object):
         ext = self._get_loaded_ext(name)
         if ext is not None:
             return ext
+
+        xtables._xtables_targets.value = ct.c_void_p(None).value
 
         target = xtables._xtables_find_target(name, XTF_TRY_LOAD)
         if not target:
@@ -955,7 +920,7 @@ class xtables(object):
         self._loaded(t[0].name, t)
         return t
 
-    @preserve_globals
+    @set_nfproto
     def save(self, module, ip, ptr):
         _wrap_save(module.save, ct.cast(ct.pointer(ip), ct.c_void_p), ptr)
 
@@ -981,7 +946,7 @@ class xtables(object):
 
     # Dispatch arguments to the appropriate parse function, based upon the
     # extension's choice of API.
-    @preserve_globals
+    @set_nfproto
     def parse_target(self, argv, invert, t, fw, ptr, x6_parse, x6_options):
         _optarg.value = len(argv) > 1 and argv[1] or None
         _optind.value = len(argv) - 1
@@ -1026,7 +991,7 @@ class xtables(object):
 
     # Dispatch arguments to the appropriate parse function, based upon the
     # extension's choice of API.
-    @preserve_globals
+    @set_nfproto
     def parse_match(self, argv, invert, m, fw, ptr, x6_parse, x6_options):
         _optarg.value = len(argv) > 1 and argv[1] or None
         _optind.value = len(argv) - 1
@@ -1107,7 +1072,7 @@ class xtables(object):
 
     # Dispatch arguments to the appropriate final_check function, based upon
     # the extension's choice of API.
-    @preserve_globals
+    @set_nfproto
     def final_check_target(self, target):
         x6_fcheck = None
         try:
@@ -1147,7 +1112,7 @@ class xtables(object):
 
     # Dispatch arguments to the appropriate final_check function, based upon
     # the extension's choice of API.
-    @preserve_globals
+    @set_nfproto
     def final_check_match(self, match):
         x6_fcheck = None
         try:
