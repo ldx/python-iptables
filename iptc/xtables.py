@@ -754,6 +754,9 @@ _xt_globals.opts = None
 _xt_globals.exit_err = _xt_exit
 
 
+_loaded_exts = {}
+
+
 class xtables(object):
     _xtables_init_all = _lib_xtables.xtables_init_all
     _xtables_init_all.restype = ct.c_int
@@ -814,8 +817,6 @@ class xtables(object):
             raise XTablesError("unknown xtables version %d" %
                                (xtables_version))
 
-        self._loaded_exts = set()
-
         # make sure we're initializing with clean state
         self._xt_params = ct.c_void_p(None).value
         self._matches = ct.c_void_p(None).value
@@ -861,14 +862,8 @@ class xtables(object):
             name = b"standard"
         return name
 
-    def _loaded(self, name):
-        self._loaded_exts.add(name)
-
-    def _is_loaded(self, name):
-        if name in self._loaded_exts:
-            return True
-        else:
-            return False
+    def _loaded(self, name, ext):
+        _loaded_exts['%s___%s' % (self.proto, name)] = ext
 
     def _get_initfn_from_lib(self, name, lib):
         try:
@@ -903,8 +898,6 @@ class xtables(object):
             raise XTablesError("Unknown protocol %d" % (self.proto))
 
     def _try_register(self, name):
-        if self._is_loaded(name):
-            return
         if isinstance(name, bytes):
             name = name.decode()
         if self._try_extinit(name, _lib_xtables):
@@ -916,11 +909,20 @@ class xtables(object):
             if self._try_extinit(name, lib):
                 return
 
+    def _get_loaded_ext(self, name):
+        ext = _loaded_exts.get('%s___%s' % (self.proto, name), None)
+        return ext
+
     @preserve_globals
     def find_match(self, name):
         if isinstance(name, str):
             name = name.encode()
         name = self._check_extname(name)
+
+        ext = self._get_loaded_ext(name)
+        if ext is not None:
+            return ext
+
         match = xtables._xtables_find_match(name, XTF_TRY_LOAD, None)
         if not match:
             self._try_register(name)
@@ -929,7 +931,7 @@ class xtables(object):
                 return match
 
         m = ct.cast(match, ct.POINTER(self._match_struct))
-        self._loaded(m[0].name)
+        self._loaded(m[0].name, m)
         return m
 
     @preserve_globals
@@ -937,6 +939,11 @@ class xtables(object):
         if isinstance(name, str):
             name = name.encode()
         name = self._check_extname(name)
+
+        ext = self._get_loaded_ext(name)
+        if ext is not None:
+            return ext
+
         target = xtables._xtables_find_target(name, XTF_TRY_LOAD)
         if not target:
             self._try_register(name)
@@ -945,7 +952,7 @@ class xtables(object):
                 return target
 
         t = ct.cast(target, ct.POINTER(self._target_struct))
-        self._loaded(t[0].name)
+        self._loaded(t[0].name, t)
         return t
 
     @preserve_globals
