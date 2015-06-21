@@ -745,6 +745,15 @@ def preserve_globals(fn):
     return new
 
 
+_xt_globals = xtables_globals()
+_xt_globals.option_offset = 0
+_xt_globals.program_name = version.__pkgname__.encode()
+_xt_globals.program_version = version.__version__.encode()
+_xt_globals.orig_opts = None
+_xt_globals.opts = None
+_xt_globals.exit_err = _xt_exit
+
+
 class xtables(object):
     _xtables_init_all = _lib_xtables.xtables_init_all
     _xtables_init_all.restype = ct.c_int
@@ -794,13 +803,6 @@ class xtables(object):
     def _xtinit(self, proto, no_alias_check=False):
         self.proto = proto
         self.no_alias_check = no_alias_check
-        self._xt_globals = xtables_globals()
-        self._xt_globals.option_offset = 0
-        self._xt_globals.program_name = version.__pkgname__.encode()
-        self._xt_globals.program_version = version.__version__.encode()
-        self._xt_globals.orig_opts = None
-        self._xt_globals.opts = None
-        self._xt_globals.exit_err = _xt_exit
 
         thismodule = sys.modules[__name__]
         matchname = "_xtables_match_v%d" % (xtables_version)
@@ -821,7 +823,7 @@ class xtables(object):
         self._targets = ct.c_void_p(None).value
         self._pending_targets = ct.c_void_p(None).value
 
-        rv = xtables._xtables_init_all(ct.pointer(self._xt_globals), proto)
+        rv = xtables._xtables_init_all(ct.pointer(_xt_globals), proto)
         if rv:
             raise XTablesError("xtables_init_all() failed: %d" % (rv))
         self._save_globals()
