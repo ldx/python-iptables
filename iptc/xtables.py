@@ -885,6 +885,8 @@ class xtables(object):
             return ext
 
         xtables._xtables_matches.value = ct.c_void_p(None).value
+        if xtables._xtables_pending_matches:
+            xtables._xtables_pending_matches.value = ct.c_void_p(None).value
 
         match = xtables._xtables_find_match(name, XTF_TRY_LOAD, None)
         if not match:
@@ -908,6 +910,8 @@ class xtables(object):
             return ext
 
         xtables._xtables_targets.value = ct.c_void_p(None).value
+        if xtables._xtables_pending_targets:
+            xtables._xtables_pending_targets.value = ct.c_void_p(None).value
 
         target = xtables._xtables_find_target(name, XTF_TRY_LOAD)
         if not target:
