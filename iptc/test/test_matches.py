@@ -366,7 +366,6 @@ class TestXTStateMatch(unittest.TestCase):
     def tearDown(self):
         self.chain.flush()
         self.chain.delete()
-        pass
 
     def test_state(self):
         self.match.state = "RELATED,ESTABLISHED"
@@ -400,7 +399,6 @@ class TestXTConntrackMatch(unittest.TestCase):
     def tearDown(self):
         self.chain.flush()
         self.chain.delete()
-        pass
 
     def test_state(self):
         self.match.ctstate = "NEW,RELATED"
