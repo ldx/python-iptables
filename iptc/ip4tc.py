@@ -438,6 +438,14 @@ class IPTCModule(object):
         for k, v in params:
             self.__setattr__(k, v)
 
+    def _get_alias_name(self):
+        if not self._module or not self._ptr:
+            return None
+        alias = getattr(self._module, 'alias', None)
+        if not alias:
+            return None
+        return self._module.alias(self._ptr).decode()
+
     def __setattr__(self, name, value):
         if not name.startswith('_') and name not in dir(self):
             self.parse(name.replace("_", "-"), value)
@@ -456,7 +464,8 @@ class IPTCModule(object):
     contain those set by the module by default too."""
 
     def _get_name(self):
-        return self._name
+        alias = self._get_alias_name()
+        return alias and alias or self._name
     name = property(_get_name)
     """Name of this target or match."""
 
