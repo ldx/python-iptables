@@ -546,8 +546,20 @@ class Match(IPTCModule):
         if match:
             ct.memmove(ct.byref(self._match_buf), ct.byref(match), self.size)
             self._update_pointers()
+            alias = getattr(self._module, 'alias', None)
+            if alias:
+                self._check_alias(alias)
         else:
             self.reset()
+
+    def _check_alias(self, alias):
+        name = self._module.alias(self._ptr).decode()
+        alias_module = self._xt.find_match(name)
+        if alias_module is None:
+            return
+        self._alias_module = alias_module[0]
+        self._orig_parse = getattr(self._alias_module, 'x6_parse', None)
+        self._orig_options = getattr(self._alias_module, 'x6_options', None)
 
     def __eq__(self, match):
         basesz = ct.sizeof(xt_entry_match)
