@@ -706,6 +706,20 @@ class Target(IPTCModule):
 
         if self._is_standard_target():
             self.standard_target = name
+        elif target:
+            self._check_alias()
+
+    def _check_alias(self):
+        alias = getattr(self._module, 'alias', None)
+        if not alias:
+            return
+        name = self._module.alias(self._ptr).decode()
+        alias_module = self._xt.find_target(name)
+        if alias_module is None:
+            return
+        self._alias_module = alias_module[0]
+        self._orig_parse = getattr(self._alias_module, 'x6_parse', None)
+        self._orig_options = getattr(self._alias_module, 'x6_options', None)
 
     def __eq__(self, targ):
         basesz = ct.sizeof(xt_entry_target)
