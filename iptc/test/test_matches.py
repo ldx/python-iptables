@@ -93,6 +93,8 @@ class TestMultiportMatch(unittest.TestCase):
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
+        for r in self.chain.rules:
+            self.chain.delete_rule(r)
         self.chain.flush()
         self.chain.delete()
 
@@ -123,6 +125,8 @@ class TestXTUdpMatch(unittest.TestCase):
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
+        for r in self.chain.rules:
+            self.chain.delete_rule(r)
         self.chain.flush()
         self.chain.delete()
 
@@ -176,6 +180,8 @@ class TestXTMarkMatch(unittest.TestCase):
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
+        for r in self.chain.rules:
+            self.chain.delete_rule(r)
         self.chain.flush()
         self.chain.delete()
 
@@ -218,6 +224,8 @@ class TestXTLimitMatch(unittest.TestCase):
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
+        for r in self.chain.rules:
+            self.chain.delete_rule(r)
         self.chain.flush()
         self.chain.delete()
 
@@ -268,6 +276,8 @@ class TestIcmpv6Match(unittest.TestCase):
         self.table.create_chain(self.chain)
 
     def tearDown(self):
+        for r in self.chain.rules:
+            self.chain.delete_rule(r)
         self.chain.flush()
         self.chain.delete()
 
@@ -290,6 +300,8 @@ class TestCommentMatch(unittest.TestCase):
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
+        for r in self.chain.rules:
+            self.chain.delete_rule(r)
         self.chain.flush()
         self.chain.delete()
 
@@ -314,6 +326,8 @@ class TestIprangeMatch(unittest.TestCase):
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
+        for r in self.chain.rules:
+            self.chain.delete_rule(r)
         self.chain.flush()
         self.chain.delete()
 
@@ -364,9 +378,10 @@ class TestXTStateMatch(unittest.TestCase):
         self.table.create_chain(self.chain)
 
     def tearDown(self):
+        for r in self.chain.rules:
+            self.chain.delete_rule(r)
         self.chain.flush()
         self.chain.delete()
-        pass
 
     def test_state(self):
         self.match.state = "RELATED,ESTABLISHED"
@@ -374,7 +389,7 @@ class TestXTStateMatch(unittest.TestCase):
         self.chain.insert_rule(self.rule)
         rule = self.chain.rules[0]
         m = rule.matches[0]
-        self.assertTrue(m.name, ["state", "conntrack"])
+        self.assertEquals(m.name, "state")
         self.assertEquals(m.state, "RELATED,ESTABLISHED")
 
 
@@ -398,9 +413,10 @@ class TestXTConntrackMatch(unittest.TestCase):
         self.table.create_chain(self.chain)
 
     def tearDown(self):
+        for r in self.chain.rules:
+            self.chain.delete_rule(r)
         self.chain.flush()
         self.chain.delete()
-        pass
 
     def test_state(self):
         self.match.ctstate = "NEW,RELATED"
@@ -432,6 +448,8 @@ class TestHashlimitMatch(unittest.TestCase):
         self.table.create_chain(self.chain)
 
     def tearDown(self):
+        for r in self.chain.rules:
+            self.chain.delete_rule(r)
         self.chain.flush()
         self.chain.delete()
 
