@@ -560,10 +560,9 @@ class Match(IPTCModule):
             self.reset()
 
     def _check_alias(self):
-        alias = getattr(self._module, 'alias', None)
-        if not alias:
+        name = self._get_alias_name()
+        if name is None:
             return
-        name = self._module.alias(self._ptr).decode()
         alias_module = self._xt.find_match(name)
         if alias_module is None:
             return
@@ -719,10 +718,9 @@ class Target(IPTCModule):
             self._check_alias()
 
     def _check_alias(self):
-        alias = getattr(self._module, 'alias', None)
-        if not alias:
+        name = self._get_alias_name()
+        if name is None:
             return
-        name = self._module.alias(self._ptr).decode()
         alias_module = self._xt.find_target(name)
         if alias_module is None:
             return
