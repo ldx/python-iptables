@@ -438,6 +438,14 @@ class IPTCModule(object):
         for k, v in params:
             self.__setattr__(k, v)
 
+    def _get_alias_name(self):
+        if not self._module or not self._ptr:
+            return None
+        alias = getattr(self._module, 'alias', None)
+        if not alias:
+            return None
+        return self._module.alias(self._ptr).decode()
+
     def __setattr__(self, name, value):
         if not name.startswith('_') and name not in dir(self):
             self.parse(name.replace("_", "-"), value)
@@ -456,7 +464,8 @@ class IPTCModule(object):
     contain those set by the module by default too."""
 
     def _get_name(self):
-        return self._name
+        alias = self._get_alias_name()
+        return alias and alias or self._name
     name = property(_get_name)
     """Name of this target or match."""
 
@@ -546,8 +555,20 @@ class Match(IPTCModule):
         if match:
             ct.memmove(ct.byref(self._match_buf), ct.byref(match), self.size)
             self._update_pointers()
+            self._check_alias()
         else:
             self.reset()
+
+    def _check_alias(self):
+        name = self._get_alias_name()
+        if name is None:
+            return
+        alias_module = self._xt.find_match(name)
+        if alias_module is None:
+            return
+        self._alias_module = alias_module[0]
+        self._orig_parse = getattr(self._alias_module, 'x6_parse', None)
+        self._orig_options = getattr(self._alias_module, 'x6_options', None)
 
     def __eq__(self, match):
         basesz = ct.sizeof(xt_entry_match)
@@ -693,6 +714,19 @@ class Target(IPTCModule):
 
         if self._is_standard_target():
             self.standard_target = name
+        elif target:
+            self._check_alias()
+
+    def _check_alias(self):
+        name = self._get_alias_name()
+        if name is None:
+            return
+        alias_module = self._xt.find_target(name)
+        if alias_module is None:
+            return
+        self._alias_module = alias_module[0]
+        self._orig_parse = getattr(self._alias_module, 'x6_parse', None)
+        self._orig_options = getattr(self._alias_module, 'x6_options', None)
 
     def __eq__(self, targ):
         basesz = ct.sizeof(xt_entry_target)

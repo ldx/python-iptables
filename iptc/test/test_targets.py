@@ -79,6 +79,8 @@ class TestXTClusteripTarget(unittest.TestCase):
         iptc.Table(iptc.Table.FILTER).create_chain(self.chain)
 
     def tearDown(self):
+        for r in self.chain.rules:
+            self.chain.delete_rule(r)
         self.chain.flush()
         self.chain.delete()
 
@@ -133,6 +135,8 @@ class TestIPTRedirectTarget(unittest.TestCase):
         iptc.Table(iptc.Table.NAT).create_chain(self.chain)
 
     def tearDown(self):
+        for r in self.chain.rules:
+            self.chain.delete_rule(r)
         self.chain.flush()
         self.chain.delete()
 
@@ -181,6 +185,8 @@ class TestXTTosTarget(unittest.TestCase):
         iptc.Table(iptc.Table.MANGLE).create_chain(self.chain)
 
     def tearDown(self):
+        for r in self.chain.rules:
+            self.chain.delete_rule(r)
         self.chain.flush()
         self.chain.delete()
 
@@ -262,6 +268,8 @@ class TestDnatTarget(unittest.TestCase):
         iptc.Table(iptc.Table.MANGLE).create_chain(self.chain)
 
     def tearDown(self):
+        for r in self.chain.rules:
+            self.chain.delete_rule(r)
         self.chain.flush()
         self.chain.delete()
 
@@ -307,6 +315,8 @@ class TestIPTMasqueradeTarget(unittest.TestCase):
         iptc.Table(iptc.Table.NAT).create_chain(self.chain)
 
     def tearDown(self):
+        for r in self.chain.rules:
+            self.chain.delete_rule(r)
         self.chain.flush()
         self.chain.delete()
 
@@ -363,6 +373,8 @@ class TestXTNotrackTarget(unittest.TestCase):
         iptc.Table(iptc.Table.RAW).create_chain(self.chain)
 
     def tearDown(self):
+        for r in self.chain.rules:
+            self.chain.delete_rule(r)
         self.chain.flush()
         self.chain.delete()
 
@@ -393,6 +405,8 @@ class TestXTCtTarget(unittest.TestCase):
         iptc.Table(iptc.Table.RAW).create_chain(self.chain)
 
     def tearDown(self):
+        for r in self.chain.rules:
+            self.chain.delete_rule(r)
         self.chain.flush()
         self.chain.delete()
 

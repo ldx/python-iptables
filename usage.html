@@ -407,7 +407,8 @@ not specified, else <em>rule</em> is inserted in the given position.</p>
 <dl class="method">
 <dt id="iptc.Chain.replace_rule">
 <tt class="descname">replace_rule</tt><big>(</big><em>rule</em>, <em>position=0</em><big>)</big><a class="headerlink" href="#iptc.Chain.replace_rule" title="Permalink to this definition">¶</a></dt>
-<dd><p>Replace existing rule in the chain at <em>position</em> with given <em>rule</em></p>
+<dd><p>Replace existing rule in the chain at <em>position</em> with given
+<em>rule</em></p>
 </dd></dl>
 
 <dl class="attribute">
@@ -514,6 +515,16 @@ by default will use the latest revision available.</p>
 <p>Parameters are set to their default values, any flags are cleared.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="iptc.Match.set_parameter">
+<tt class="descname">set_parameter</tt><big>(</big><em>parameter</em>, <em>value=None</em><big>)</big><a class="headerlink" href="#iptc.Match.set_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set a parameter for target or match extension, with an optional value.</p>
+<p>&#64;param parameter: name of the parameter to set
+&#64;type parameter: C{str}</p>
+<p>&#64;param value: optional value of the parameter to set, defaults to C{None}
+&#64;type value: C{str} or a C{list} of C{str}</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="iptc.Match.size">
 <tt class="descname">size</tt><a class="headerlink" href="#iptc.Match.size" title="Permalink to this definition">¶</a></dt>
@@ -561,6 +572,16 @@ by default will use the latest revision available.</p>
 <tt class="descname">reset</tt><big>(</big><big>)</big><a class="headerlink" href="#iptc.Target.reset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reset the target.  Parameters are set to their default values, any
 flags are cleared.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="iptc.Target.set_parameter">
+<tt class="descname">set_parameter</tt><big>(</big><em>parameter</em>, <em>value=None</em><big>)</big><a class="headerlink" href="#iptc.Target.set_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set a parameter for target or match extension, with an optional value.</p>
+<p>&#64;param parameter: name of the parameter to set
+&#64;type parameter: C{str}</p>
+<p>&#64;param value: optional value of the parameter to set, defaults to C{None}
+&#64;type value: C{str} or a C{list} of C{str}</p>
 </dd></dl>
 
 <dl class="attribute">
