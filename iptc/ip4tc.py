@@ -272,7 +272,7 @@ class IPTCModule(object):
         @param parameter: name of the parameter to set
         @type parameter: C{str}
 
-        @param value: optional value of the parameter to set, defaults to C{None}
+        @param value: optional value of the parameter, defaults to C{None}
         @type value: C{str} or a C{list} of C{str}
         """
         if value is None:
