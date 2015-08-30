@@ -436,7 +436,7 @@ class IPTCModule(object):
         params = self.get_all_parameters().items()
         self.reset()
         for k, v in params:
-            self.__setattr__(k, v)
+            self.set_parameter(k, v)
 
     def _get_alias_name(self):
         if not self._module or not self._ptr:
