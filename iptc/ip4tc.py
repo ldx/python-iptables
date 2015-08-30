@@ -1304,7 +1304,8 @@ class Rule(object):
                                  ct.POINTER(self._entry_type()))[0]
 
         if not isinstance(entry, self._entry_type()):
-            raise TypeError()
+            raise TypeError("Invalid rule type %s; expected %s" %
+                            (entry, self._entry_type()))
 
         entrysz = self._entry_size()
         matchsz = entry.target_offset - entrysz
