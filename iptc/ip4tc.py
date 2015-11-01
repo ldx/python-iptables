@@ -272,7 +272,7 @@ class IPTCModule(object):
         @param parameter: name of the parameter to set
         @type parameter: C{str}
 
-        @param value: optional value of the parameter to set, defaults to C{None}
+        @param value: optional value of the parameter, defaults to C{None}
         @type value: C{str} or a C{list} of C{str}
         """
         if value is None:
@@ -436,7 +436,7 @@ class IPTCModule(object):
         params = self.get_all_parameters().items()
         self.reset()
         for k, v in params:
-            self.__setattr__(k, v)
+            self.set_parameter(k, v)
 
     def _get_alias_name(self):
         if not self._module or not self._ptr:
@@ -548,8 +548,6 @@ class Match(IPTCModule):
             self._revision = revision
         else:
             self._revision = self._module.revision
-        if self._module.next is not None:
-            self._store_buffer(module)
 
         self._match_buf = (ct.c_ubyte * self.size)()
         if match:
@@ -588,10 +586,6 @@ class Match(IPTCModule):
 
     def __ne__(self, match):
         return not self.__eq__(match)
-
-    def _store_buffer(self, module):
-        self._buffer = _Buffer()
-        self._buffer.buffer = ct.cast(module, ct.POINTER(ct.c_ubyte))
 
     def _final_check(self):
         self._xt.final_check_match(self._module)
@@ -774,9 +768,6 @@ class Target(IPTCModule):
                               self._orig_parse, self._orig_options)
         self._target_buf = ct.cast(self._module.t, ct.POINTER(ct.c_ubyte))
         if self._buffer.buffer != self._target_buf:
-            if self._buffer.buffer is not None:
-                self._buffer.buffer = None  # Buffer was freed by iptables.
-                self._buffer = _Buffer()
             self._buffer.buffer = self._target_buf
         self._update_pointers()
 
@@ -1304,7 +1295,8 @@ class Rule(object):
                                  ct.POINTER(self._entry_type()))[0]
 
         if not isinstance(entry, self._entry_type()):
-            raise TypeError()
+            raise TypeError("Invalid rule type %s; expected %s" %
+                            (entry, self._entry_type()))
 
         entrysz = self._entry_size()
         matchsz = entry.target_offset - entrysz
