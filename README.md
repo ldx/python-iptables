@@ -283,17 +283,17 @@ in/out inteface etc is. To print out all rules in the FILTER table:
 As you see in the code snippet above, rules are organized into chains,
 and chains are in tables. You have a fixed set of tables; for IPv4:
 
--   FILTER,
--   NAT,
--   MANGLE and
--   RAW.
+    * FILTER,
+    * NAT,
+    * MANGLE and
+    * RAW.
 
 For IPv6 the tables are:
 
--   FILTER,
--   MANGLE,
--   RAW and
--   SECURITY.
+    * FILTER,
+    * MANGLE,
+    * RAW and
+    * SECURITY.
 
 To access a table:
 
@@ -541,4 +541,3 @@ or more rules, than commit it:
 
 The drawback is that Table is a singleton, and if you disable
 autocommit, it will be disabled for all instances of that Table.
-
