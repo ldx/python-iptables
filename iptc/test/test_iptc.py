@@ -761,7 +761,11 @@ class TestRule(unittest.TestCase):
         for rule_num, rule in enumerate(rules, start=1):
             assert len(rule.matches) == 1
             assert rule.matches[0].comment == "rule{rule_num}".format(
-                rule_num=rule_num)
+                rule_num=rule_num), \
+                "rule[{left_num}] is not new {right_num}".format(
+                    left_num=rule_num,
+                    right_num=rule.matches[0].comment
+                )
 
     def test_rule_insert(self):
         rules = []
