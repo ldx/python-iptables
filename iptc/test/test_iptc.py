@@ -757,7 +757,6 @@ class TestRule(unittest.TestCase):
         rules = self.chain.rules
         assert len(rules) == (insert_rule_count + append_rule_count)
         for rule_num, rule in enumerate(rules, start=1):
-            assert rule.target == "ACCEPT"
             assert len(rule.matches) == 1
             assert rule.matches[0].comment == "rule{rule_num}".format(
                 rule_num=rule_num)
