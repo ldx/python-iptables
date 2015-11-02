@@ -1465,7 +1465,12 @@ class Chain(object):
         return [self.table.create_rule(e, self) for e in entries]
 
     rules = property(_get_rules)
-    """This is the list of rules currently in the chain."""
+    """This is the list of rules currently in the chain.
+
+    The indexes of the Rule items produced from this list *should* correspond
+    to the IPTables --line-numbers value minus one.  Keeping in mind that
+    iptables rules are 1-indexed whereas the Python list is 0-indexed
+    """
 
 
 def autocommit(fn):
