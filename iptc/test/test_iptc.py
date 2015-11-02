@@ -747,7 +747,9 @@ class TestRule(unittest.TestCase):
             rule.create_target("ACCEPT")
             self.chain.insert_rule(rule)
 
-        for rule_num in range(append_rule_count):
+        append_rulenum_start = insert_rule_count + 1
+        append_rulenum_end = append_rulenum_start + 3
+        for rule_num in range(append_rulenum_start, append_rulenum_end):
             rule = iptc.Rule()
             match = rule.create_match("comment")
             match.comment = "rule{rule_num}".format(rule_num=rule_num)
