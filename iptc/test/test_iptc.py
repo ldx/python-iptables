@@ -743,14 +743,14 @@ class TestRule(unittest.TestCase):
         for rule_num in range(insert_rule_count, 0, -1):
             rule = iptc.Rule()
             match = rule.create_match("comment")
-            match.comment = "rule{}".format(rule_num)
+            match.comment = "rule{rule_num}".format(rule_num=rule_num)
             rule.create_target("ACCEPT")
             self.chain.insert_rule(rule)
 
         for rule_num in range(append_rule_count):
             rule = iptc.Rule()
             match = rule.create_match("comment")
-            match.comment = "rule{}".format(rule_num)
+            match.comment = "rule{rule_num}".format(rule_num=rule_num)
             rule.create_target("ACCEPT")
             self.chain.append_rule(rule)
 
@@ -759,7 +759,8 @@ class TestRule(unittest.TestCase):
         for rule_num, rule in enumerate(rules, start=1):
             assert rule.target == "ACCEPT"
             assert len(rule.matches) == 1
-            assert rule.matches[0].comment == "rule{}".format(rule_num)
+            assert rule.matches[0].comment == "rule{rule_num}".format(
+                rule_num=rule_num)
 
     def test_rule_insert(self):
         rules = []
