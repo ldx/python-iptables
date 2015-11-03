@@ -736,6 +736,37 @@ class TestRule(unittest.TestCase):
                       for rule in chain.rules if rule):
                 pass
 
+    def test_rule_iterate_rulenum(self):
+        """Ensure rule numbers are always returned in order"""
+        insert_rule_count = 3
+        append_rule_count = 3
+        for rule_num in range(insert_rule_count, 0, -1):
+            rule = iptc.Rule()
+            match = rule.create_match("comment")
+            match.comment = "rule{rule_num}".format(rule_num=rule_num)
+            rule.create_target("ACCEPT")
+            self.chain.insert_rule(rule)
+
+        append_rulenum_start = insert_rule_count + 1
+        append_rulenum_end = append_rulenum_start + 3
+        for rule_num in range(append_rulenum_start, append_rulenum_end):
+            rule = iptc.Rule()
+            match = rule.create_match("comment")
+            match.comment = "rule{rule_num}".format(rule_num=rule_num)
+            rule.create_target("ACCEPT")
+            self.chain.append_rule(rule)
+
+        rules = self.chain.rules
+        assert len(rules) == (insert_rule_count + append_rule_count)
+        for rule_num, rule in enumerate(rules, start=1):
+            assert len(rule.matches) == 1
+            assert rule.matches[0].comment == "rule{rule_num}".format(
+                rule_num=rule_num), \
+                "rule[{left_num}] is not new {right_num}".format(
+                    left_num=rule_num,
+                    right_num=rule.matches[0].comment
+                )
+
     def test_rule_insert(self):
         rules = []
 
