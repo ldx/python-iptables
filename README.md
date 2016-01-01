@@ -36,7 +36,7 @@ If you are looking for `ebtables` python bindings, check out
 
 [![Latest Release](https://pypip.in/v/python-iptables/badge.png)](https://pypi.python.org/pypi/python-iptables)
 
-[![Build Status](https://travis-ci.org/ldx/python-iptables.png?branch=master)](https://travis-ci.org/ldx/python-iptables)
+[![Build Status](https://travis-ci.org/ldx/python-iptables.png?branch=master)](https://travis-ci.org/ldx/python-iptables) [![Coverage Status](https://coveralls.io/repos/ldx/python-iptables/badge.svg?branch=codecoverage)](https://coveralls.io/r/ldx/python-iptables?branch=codecoverage) [![Code Health](https://landscape.io/github/ldx/python-iptables/codecoverage/landscape.svg)](https://landscape.io/github/ldx/python-iptables/codecoverage)
 
 [![Number of Downloads](https://pypip.in/d/python-iptables/badge.png)](https://pypi.python.org/pypi/python-iptables)
 
