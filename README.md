@@ -76,11 +76,7 @@ installs into `/usr/local/lib`.
 
 Now you can run the tests:
 
-    % sudo PATH=$PATH ./test.py
-    WARNING: this test will manipulate iptables rules.
-    Don't do this on a production machine.
-    Would you like to continue? y/n y
-    [...]
+    % sudo PATH=$PATH python setup.py test
 
 The `PATH=$PATH` part is necessary after `sudo` if you have installed
 into a `virtualenv`, since `sudo` will reset your environment to a
