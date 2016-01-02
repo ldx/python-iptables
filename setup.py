@@ -2,7 +2,8 @@
 
 """python-iptables setup script"""
 
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
+#from distutils.core import setup, Extension
 
 # make pyflakes happy
 __pkgname__ = None
@@ -21,6 +22,7 @@ setup(
     package_dir={"iptc": "iptc"},
     ext_modules=[Extension("libxtwrapper",
                            ["libxtwrapper/wrapper.c"])],
+    test_suite="tests",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",

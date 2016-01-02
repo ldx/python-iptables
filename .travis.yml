@@ -6,5 +6,8 @@ python:
 install:
   - python setup.py build
   - python setup.py install
+  - sudo pip install coveralls
 script:
-  - echo "y"|sudo PATH=$PATH ./test.py
+  - sudo PATH=$PATH coverage run setup.py test
+after_success:
+  coveralls

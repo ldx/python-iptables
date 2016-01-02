@@ -36,7 +36,7 @@ If you are looking for `ebtables` python bindings, check out
 
 [![Latest Release](https://pypip.in/v/python-iptables/badge.png)](https://pypi.python.org/pypi/python-iptables)
 
-[![Build Status](https://travis-ci.org/ldx/python-iptables.png?branch=master)](https://travis-ci.org/ldx/python-iptables)
+[![Build Status](https://travis-ci.org/ldx/python-iptables.png?branch=master)](https://travis-ci.org/ldx/python-iptables) [![Coverage Status](https://coveralls.io/repos/ldx/python-iptables/badge.svg?branch=codecoverage)](https://coveralls.io/r/ldx/python-iptables?branch=codecoverage) [![Code Health](https://landscape.io/github/ldx/python-iptables/codecoverage/landscape.svg)](https://landscape.io/github/ldx/python-iptables/codecoverage)
 
 [![Number of Downloads](https://pypip.in/d/python-iptables/badge.png)](https://pypi.python.org/pypi/python-iptables)
 
@@ -76,11 +76,7 @@ installs into `/usr/local/lib`.
 
 Now you can run the tests:
 
-    % sudo PATH=$PATH ./test.py
-    WARNING: this test will manipulate iptables rules.
-    Don't do this on a production machine.
-    Would you like to continue? y/n y
-    [...]
+    % sudo PATH=$PATH python setup.py test
 
 The `PATH=$PATH` part is necessary after `sudo` if you have installed
 into a `virtualenv`, since `sudo` will reset your environment to a
