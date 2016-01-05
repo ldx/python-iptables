@@ -445,6 +445,13 @@ class TestRule6(unittest.TestCase):
             else:
                 self.fail("rule accepted invalid protocol %s" % (proto))
 
+    def test_rule_protocol_numeric(self):
+        rule = iptc.Rule6()
+        rule.protocol = 132
+        self.assertEquals(rule.protocol, '132')
+        rule.protocol = '!132'
+        self.assertEquals(rule.protocol, '!132')
+
     def test_rule_compare(self):
         r1 = iptc.Rule6()
         r1.src = "::1/128"
@@ -667,6 +674,13 @@ class TestRule(unittest.TestCase):
                 pass
             else:
                 self.fail("rule accepted invalid protocol %s" % (proto))
+
+    def test_rule_protocol_numeric(self):
+        rule = iptc.Rule()
+        rule.protocol = 132
+        self.assertEquals(rule.protocol, '132')
+        rule.protocol = '!132'
+        self.assertEquals(rule.protocol, '!132')
 
     def test_rule_compare(self):
         r1 = iptc.Rule()

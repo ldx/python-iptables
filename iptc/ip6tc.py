@@ -503,10 +503,11 @@ class Rule6(Rule):
             proto = "!"
         else:
             proto = ""
-        proto = "".join([proto, self.protocols[self.entry.ipv6.proto]])
+        proto = "".join([proto, self.protocols.get(self.entry.ipv6.proto, str(self.entry.ipv6.proto))])
         return proto
 
     def set_protocol(self, proto):
+        proto = str(proto)
         if proto[0] == "!":
             self.entry.ipv6.invflags |= ip6t_ip6.IP6T_INV_PROTO
             self.entry.ipv6.flags &= (~ip6t_ip6.IP6T_F_PROTO &
@@ -516,6 +517,9 @@ class Rule6(Rule):
             self.entry.ipv6.invflags &= (~ip6t_ip6.IP6T_INV_PROTO &
                                          ip6t_ip6.IP6T_INV_MASK)
             self.entry.ipv6.flags |= ip6t_ip6.IP6T_F_PROTO
+        if proto.isdigit():
+            self.entry.ipv6.proto = int(proto)
+            return
         for p in self.protocols.items():
             if proto.lower() == p[1]:
                 self.entry.ipv6.proto = p[0]
