@@ -1218,16 +1218,20 @@ class Rule(object):
             proto = "!"
         else:
             proto = ""
-        proto = "".join([proto, self.protocols[self.entry.ip.proto]])
+        proto = "".join([proto, self.protocols.get(self.entry.ip.proto, str(self.entry.ip.proto))])
         return proto
 
     def set_protocol(self, proto):
+        proto = str(proto)
         if proto[0] == "!":
             self.entry.ip.invflags |= ipt_ip.IPT_INV_PROTO
             proto = proto[1:]
         else:
             self.entry.ip.invflags &= (~ipt_ip.IPT_INV_PROTO &
                                        ipt_ip.IPT_INV_MASK)
+        if proto.isdigit():
+            self.entry.ip.proto = int(proto)
+            return
         for p in self.protocols.items():
             if proto.lower() == p[1]:
                 self.entry.ip.proto = p[0]
