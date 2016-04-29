@@ -412,60 +412,7 @@ class _xtables_match_v10(ct.Structure):
                 ("loaded", ct.c_uint)]
 
 
-class _xtables_match_v11(ct.Structure):
-    _fields_ = [("version", ct.c_char_p),
-                ("next", ct.c_void_p),
-                ("name", ct.c_char_p),
-                ("real_name", ct.c_char_p),
-                ("revision", ct.c_uint8),
-                ("ext_flags", ct.c_uint8),
-                ("family", ct.c_uint16),
-                ("size", ct.c_size_t),
-                ("userspacesize", ct.c_size_t),
-                ("help", ct.CFUNCTYPE(None)),
-                ("init", ct.CFUNCTYPE(None, ct.POINTER(xt_entry_match))),
-                # fourth parameter entry is struct ipt_entry for example
-                # int (*parse)(int c, char **argv, int invert, unsigned int
-                # *flags, const void *entry, struct xt_entry_match **match)
-                ("parse", ct.CFUNCTYPE(ct.c_int, ct.c_int,
-                                       ct.POINTER(ct.c_char_p), ct.c_int,
-                                       ct.POINTER(ct.c_uint), ct.c_void_p,
-                                       ct.POINTER(ct.POINTER(
-                                           xt_entry_match)))),
-                ("final_check", ct.CFUNCTYPE(None, ct.c_uint)),
-                # prints out the match iff non-NULL: put space at end
-                # first parameter ip is struct ipt_ip * for example
-                ("print", ct.CFUNCTYPE(None, ct.c_void_p,
-                                       ct.POINTER(xt_entry_match), ct.c_int)),
-                # saves the match info in parsable form to stdout.
-                # first parameter ip is struct ipt_ip * for example
-                ("save", ct.CFUNCTYPE(None, ct.c_void_p,
-                                      ct.POINTER(xt_entry_match))),
-                # Print match name or alias
-                ("alias", ct.CFUNCTYPE(ct.c_char_p,
-                                       ct.POINTER(xt_entry_match))),
-                # pointer to list of extra command-line options
-                ("extra_opts", ct.POINTER(option)),
-
-                # introduced with the new iptables API
-                ("x6_parse", ct.CFUNCTYPE(None, ct.POINTER(xt_option_call))),
-                ("x6_fcheck", ct.CFUNCTYPE(None, ct.POINTER(xt_fcheck_call))),
-                ("x6_options", ct.POINTER(xt_option_entry)),
-
-                # Translate iptables to nft
-                ("xlate", ct.CFUNCTYPE(None, ct.c_void_p,
-                                       ct.POINTER(xt_entry_match),
-                                       ct.POINTER(xt_xlate), ct.c_int)),
-
-                # size of per-extension instance extra "global" scratch space
-                ("udata_size", ct.c_size_t),
-
-                # ignore these men behind the curtain:
-                ("udata", ct.c_void_p),
-                ("option_offset", ct.c_uint),
-                ("m", ct.POINTER(xt_entry_match)),
-                ("mflags", ct.c_uint),
-                ("loaded", ct.c_uint)]
+_xtables_match_v11 = _xtables_match_v10
 
 
 class xtables_match(ct.Union):
@@ -720,62 +667,7 @@ class _xtables_target_v10(ct.Structure):
                 ("loaded", ct.c_uint)]
 
 
-class _xtables_target_v11(ct.Structure):
-    _fields_ = [("version", ct.c_char_p),
-                ("next", ct.c_void_p),
-                ("name", ct.c_char_p),
-                ("real_name", ct.c_char_p),
-                ("revision", ct.c_uint8),
-                ("ext_flags", ct.c_uint8),
-                ("family", ct.c_uint16),
-                ("size", ct.c_size_t),
-                ("userspacesize", ct.c_size_t),
-                ("help", ct.CFUNCTYPE(None)),
-                ("init", ct.CFUNCTYPE(None, ct.POINTER(xt_entry_target))),
-                # fourth parameter entry is struct ipt_entry for example
-                # int (*parse)(int c, char **argv, int invert,
-                #              unsigned int *flags, const void *entry,
-                #              struct xt_entry_target **target)
-                ("parse", ct.CFUNCTYPE(ct.c_int,
-                                       ct.POINTER(ct.c_char_p), ct.c_int,
-                                       ct.POINTER(ct.c_uint), ct.c_void_p,
-                                       ct.POINTER(ct.POINTER(
-                                           xt_entry_target)))),
-                ("final_check", ct.CFUNCTYPE(None, ct.c_uint)),
-                # prints out the target iff non-NULL: put space at end
-                # first parameter ip is struct ipt_ip * for example
-                ("print", ct.CFUNCTYPE(None, ct.c_void_p,
-                                       ct.POINTER(xt_entry_target), ct.c_int)),
-                # saves the target info in parsable form to stdout.
-                # first parameter ip is struct ipt_ip * for example
-                ("save", ct.CFUNCTYPE(None, ct.c_void_p,
-                                      ct.POINTER(xt_entry_target))),
-                # Print target name or alias
-                ("alias", ct.CFUNCTYPE(ct.c_char_p,
-                                       ct.POINTER(xt_entry_target))),
-                # pointer to list of extra command-line options
-                ("extra_opts", ct.POINTER(option)),
-
-                # introduced with the new iptables API
-                ("x6_parse", ct.CFUNCTYPE(None, ct.POINTER(xt_option_call))),
-                ("x6_fcheck", ct.CFUNCTYPE(None, ct.POINTER(xt_fcheck_call))),
-                ("x6_options", ct.POINTER(xt_option_entry)),
-
-                # Translate iptables to nft
-                ("xlate", ct.CFUNCTYPE(None, ct.c_void_p,
-                                       ct.POINTER(xt_entry_match),
-                                       ct.POINTER(xt_xlate), ct.c_int)),
-
-                # size of per-extension instance extra "global" scratch space
-                ("udata_size", ct.c_size_t),
-
-                # ignore these men behind the curtain:
-                ("udata", ct.c_void_p),
-                ("option_offset", ct.c_uint),
-                ("t", ct.POINTER(xt_entry_target)),
-                ("tflags", ct.c_uint),
-                ("used", ct.c_uint),
-                ("loaded", ct.c_uint)]
+_xtables_target_v11 = _xtables_target_v10
 
 
 class xtables_target(ct.Union):
