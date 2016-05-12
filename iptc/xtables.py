@@ -110,10 +110,6 @@ class xt_option_entry(ct.Structure):
                 ("max", ct.c_uint)]
 
 
-class xt_xlate(ct.Structure):
-    _fields_ = []
-
-
 class _U1(ct.Union):
     _fields_ = [("match", ct.POINTER(ct.POINTER(xt_entry_match))),
                 ("target", ct.POINTER(ct.POINTER(xt_entry_target)))]
