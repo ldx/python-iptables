@@ -84,7 +84,9 @@ class xtables_globals(ct.Structure):
                 ("program_version", ct.c_char_p),
                 ("orig_opts", ct.c_void_p),
                 ("opts", ct.c_void_p),
-                ("exit_err", ct.CFUNCTYPE(None, ct.c_int, ct.c_char_p))]
+                ("exit_err", ct.CFUNCTYPE(None, ct.c_int, ct.c_char_p)),
+                ("compat_rev", ct.CFUNCTYPE(ct.c_int, ct.c_char_p, ct.c_uint8,
+                                            ct.c_int))]
 
 
 # struct used by getopt()
@@ -758,6 +760,11 @@ _xt_globals.program_version = version.__version__.encode()
 _xt_globals.orig_opts = None
 _xt_globals.opts = None
 _xt_globals.exit_err = _xt_exit
+
+if xtables_version > 10:
+    _COMPAT_REV_FN = ct.CFUNCTYPE(ct.c_int, ct.c_char_p, ct.c_uint8, ct.c_int)
+    _xt_compat_rev = _COMPAT_REV_FN(_lib_xtables.xtables_compatible_revision)
+    _xt_globals.compat_rev = _xt_compat_rev
 
 
 _loaded_exts = {}
