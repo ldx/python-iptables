@@ -84,7 +84,9 @@ class xtables_globals(ct.Structure):
                 ("program_version", ct.c_char_p),
                 ("orig_opts", ct.c_void_p),
                 ("opts", ct.c_void_p),
-                ("exit_err", ct.CFUNCTYPE(None, ct.c_int, ct.c_char_p))]
+                ("exit_err", ct.CFUNCTYPE(None, ct.c_int, ct.c_char_p)),
+                ("compat_rev", ct.CFUNCTYPE(ct.c_int, ct.c_char_p, ct.c_uint8,
+                                            ct.c_int))]
 
 
 # struct used by getopt()
@@ -408,6 +410,9 @@ class _xtables_match_v10(ct.Structure):
                 ("loaded", ct.c_uint)]
 
 
+_xtables_match_v11 = _xtables_match_v10
+
+
 class xtables_match(ct.Union):
     _fields_ = [("v1", _xtables_match_v1),
                 ("v2", _xtables_match_v2),
@@ -418,7 +423,8 @@ class xtables_match(ct.Union):
                 ("v7", _xtables_match_v7),
                 # Apparently v8 was skipped
                 ("v9", _xtables_match_v9),
-                ("v10", _xtables_match_v10)]
+                ("v10", _xtables_match_v10),
+                ("v11", _xtables_match_v11)]
 
 
 class _xtables_target_v1(ct.Structure):
@@ -659,6 +665,9 @@ class _xtables_target_v10(ct.Structure):
                 ("loaded", ct.c_uint)]
 
 
+_xtables_target_v11 = _xtables_target_v10
+
+
 class xtables_target(ct.Union):
     _fields_ = [("v1", _xtables_target_v1),
                 ("v2", _xtables_target_v2),
@@ -669,7 +678,8 @@ class xtables_target(ct.Union):
                 ("v7", _xtables_target_v7),
                 # Apparently v8 was skipped
                 ("v9", _xtables_target_v9),
-                ("v10", _xtables_target_v10)]
+                ("v10", _xtables_target_v10),
+                ("v11", _xtables_target_v11)]
 
 
 class XTablesError(Exception):
@@ -746,6 +756,11 @@ _xt_globals.program_version = version.__version__.encode()
 _xt_globals.orig_opts = None
 _xt_globals.opts = None
 _xt_globals.exit_err = _xt_exit
+
+if xtables_version > 10:
+    _COMPAT_REV_FN = ct.CFUNCTYPE(ct.c_int, ct.c_char_p, ct.c_uint8, ct.c_int)
+    _xt_compat_rev = _COMPAT_REV_FN(_lib_xtables.xtables_compatible_revision)
+    _xt_globals.compat_rev = _xt_compat_rev
 
 
 _loaded_exts = {}
