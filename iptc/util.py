@@ -75,7 +75,7 @@ def _do_find_library(name):
 
 
 def _find_library(*names):
-    if version_info > (3, ):
+    if version_info >= (3, 3):
         ext = get_config_var("EXT_SUFFIX")
     else:
         ext = get_config_var('SO')
