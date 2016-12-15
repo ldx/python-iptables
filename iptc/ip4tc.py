@@ -980,7 +980,7 @@ class Rule(object):
         """Create a new *target*, and set it as this rule's target. *name* is
         the name of the target extension, *revision* is the revision to
         use. *goto* determines if target uses '-j' (default) or '-g'."""
-        target = Target(self, name=name, revision=revision, goto=False)
+        target = Target(self, name=name, revision=revision, goto=goto)
         self.target = target
         return target
 
