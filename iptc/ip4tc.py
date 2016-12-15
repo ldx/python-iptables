@@ -662,7 +662,7 @@ class Target(IPTCModule):
     does not take any value in the iptables extension, an empty string i.e. ""
     should be used.
     """
-    def __init__(self, rule, name=None, target=None, revision=None):
+    def __init__(self, rule, name=None, target=None, revision=None, goto=None):
         """
         *rule* is the Rule object this match belongs to; it can be changed
         later via *set_rule()*.  *name* is the name of the iptables target
@@ -672,6 +672,7 @@ class Target(IPTCModule):
         should be used; different revisions use different structures in C and
         they usually only work with certain kernel versions. Python-iptables
         by default will use the latest revision available.
+        If goto is True, then it converts '-j' to '-g'.
         """
         if name is None and target is None:
             raise ValueError("can't create target based on nothing")
@@ -681,6 +682,17 @@ class Target(IPTCModule):
         self._rule = rule
         self._orig_parse = None
         self._orig_options = None
+
+        if target is not None or goto is None:
+            # We are 'decoding' existing Target
+            self._goto = bool(rule.entry.ip.flags & ipt_ip.IPT_F_GOTO)
+        if goto is not None:
+            assert isinstance(goto, bool)
+            self._goto = goto
+            if goto:
+                rule.entry.ip.flags |= ipt_ip.IPT_F_GOTO
+            else:
+                rule.entry.ip.flags &= ~ipt_ip.IPT_F_GOTO
 
         self._xt = xtables(rule.nfproto)
 
@@ -831,6 +843,10 @@ class Target(IPTCModule):
     target = property(_get_target)
     """This is the C structure used by the extension."""
 
+    def _get_goto(self):
+        return self._goto
+    goto = property(_get_goto)
+
 
 class Policy(object):
     """
@@ -960,11 +976,11 @@ class Rule(object):
         self.add_match(match)
         return match
 
-    def create_target(self, name, revision=None):
+    def create_target(self, name, revision=None, goto=False):
         """Create a new *target*, and set it as this rule's target. *name* is
         the name of the target extension, *revision* is the revision to
-        use."""
-        target = Target(self, name=name, revision=revision)
+        use. *goto* determines if target uses '-j' (default) or '-g'."""
+        target = Target(self, name=name, revision=revision, goto=False)
         self.target = target
         return target
 
@@ -1207,7 +1223,10 @@ class Rule(object):
 
     def set_fragment(self, frag):
         self.entry.ip.invflags &= ~ipt_ip.IPT_INV_FRAG & ipt_ip.IPT_INV_MASK
-        self.entry.ip.flags = int(bool(frag))
+        if frag:
+            self.entry.ip.flags |= ipt_ip.IPT_F_FRAG
+        else:
+            self.entry.ip.flags &= ~ipt_ip.IPT_F_FRAG
 
     fragment = property(get_fragment, set_fragment)
     """This means that the rule refers to the second and further fragments of
