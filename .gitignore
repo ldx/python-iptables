@@ -13,3 +13,6 @@
 /Vagrantfile
 /.vagrant
 /tags
+
+# Added exclusion for PyCharm files
+.idea/*
