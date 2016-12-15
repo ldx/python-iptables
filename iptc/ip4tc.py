@@ -683,16 +683,27 @@ class Target(IPTCModule):
         self._orig_parse = None
         self._orig_options = None
 
+        # NOTE:
+        # get_ip() returns the 'ip' structure that contains (1)the 'flags' field, and
+        # (2)the value for the GOTO flag.
+        # We *must* use get_ip() because the actual name of the field containing the
+        # structure apparently differs between implementation
+        ipstruct = rule.get_ip()
+        f_goto_attrs = [a for a in dir(ipstruct) if a.endswith('_F_GOTO')]
+        if len(f_goto_attrs) == 0:
+            raise RuntimeError('What kind of struct is this? It does not have "*_F_GOTO" constant!')
+        _F_GOTO = getattr(ipstruct, f_goto_attrs[0])
+
         if target is not None or goto is None:
             # We are 'decoding' existing Target
-            self._goto = bool(rule.entry.ip.flags & ipt_ip.IPT_F_GOTO)
+            self._goto = bool(ipstruct.flags & _F_GOTO)
         if goto is not None:
             assert isinstance(goto, bool)
             self._goto = goto
             if goto:
-                rule.entry.ip.flags |= ipt_ip.IPT_F_GOTO
+                ipstruct.flags |= _F_GOTO
             else:
-                rule.entry.ip.flags &= ~ipt_ip.IPT_F_GOTO
+                ipstruct.flags &= ~_F_GOTO
 
         self._xt = xtables(rule.nfproto)
 
