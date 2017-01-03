@@ -20,6 +20,10 @@ try:
 except:
     pass
 
+# Add IPPROTO_SCTP to socket module if not available
+if not hasattr(socket, 'IPPROTO_SCTP'):
+    setattr(socket, 'IPPROTO_SCTP', 132)
+
 _IFNAMSIZ = 16
 
 _libc = ct.CDLL("libc.so.6")
@@ -932,6 +936,7 @@ class Rule(object):
                  socket.IPPROTO_RAW: "raw",
                  socket.IPPROTO_ROUTING: "routing",
                  socket.IPPROTO_RSVP: "rsvp",
+                 socket.IPPROTO_SCTP: "sctp",
                  socket.IPPROTO_TCP: "tcp",
                  socket.IPPROTO_TP: "tp",
                  socket.IPPROTO_UDP: "udp",
