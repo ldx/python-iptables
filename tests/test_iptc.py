@@ -432,7 +432,7 @@ class TestRule6(unittest.TestCase):
     def test_rule_protocol(self):
         rule = iptc.Rule6()
         for proto in ["tcp", "udp", "icmp", "AH", "ESP", "!TCP", "!UDP",
-                      "!ICMP", "!ah", "!esp"]:
+                      "!ICMP", "!ah", "!esp", "sctp", "!SCTP"]:
             rule.protocol = proto
             self.assertEquals(proto.lower(), rule.protocol)
         for proto in ["", "asdf", "!"]:
@@ -447,10 +447,10 @@ class TestRule6(unittest.TestCase):
 
     def test_rule_protocol_numeric(self):
         rule = iptc.Rule6()
-        rule.protocol = 132
-        self.assertEquals(rule.protocol, '132')
-        rule.protocol = '!132'
-        self.assertEquals(rule.protocol, '!132')
+        rule.protocol = 33
+        self.assertEquals(rule.protocol, '33')
+        rule.protocol = '!33'
+        self.assertEquals(rule.protocol, '!33')
 
     def test_rule_compare(self):
         r1 = iptc.Rule6()
@@ -677,10 +677,10 @@ class TestRule(unittest.TestCase):
 
     def test_rule_protocol_numeric(self):
         rule = iptc.Rule()
-        rule.protocol = 132
-        self.assertEquals(rule.protocol, '132')
-        rule.protocol = '!132'
-        self.assertEquals(rule.protocol, '!132')
+        rule.protocol = 33
+        self.assertEquals(rule.protocol, '33')
+        rule.protocol = '!33'
+        self.assertEquals(rule.protocol, '!33')
 
     def test_rule_compare(self):
         r1 = iptc.Rule()
