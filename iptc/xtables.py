@@ -666,6 +666,7 @@ class _xtables_target_v10(ct.Structure):
 
 
 _xtables_target_v11 = _xtables_target_v10
+_xtables_target_v12 = _xtables_target_v10
 
 
 class xtables_target(ct.Union):
@@ -679,7 +680,8 @@ class xtables_target(ct.Union):
                 # Apparently v8 was skipped
                 ("v9", _xtables_target_v9),
                 ("v10", _xtables_target_v10),
-                ("v11", _xtables_target_v11)]
+                ("v11", _xtables_target_v11),
+                ("v12", _xtables_target_v12)]
 
 
 class XTablesError(Exception):
