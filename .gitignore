@@ -19,6 +19,7 @@
 /.pybuild/
 *.egg-info
 
+# Debian build related files
 /debian/python-iptables/
 /debian/python3-iptables/
 /debian/python-iptables-dbg/
@@ -31,3 +32,6 @@
 /debian/*-stamp
 /debian/*.substvars
 
+
+# Added exclusion for PyCharm files
+.idea/*
