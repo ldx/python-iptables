@@ -21,6 +21,13 @@ override_dh_auto_install:
 		$$py -B setup.py install --root debian/python3-iptables --install-layout deb; \
 		$$py-dbg -B setup.py install --root debian/python3-iptables-dbg --install-layout deb; \
 	done
+	
+	# On Ubuntu 14.04 and possibly other versions, /usr/lib/python3/dist-packages is not
+	# included in the system library search path, so we add it here.
+	set -e; \
+	mkdir -p $(CURDIR)/debian/python3-iptables/etc/ld.so.conf.d; \
+	echo "/usr/lib/python3/dist-packages" > $(CURDIR)/debian/python3-iptables/etc/ld.so.conf.d/python3-dist-packages.conf
+	
 	set -e; \
 	for py in $(PY2VERS); do \
 		$$py -B setup.py install --root debian/python-iptables --install-layout deb; \

@@ -13,6 +13,25 @@
 /Vagrantfile
 /.vagrant
 /tags
+*/__pycache__/
+*.pyc
+/build/
+/.pybuild/
+*.egg-info
+
+# Debian build related files
+/debian/python-iptables/
+/debian/python3-iptables/
+/debian/python-iptables-dbg/
+/debian/python3-iptables-dbg/
+/debian/python-iptables-doc/
+/debian/files
+/debian/outfile
+/debian/*.debhelper
+/debian/*.log
+/debian/*-stamp
+/debian/*.substvars
+
 
 # Added exclusion for PyCharm files
 .idea/*
