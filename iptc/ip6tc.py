@@ -273,7 +273,7 @@ class Rule6(Rule):
             if plen >= 8:
                 mask.append(0xff)
             elif plen > 0:
-                mask.append(2 ** plen - 1)
+                mask.append(0xff>>(8-plen)<<(8-plen))
             else:
                 mask.append(0x00)
             plen -= 8
