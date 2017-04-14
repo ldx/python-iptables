@@ -374,6 +374,21 @@ class TestRule6(unittest.TestCase):
         self.chain.flush()
         self.chain.delete()
 
+    def test_create_mask(self):
+        rule = iptc.Rule6()
+
+        # Mask /10 should return \xff\xc0\x00...
+        mask = rule._create_mask(10)
+        self.assertEquals(mask[0], 0xff)
+        self.assertEquals(mask[1], 0xc0)
+        self.assertEquals(mask[2:], [0x00]*14)
+
+        # Mask /27 should return \xff\xff\xff\xe0...
+        mask = rule._create_mask(27)
+        self.assertEquals(mask[:3], [0xff, 0xff, 0xff])
+        self.assertEquals(mask[3], 0xe0)
+        self.assertEquals(mask[4:], [0x00]*12)
+
     def test_rule_address(self):
         # valid addresses
         rule = iptc.Rule6()
