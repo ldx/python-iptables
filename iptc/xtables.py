@@ -426,7 +426,7 @@ class xtables_match(ct.Union):
                 ("v9", _xtables_match_v9),
                 ("v10", _xtables_match_v10),
                 ("v11", _xtables_match_v11),
-                ("v11", _xtables_match_v12)]
+                ("v12", _xtables_match_v12)]
 
 
 class _xtables_target_v1(ct.Structure):
