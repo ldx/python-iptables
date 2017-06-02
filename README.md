@@ -537,3 +537,18 @@ or more rules, than commit it:
 
 The drawback is that Table is a singleton, and if you disable
 autocommit, it will be disabled for all instances of that Table.
+
+
+Known Issues
+============
+
+These issues are mainly caused by complex interaction with upstream's
+Netfilter implementation, and will require quite significant effort to
+fix. Workarounds are available.
+
+* [Issue #201](https://github.com/ldx/python-iptables/issues/201) 
+  -- The `hashlimit` match requires explicitly setting `hashlimit_htable_expire`
+
+* [Issue #204](https://github.com/ldx/python-iptables/issues/204) 
+  -- The `NOTRACK` target is problematic; use `CT --notrack` instead
+
