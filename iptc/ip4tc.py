@@ -1714,7 +1714,7 @@ class Table(object):
         rv = self._iptc.iptc_set_policy(chain.encode(), policy.encode(),
                                         cntrs, self._handle)
         if rv != 1:
-            raise IPTCError("can't set policy %s on chain %s: %s)" %
+            raise IPTCError("can't set policy %s on chain %s: %s" %
                             (policy, chain, self.strerror()))
 
     @autocommit
@@ -1739,7 +1739,7 @@ class Table(object):
                                           ct.cast(entry, ct.c_void_p),
                                           self._handle)
         if rv != 1:
-            raise IPTCError("can't append entry to chain %s: %s)" %
+            raise IPTCError("can't append entry to chain %s: %s" %
                             (chain, self.strerror()))
 
     @autocommit
@@ -1749,7 +1749,7 @@ class Table(object):
                                           ct.cast(entry, ct.c_void_p),
                                           position, self._handle)
         if rv != 1:
-            raise IPTCError("can't insert entry into chain %s: %s)" %
+            raise IPTCError("can't insert entry into chain %s: %s" %
                             (chain, self.strerror()))
 
     @autocommit
@@ -1759,7 +1759,7 @@ class Table(object):
                                            ct.cast(entry, ct.c_void_p),
                                            position, self._handle)
         if rv != 1:
-            raise IPTCError("can't replace entry in chain %s: %s)" %
+            raise IPTCError("can't replace entry in chain %s: %s" %
                             (chain, self.strerror()))
 
     @autocommit
@@ -1769,7 +1769,7 @@ class Table(object):
                                           ct.cast(entry, ct.c_void_p),
                                           mask, self._handle)
         if rv != 1:
-            raise IPTCError("can't delete entry from chain %s: %s)" %
+            raise IPTCError("can't delete entry from chain %s: %s" %
                             (chain, self.strerror()))
 
     def first_rule(self, chain):
