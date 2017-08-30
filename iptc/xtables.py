@@ -804,7 +804,7 @@ if _xtables_libdir is None:
     import os.path
     for xtdir in ["/lib/xtables", "/lib64/xtables", "/usr/lib/xtables",
                   "/usr/lib/iptables", "/usr/lib64/xtables",
-                  "/usr/lib64/iptables", "/usr/local/lib/xtables"]:
+                  "/usr/lib64/iptables", "/usr/local/lib/xtables", "/usr/lib/x86_64-linux-gnu/xtables"]:
         if os.path.isdir(xtdir):
             _xtables_libdir = xtdir
             break
