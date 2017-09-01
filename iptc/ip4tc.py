@@ -102,7 +102,7 @@ class ipt_entry(ct.Structure):
 class IPTCError(Exception):
     """This exception is raised when a low-level libiptc error occurs.
 
-    It contains a short description about the error that occured while
+    It contains a short description about the error that occurred while
     executing an iptables operation.
     """
 
