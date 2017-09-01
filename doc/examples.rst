@@ -153,19 +153,19 @@ in/out inteface etc is. To print out all rules in the FILTER table::
     >>> print "======================="
 
 As you see in the code snippet above, rules are organized into chains, and
-chains are in tables. You have a fixed set of tables; for IPv4::
+chains are in tables. You have a fixed set of tables; for IPv4:
 
-* FILTER,
-* NAT,
-* MANGLE and
-* RAW.
+* ``FILTER``,
+* ``NAT``,
+* ``MANGLE`` and
+* ``RAW``.
 
-For IPv6 the tables are::
+For IPv6 the tables are:
 
-* FILTER,
-* MANGLE,
-* RAW and
-* SECURITY.
+* ``FILTER``,
+* ``MANGLE``,
+* ``RAW`` and
+* ``SECURITY``.
 
 To access a table::
 
@@ -409,3 +409,13 @@ commit it::
 
 The drawback is that `Table` is a singleton, and if you disable autocommit, it
 will be disabled for all instances of that `Table`.
+
+Known Issues
+============
+
+These issues are mainly caused by complex interaction with upstream's
+Netfilter implementation, and will require quite significant effort to
+fix. Workarounds are available.
+
+- The ``hashlimit`` match requires explicitly setting ``hashlimit_htable_expire``. See `Issue #201 <https://github.com/ldx/python-iptables/issues/201>`_.
+- The ``NOTRACK`` target is problematic; use ``CT --notrack`` instead. See `Issue #204 <https://github.com/ldx/python-iptables/issues/204>`_.

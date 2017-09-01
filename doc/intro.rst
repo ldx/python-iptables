@@ -44,6 +44,14 @@ If you are looking for ``ebtables`` python bindings, check out
    :target: https://travis-ci.org/ldx/python-iptables
    :alt: Build Status
 
+.. image:: https://coveralls.io/repos/ldx/python-iptables/badge.svg?branch=codecoverage
+   :target: https://coveralls.io/r/ldx/python-iptables?branch=codecoverage
+   :alt: Coverage Status
+
+.. image:: https://landscape.io/github/ldx/python-iptables/codecoverage/landscape.svg
+   :target: https://landscape.io/github/ldx/python-iptables/codecoverage
+   :alt: Code Health
+
 .. image:: https://pypip.in/d/python-iptables/badge.png
    :target: https://pypi.python.org/pypi/python-iptables
    :alt: Number of Downloads
@@ -85,7 +93,7 @@ installs into ``/usr/local/lib``.
 
 Now you can run the tests::
 
-    % sudo PATH=$PATH ./test.py
+    % sudo PATH=$PATH python setup.py test
     WARNING: this test will manipulate iptables rules.
     Don't do this on a production machine.
     Would you like to continue? y/n y
