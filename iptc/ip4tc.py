@@ -1552,7 +1552,9 @@ class Table(object):
     """This is the constant for the raw table."""
     NAT = "nat"
     """This is the constant for the nat table."""
-    ALL = ["filter", "mangle", "raw", "nat"]
+    SECURITY = "security"
+    """This is the constant for the security table."""
+    ALL = ["filter", "mangle", "raw", "nat", "security"]
     """This is the constant for all tables."""
 
     _cache = dict()

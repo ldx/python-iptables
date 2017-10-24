@@ -571,9 +571,11 @@ class Table6(Table):
     """This is the constant for the mangle table."""
     RAW = "raw"
     """This is the constant for the raw table."""
+    NAT = "nat"
+    """This is the constant for the nat table."""
     SECURITY = "security"
     """This is the constant for the security table."""
-    ALL = ["filter", "mangle", "raw", "security"]
+    ALL = ["filter", "mangle", "raw", "nat", "security"]
     """This is the constant for all tables."""
 
     _cache = dict()
