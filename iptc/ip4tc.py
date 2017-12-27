@@ -1400,10 +1400,11 @@ class Chain(object):
     _cache = weakref.WeakValueDictionary()
 
     def __new__(cls, table, name):
-        obj = Chain._cache.get(table.name + "." + name, None)
+        table_name = type(table).__name__ + "." + table.name
+        obj = Chain._cache.get(table_name + "." + name, None)
         if not obj:
             obj = object.__new__(cls)
-            Chain._cache[table.name + "." + name] = obj
+            Chain._cache[table_name + "." + name] = obj
         return obj
 
     def __init__(self, table, name):
