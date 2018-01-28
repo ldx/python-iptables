@@ -8,6 +8,7 @@ import ctypes as ct
 import socket
 import struct
 import weakref
+import functools
 
 from .util import find_library, load_kernel
 from .xtables import (XT_INV_PROTO, NFPROTO_IPV4, XTablesError, xtables,
@@ -1513,6 +1514,7 @@ class Chain(object):
 
 
 def autocommit(fn):
+    @functools.wraps(fn)
     def new(*args):
         obj = args[0]
         ret = fn(*args)
