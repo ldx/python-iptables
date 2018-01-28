@@ -1448,8 +1448,9 @@ class Chain(object):
 
     def get_policy(self):
         """Returns the policy of the chain as a Policy object."""
-        policy, counters = self.table.get_policy(self.name)
+        policy, _counters = self.table.get_policy(self.name)
         return policy
+    policy = property(get_policy, set_policy)
 
     def is_builtin(self):
         """Returns whether the chain is a built-in one."""
@@ -1807,14 +1808,15 @@ class Table(object):
             chain = self._iptc.iptc_next_chain(self._handle)
         return chains
 
-    chains = property(_get_chains)
-    """List of chains in the table."""
+    @property
+    def chains(self):
+        return {c.name: c for c in self._get_chains()}
 
     def flush(self):
         """Flush and delete all non-builtin chains the table."""
-        for chain in self.chains:
+        for chain in self.chains.values():
             chain.flush()
-        for chain in self.chains:
+        for chain in self.chains.values():
             if not self.builtin_chain(chain):
                 self.delete_chain(chain)
 
