@@ -9,6 +9,7 @@ import socket
 import struct
 import weakref
 import functools
+import ipaddress
 
 from .util import find_library, load_kernel
 from .xtables import (XT_INV_PROTO, NFPROTO_IPV4, XTablesError, xtables,
@@ -269,6 +270,11 @@ class IPTCModule(object):
         self._ptr = None
         self._ptrptr = None
         raise NotImplementedError()
+
+    def __repr__(self):
+        params = ', '.join('{}={}'.format(a, b)
+                for a, b in self.parameters.items())
+        return '<{}: {}@{}>'.format(self.__class__.__name__, self.name, params)
 
     def set_parameter(self, parameter, value=None):
         """
@@ -973,6 +979,23 @@ class Rule(object):
     def __ne__(self, rule):
         return not self.__eq__(rule)
 
+    def __repr__(self):
+        if len(self.matches) > 1:
+            matches = 'matches: {}'.format(', '.join(m.name for m in self.matches))
+        elif len(self.matches) == 1:
+            m, = self.matches
+            matches = 'match: {}@{}'.format(m.name, ', '.join('{}={}'.format(k, v)
+                for k, v in m.get_all_parameters().items()))
+        else:
+            matches = 'no matches'
+        fmt = lambda ip: str(ipaddress.ip_network(ip)).replace('0.0.0.0/0', 'anywhere')
+        return '<Rule({}) {} -> {} {}>'.format(
+                self.target.name,
+                fmt(self.src),
+                fmt(self.dst),
+                matches)
+
+
     def _get_tables(self):
         return [Table(t) for t in Table.ALL if is_table_available(t)]
     tables = property(_get_tables)
@@ -1416,6 +1439,9 @@ class Chain(object):
         self.name = name
         self.table = table
 
+    def __repr__(self):
+        return '<Chain {} (policy {}, {} rules)>'.format(self.name, self.policy, len(self.rules))
+
     def delete(self):
         """Delete chain from its table."""
         self.table.delete_chain(self.name)
@@ -1588,6 +1614,9 @@ class Table(object):
 
     def __del__(self):
         self.close()
+
+    def __repr__(self):
+        return '<Table {} ({} chains)>'.format(self.name, len(self.chains))
 
     def close(self):
         """Close the underlying connection handle to iptables."""
