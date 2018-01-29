@@ -3,6 +3,7 @@
 """python-iptables setup script"""
 
 from setuptools import setup, Extension
+import sys
 #from distutils.core import setup, Extension
 
 # make pyflakes happy
@@ -23,6 +24,7 @@ setup(
     ext_modules=[Extension("libxtwrapper",
                            ["libxtwrapper/wrapper.c"])],
     test_suite="tests",
+    install_requires = [] if sys.version_info >= (3,3) else ['ipaddress'],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
