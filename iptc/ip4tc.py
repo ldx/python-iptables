@@ -989,9 +989,9 @@ class Rule(object):
                 for k, v in m.get_all_parameters().items()))
         else:
             matches = 'no matches'
-        fmt = lambda ip: str(ipaddress.ip_network(ip)).replace('0.0.0.0/0', 'anywhere')
+        fmt = lambda ip: str(ipaddress.ip_interface(ip)).replace('0.0.0.0/0', 'anywhere')
         return '<Rule({}) {} -> {} {}>'.format(
-                self.target.name,
+                self.target.name if self.target else 'no target',
                 fmt(self.src),
                 fmt(self.dst),
                 matches)
@@ -1441,7 +1441,10 @@ class Chain(object):
         self.table = table
 
     def __repr__(self):
-        return '<Chain {} (policy {}, {} rules)>'.format(self.name, self.policy, len(self.rules))
+        return '<Chain {} (policy {}, {} rules)>'.format(
+                self.name,
+                self.policy.name if self.policy else 'no policy',
+                len(self.rules))
 
     def delete(self):
         """Delete chain from its table."""

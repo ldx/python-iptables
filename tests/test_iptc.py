@@ -150,6 +150,16 @@ class TestTable(unittest.TestCase):
 
         self.assertEquals(len(iptc.Chain(filter_table, "OUTPUT").rules), 0)
 
+    def test_repr(self):
+        filter_table = iptc.Table(iptc.Table.FILTER)
+
+        s = repr(filter_table)
+        self.assertTrue(s.startswith('<Table'),
+                msg='{} does not start with "<Table"'.format(repr(s)))
+        self.assertTrue(s.endswith('>'),
+                msg='{} does not end with ">"'.format(repr(s)))
+        self.assertIn('filter', s)
+
 
 class TestChain(unittest.TestCase):
     def setUp(self):
@@ -363,6 +373,26 @@ class TestChain(unittest.TestCase):
                 pass
             else:
                 self.fail("managed to set FORWARD policy to RETURN")
+
+    def test_repr(self):
+        table = iptc.Table(iptc.Table.FILTER)
+        forward = iptc.Chain(table, 'FORWARD')
+
+        s = repr(forward)
+        self.assertTrue(s.startswith('<Chain'),
+                msg='{} does not start with "<Chain"'.format(repr(s)))
+        self.assertTrue(s.endswith('>'),
+                msg='{} does not end with ">"'.format(repr(s)))
+        self.assertIn('FORWARD', s)
+
+        test = iptc.Chain(table, 'iptc_test_chain')
+        s = repr(test)
+        self.assertTrue(s.startswith('<Chain'),
+                msg='{} does not start with "<Chain"'.format(repr(s)))
+        self.assertTrue(s.endswith('>'),
+                msg='{} does not end with ">"'.format(repr(s)))
+        self.assertIn('iptc_test_chain', s)
+        self.assertIn('no policy', s)
 
 
 class TestRule6(unittest.TestCase):
@@ -922,6 +952,102 @@ class TestRule(unittest.TestCase):
         self.table_nat.commit()
         self.table_nat.refresh()
 
+    def test_repr(self):
+        r = iptc.Rule()
+        r.src = "127.0.0.2/255.255.255.0"
+        r.dst = "224.1.2.3/255.255.0.0"
+        r.protocol = "tcp"
+        r.fragment = False
+        r.in_interface = "wlan+"
+        r.out_interface = "eth1"
+
+        s = repr(r)
+        self.assertTrue(s.startswith('<Rule'),
+                msg='{} does not start with "<Rule"'.format(repr(s)))
+        self.assertTrue(s.endswith('>'),
+                msg='{} does not end with ">"'.format(repr(s)))
+        self.assertIn('127.0.0.2', s)
+        self.assertIn('224.1.2.3', s)
+        self.assertIn('no matches', s)
+
+        r = iptc.Rule()
+        match = r.create_match('tcp')
+        match.sport = "1234"
+        match.dport = "8080"
+
+        s = repr(r)
+        self.assertTrue(s.startswith('<Rule'),
+                msg='{} does not start with "<Rule"'.format(repr(s)))
+        self.assertTrue(s.endswith('>'),
+                msg='{} does not end with ">"'.format(repr(s)))
+        self.assertIn('match: tcp', s)
+        self.assertIn('1234', s)
+
+        r = iptc.Rule()
+        m1 = r.create_match('tcp')
+        m1.sport = "1234"
+        m1.dport = "8080"
+        m2 = r.create_match('udp')
+        m2.sport = "1234"
+        m2.dport = "8080"
+
+        s = repr(r)
+        self.assertTrue(s.startswith('<Rule'),
+                msg='{} does not start with "<Rule"'.format(repr(s)))
+        self.assertTrue(s.endswith('>'),
+                msg='{} does not end with ">"'.format(repr(s)))
+        self.assertIn('matches:', s)
+        self.assertIn('tcp', s)
+        self.assertIn('udp', s)
+        self.assertNotIn('1234', s)
+
+
+class TestMatch(unittest.TestCase):
+    def test_repr(self):
+        rule = iptc.Rule()
+        rule.protocol = "tcp"
+        rule.src = "127.0.0.1"
+        rule.target = iptc.Target(rule, "DROP")
+        rule.protocol = "tcp"
+
+        match = rule.create_match('tcp')
+        match.dport = "80:90"
+
+        s = repr(match)
+        self.assertTrue(s.startswith('<Match'),
+                msg='{} does not start with "<Match"'.format(repr(s)))
+        self.assertTrue(s.endswith('>'),
+                msg='{} does not end with ">"'.format(repr(s)))
+        self.assertIn('tcp', s)
+        self.assertIn('dport=80:90', s)
+
+        match = rule.create_match('conntrack')
+
+        s = repr(match)
+        self.assertNotIn('tcp', s)
+        self.assertIn('conntrack', s)
+
+
+class TestTarget(unittest.TestCase):
+    def test_repr(self):
+        rule = iptc.Rule()
+        rule.protocol = "tcp"
+        rule.src = "127.0.0.1"
+        rule.target = iptc.Target(rule, "DROP")
+        rule.protocol = "tcp"
+
+        target = rule.create_target("RETURN")
+        s = repr(target)
+        self.assertTrue(s.startswith('<Target'),
+                msg='{} does not start with "<Target"'.format(repr(s)))
+        self.assertTrue(s.endswith('>'),
+                msg='{} does not end with ">"'.format(repr(s)))
+        self.assertIn('RETURN', s)
+
+        target = rule.create_target("ACCEPT")
+        s = repr(target)
+        self.assertIn('ACCEPT', s)
+
 
 def suite():
     suite_table6 = unittest.TestLoader().loadTestsFromTestCase(TestTable6)
@@ -929,8 +1055,11 @@ def suite():
     suite_chain = unittest.TestLoader().loadTestsFromTestCase(TestChain)
     suite_rule6 = unittest.TestLoader().loadTestsFromTestCase(TestRule6)
     suite_rule = unittest.TestLoader().loadTestsFromTestCase(TestRule)
+    suite_match = unittest.TestLoader().loadTestsFromTestCase(TestMatch)
+    suite_target = unittest.TestLoader().loadTestsFromTestCase(TestTarget)
     return unittest.TestSuite([suite_table6, suite_table, suite_chain,
-                               suite_rule6, suite_rule])
+                               suite_rule6, suite_rule, suite_match,
+                               suite_target])
 
 
 def run_tests():
