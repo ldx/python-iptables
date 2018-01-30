@@ -384,11 +384,12 @@ class IPTCModule(object):
         return self._save(name, self.rule.get_ip())
 
     def _save(self, name, ip):
-        buf = self._get_saved_buf(ip).decode()
+        buf = self._get_saved_buf(ip)
         if buf is None:
-            return None
+            return None if name else {}
         if not self._module or not self._module.save:
-            return None
+            return None if name else {}
+        buf = buf.decode()
         if name:
             return self._get_value(buf, name)
         else:
@@ -419,7 +420,7 @@ class IPTCModule(object):
         ip = self.rule.get_ip()
         buf = self._get_saved_buf(ip)
         if buf is None:
-            return params
+            return {}
         if type(buf) != str:
             # In Python3, string and bytes are different types.
             buf = buf.decode()
