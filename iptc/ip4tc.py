@@ -9,7 +9,6 @@ import socket
 import struct
 import weakref
 import functools
-import ipaddress
 
 from .util import find_library, load_kernel
 from .xtables import (XT_INV_PROTO, NFPROTO_IPV4, XTablesError, xtables,
@@ -1032,11 +1031,11 @@ class Rule(object):
                 for k, v in m.get_all_parameters().items()))
         else:
             matches = 'no matches'
-        fmt = lambda ip: str(ipaddress.ip_interface(ip)).replace('0.0.0.0/0', 'anywhere')
+
         return '<Rule({}) {} -> {} {}>'.format(
                 self.target.name if self.target else 'no target',
-                fmt(self.src),
-                fmt(self.dst),
+                self.src_numeric_mask,
+                self.dst_numeric_mask,
                 matches)
 
 
