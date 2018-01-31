@@ -798,10 +798,14 @@ _libc, _ = find_library("c")
 _optind = ct.c_long.in_dll(_libc, "optind")
 _optarg = ct.c_char_p.in_dll(_libc, "optarg")
 
-_lib_xtables, xtables_version = find_library("xtables")
+xtables_version = os.getenv("PYTHON_IPTABLES_XTABLES_VERSION")
+if xtables_version:
+    _searchlib = "libxtables.so.%s" % (xtables_version,)
+else:
+    _searchlib = "xtables"
+_lib_xtables, xtables_version = find_library(_searchlib)
 _xtables_libdir = os.getenv("XTABLES_LIBDIR")
 if _xtables_libdir is None:
-    import os.path
     for xtdir in ["/lib/xtables", "/lib64/xtables", "/usr/lib/xtables",
                   "/usr/lib/iptables", "/usr/lib64/xtables",
                   "/usr/lib64/iptables", "/usr/local/lib/xtables",
