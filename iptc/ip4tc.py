@@ -908,6 +908,49 @@ def _a_to_i(addr):
 def _i_to_a(ip):
     return struct.pack("I", int(ip.s_addr))
 
+def count_ones(num):
+    return bin(num).count('1')
+
+def format_int_ip(ip):
+    try:
+        return socket.inet_ntop(socket.AF_INET, _i_to_a(ip))
+    except socket.error:
+        raise IPTCError("invalid address in internal structure")
+
+def parse_int_ip(ip):
+        try:
+            return _a_to_i(socket.inet_pton(socket.AF_INET, ip))
+        except socket.error:
+            raise ValueError("invalid address "+str(ip))
+
+def format_ip(inv, ip, mask, numeric_mask=False):
+    return '{}{}/{}'.format('!' if inv else '', format_int_ip(ip),
+            count_ones(mask.s_addr) if numeric_mask else format_int_ip(mask))
+
+def parse_ip(ip):
+    inv = ip[0] == '!'
+    if inv:
+        ip = ip[1:]
+
+    if '/' not in ip:
+        addr, netm = ip, "255.255.255.255"
+    else:
+        addr, _, netm = ip.partition('/')
+
+    ina = in_addr()
+    ina.s_addr = ct.c_uint32(parse_int_ip(addr))
+
+    if not netm.isdigit():
+        nmask = parse_int_ip(netm)
+    else:
+        imask = int(netm)
+        if not 0 <= imask <= 31:
+            raise ValueError("invalid netmask %s" % (netm))
+        nmask = socket.htonl((2 ** imask - 1) << (32 - imask))
+    neta = in_addr()
+    neta.s_addr = ct.c_uint32(nmask)
+
+    return inv, ina, neta
 
 class Rule(object):
     """Rules are entries in chains.
@@ -997,10 +1040,10 @@ class Rule(object):
                 matches)
 
 
-    def _get_tables(self):
+    @property
+    def tables(self):
+        """This is the list of tables for our protocol."""
         return [Table(t) for t in Table.ALL if is_table_available(t)]
-    tables = property(_get_tables)
-    """This is the list of tables for our protocol."""
 
     def final_check(self):
         """Do a final check on the target and the matches."""
@@ -1037,142 +1080,74 @@ class Rule(object):
     def get_ip(self):
         return self.entry.ip
 
-    def _get_matches(self):
+    @property
+    def matches(self):
+        """This is the list of matches held in this rule."""
         return self._matches[:]  # return a copy
-    matches = property(_get_matches)
-    """This is the list of matches held in this rule."""
 
-    def _get_target(self):
+    @property
+    def target(self):
         return self._target
 
-    def _set_target(self, target):
+    @target.setter
+    def target(self, target):
+        """This is the target of the rule."""
         target.rule = self
         self._target = target
-    target = property(_get_target, _set_target)
-    """This is the target of the rule."""
 
-    def get_src(self):
-        src = ""
-        if self.entry.ip.invflags & ipt_ip.IPT_INV_SRCIP:
-            src = "".join([src, "!"])
-        paddr = _i_to_a(self.entry.ip.src)
-        try:
-            addr = socket.inet_ntop(socket.AF_INET, paddr)
-        except socket.error:
-            raise IPTCError("error in internal state: invalid address")
-        src = "".join([src, addr, "/"])
-        paddr = _i_to_a(self.entry.ip.smsk)
-        try:
-            netmask = socket.inet_ntop(socket.AF_INET, paddr)
-        except socket.error:
-            raise IPTCError("error in internal state: invalid netmask")
-        src = "".join([src, netmask])
-        return src
+    def _set_inv_b(self, flag, val):
+        self.entry.ip.invflags &= ~flag
+        if val:
+            self.entry.ip.invflags |= flag
 
-    def set_src(self, src):
-        if src[0] == "!":
-            self.entry.ip.invflags |= ipt_ip.IPT_INV_SRCIP
-            src = src[1:]
+    def _set_inv(self, flag, val):
+        if val[0] == '!':
+            self._set_inv_b(flag, True)
+            return val[1:]
         else:
-            self.entry.ip.invflags &= (~ipt_ip.IPT_INV_SRCIP &
-                                       ipt_ip.IPT_INV_MASK)
+            self._set_inv_b(flag, False)
+            return val
 
-        slash = src.find("/")
-        if slash == -1:
-            addr = src
-            netm = "255.255.255.255"
-        else:
-            addr = src[:slash]
-            netm = src[slash + 1:]
+    @property
+    def src(self):
+        """This is the source network address with an optional network mask in
+        string form."""
+        ip = self.entry.ip
+        return format_ip(ip.invflags & ipt_ip.IPT_INV_SRCIP, ip.src, ip.smsk)
 
-        try:
-            saddr = _a_to_i(socket.inet_pton(socket.AF_INET, addr))
-        except socket.error:
-            raise ValueError("invalid address %s" % (addr))
-        ina = in_addr()
-        ina.s_addr = ct.c_uint32(saddr)
-        self.entry.ip.src = ina
+    @src.setter
+    def src(self, src):
+        ip = self.entry.ip
+        src = self._set_inv(ipt_ip.IPT_INV_SRCIP, src)
+        inv, ip.src, ip.smsk = parse_ip(src)
 
-        if not netm.isdigit():
-            try:
-                nmask = _a_to_i(socket.inet_pton(socket.AF_INET, netm))
-            except socket.error:
-                raise ValueError("invalid netmask %s" % (netm))
-        else:
-            imask = int(netm)
-            if imask > 32 or imask < 0:
-                raise ValueError("invalid netmask %s" % (netm))
-            nmask = socket.htonl((2 ** imask - 1) << (32 - imask))
-        neta = in_addr()
-        neta.s_addr = ct.c_uint32(nmask)
+    @property
+    def src_numeric_mask(self):
+        ip = self.entry.ip
+        return format_ip(ip.invflags & ipt_ip.IPT_INV_SRCIP, ip.src, ip.smsk,
+                numeric_mask=True)
 
-        self.entry.ip.smsk = neta
+    @property
+    def dst(self):
+        """This is the destination network address with an optional network mask
+        in string form."""
+        ip = self.entry.ip
+        return format_ip(ip.invflags & ipt_ip.IPT_INV_DSTIP, ip.dst, ip.dmsk)
 
-    src = property(get_src, set_src)
-    """This is the source network address with an optional network mask in
-    string form."""
+    @dst.setter
+    def dst(self, dst):
+        ip = self.entry.ip
+        dst = self._set_inv(ipt_ip.IPT_INV_DSTIP, dst)
+        inv, ip.dst, ip.dmsk = parse_ip(dst)
 
-    def get_dst(self):
-        dst = ""
-        if self.entry.ip.invflags & ipt_ip.IPT_INV_DSTIP:
-            dst = "".join([dst, "!"])
-        paddr = _i_to_a(self.entry.ip.dst)
-        try:
-            addr = socket.inet_ntop(socket.AF_INET, paddr)
-        except socket.error:
-            raise IPTCError("error in internal state: invalid address")
-        dst = "".join([dst, addr, "/"])
-        paddr = _i_to_a(self.entry.ip.dmsk)
-        try:
-            netmask = socket.inet_ntop(socket.AF_INET, paddr)
-        except socket.error:
-            raise IPTCError("error in internal state: invalid netmask")
-        dst = "".join([dst, netmask])
-        return dst
+    @property
+    def dst_numeric_mask(self):
+        ip = self.entry.ip
+        return format_ip(ip.invflags & ipt_ip.IPT_INV_DSTIP, ip.dst, ip.dmsk,
+                numeric_mask=True)
 
-    def set_dst(self, dst):
-        if dst[0] == "!":
-            self.entry.ip.invflags |= ipt_ip.IPT_INV_DSTIP
-            dst = dst[1:]
-        else:
-            self.entry.ip.invflags &= (~ipt_ip.IPT_INV_DSTIP &
-                                       ipt_ip.IPT_INV_MASK)
-
-        slash = dst.find("/")
-        if slash == -1:
-            addr = dst
-            netm = "255.255.255.255"
-        else:
-            addr = dst[:slash]
-            netm = dst[slash + 1:]
-
-        try:
-            daddr = _a_to_i(socket.inet_pton(socket.AF_INET, addr))
-        except socket.error:
-            raise ValueError("invalid address %s" % (addr))
-        ina = in_addr()
-        ina.s_addr = ct.c_uint32(daddr)
-        self.entry.ip.dst = ina
-
-        if not netm.isdigit():
-            try:
-                nmask = _a_to_i(socket.inet_pton(socket.AF_INET, netm))
-            except socket.error:
-                raise ValueError("invalid netmask %s" % (netm))
-        else:
-            imask = int(netm)
-            if imask > 32 or imask < 0:
-                raise ValueError("invalid netmask %s" % (netm))
-            nmask = socket.htonl((2 ** imask - 1) << (32 - imask))
-        neta = in_addr()
-        neta.s_addr = ct.c_uint32(nmask)
-        self.entry.ip.dmsk = neta
-
-    dst = property(get_dst, set_dst)
-    """This is the destination network address with an optional network mask
-    in string form."""
-
-    def get_in_interface(self):
+    @property
+    def in_interface(self):
         intf = ""
         if self.entry.ip.invflags & ipt_ip.IPT_INV_VIA_IN:
             intf = "!"
@@ -1190,13 +1165,13 @@ class Rule(object):
 
         return intf
 
-    def set_in_interface(self, intf):
-        if intf[0] == "!":
-            self.entry.ip.invflags |= ipt_ip.IPT_INV_VIA_IN
-            intf = intf[1:]
-        else:
-            self.entry.ip.invflags &= (~ipt_ip.IPT_INV_VIA_IN &
-                                       ipt_ip.IPT_INV_MASK)
+    @in_interface.setter
+    def in_interface(self, intf):
+        """This is the input network interface e.g. *eth0*.  A wildcard match can
+        be achieved via *+* e.g. *ppp+* matches any *ppp* interface."""
+
+        intf = self._set_inv(ipt_ip.IPT_INV_VIA_IN, intf)
+
         if len(intf) >= _IFNAMSIZ:
             raise ValueError("interface name %s too long" % (intf))
         masklen = len(intf) + 1
@@ -1210,11 +1185,8 @@ class Rule(object):
                                                b'\x00' * (_IFNAMSIZ -
                                                           masklen)])
 
-    in_interface = property(get_in_interface, set_in_interface)
-    """This is the input network interface e.g. *eth0*.  A wildcard match can
-    be achieved via *+* e.g. *ppp+* matches any *ppp* interface."""
-
-    def get_out_interface(self):
+    @property
+    def out_interface(self):
         intf = ""
         if self.entry.ip.invflags & ipt_ip.IPT_INV_VIA_OUT:
             intf = "!"
@@ -1232,13 +1204,13 @@ class Rule(object):
 
         return intf
 
-    def set_out_interface(self, intf):
-        if intf[0] == "!":
-            self.entry.ip.invflags |= ipt_ip.IPT_INV_VIA_OUT
-            intf = intf[1:]
-        else:
-            self.entry.ip.invflags &= (~ipt_ip.IPT_INV_VIA_OUT &
-                                       ipt_ip.IPT_INV_MASK)
+    @out_interface.setter
+    def out_interface(self, intf):
+        """This is the output network interface e.g. *eth0*.  A wildcard match can
+        be achieved via *+* e.g. *ppp+* matches any *ppp* interface."""
+
+        intf = self._set_inv(ipt_ip.IPT_INV_VIA_OUT, intf)
+
         if len(intf) >= _IFNAMSIZ:
             raise ValueError("interface name %s too long" % (intf))
         masklen = len(intf) + 1
@@ -1252,28 +1224,21 @@ class Rule(object):
                                                 b'\x00' * (_IFNAMSIZ -
                                                            masklen)])
 
-    out_interface = property(get_out_interface, set_out_interface)
-    """This is the output network interface e.g. *eth0*.  A wildcard match can
-    be achieved via *+* e.g. *ppp+* matches any *ppp* interface."""
-
-    def get_fragment(self):
+    @property
+    def fragment(self):
         frag = bool(self.entry.ip.flags & ipt_ip.IPT_F_FRAG)
         if self.entry.ip.invflags & ipt_ip.IPT_INV_FRAG:
             frag = not frag
         return frag
 
-    def set_fragment(self, frag):
-        self.entry.ip.invflags &= ~ipt_ip.IPT_INV_FRAG & ipt_ip.IPT_INV_MASK
-        if frag:
-            self.entry.ip.flags |= ipt_ip.IPT_F_FRAG
-        else:
-            self.entry.ip.flags &= ~ipt_ip.IPT_F_FRAG
+    @fragment.setter
+    def fragment(self, frag):
+        """This means that the rule refers to the second and further fragments of
+        fragmented packets.  It can be *True* or *False*."""
+        self._set_inv_b(ipt_ip.IPT_INV_FRAG, frag)
 
-    fragment = property(get_fragment, set_fragment)
-    """This means that the rule refers to the second and further fragments of
-    fragmented packets.  It can be *True* or *False*."""
-
-    def get_protocol(self):
+    @property
+    def protocol(self):
         if self.entry.ip.invflags & ipt_ip.IPT_INV_PROTO:
             proto = "!"
         else:
@@ -1281,14 +1246,11 @@ class Rule(object):
         proto = "".join([proto, self.protocols.get(self.entry.ip.proto, str(self.entry.ip.proto))])
         return proto
 
-    def set_protocol(self, proto):
-        proto = str(proto)
-        if proto[0] == "!":
-            self.entry.ip.invflags |= ipt_ip.IPT_INV_PROTO
-            proto = proto[1:]
-        else:
-            self.entry.ip.invflags &= (~ipt_ip.IPT_INV_PROTO &
-                                       ipt_ip.IPT_INV_MASK)
+    @protocol.setter
+    def protocol(self, proto):
+        """This is the transport layer protocol."""
+        proto = self._set_inv(ipt_ip.IPT_INV_PROTO, str(proto))
+
         if proto.isdigit():
             self.entry.ip.proto = int(proto)
             return
@@ -1298,10 +1260,7 @@ class Rule(object):
                 return
         raise ValueError("invalid protocol %s" % (proto))
 
-    protocol = property(get_protocol, set_protocol)
-    """This is the transport layer protocol."""
-
-    def get_counters(self):
+    def counters(self):
         """This method returns a tuple pair of the packet and byte counters of
         the rule."""
         counters = self.entry.counters
