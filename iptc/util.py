@@ -52,6 +52,11 @@ def load_kernel(name, exc_if_failed=False):
 
 
 def _do_find_library(name):
+    if '/' in name:
+        try:
+            return ctypes.CDLL(name, mode=ctypes.RTLD_GLOBAL)
+        except Exception:
+            return None
     p = ctypes.util.find_library(name)
     if p:
         lib = ctypes.CDLL(p, mode=ctypes.RTLD_GLOBAL)
