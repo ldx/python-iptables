@@ -34,7 +34,7 @@ If you are looking for `ebtables` python bindings, check out
 
 [![Flattr](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=ldx&url=https%3A%2F%2Fgithub.com%2Fldx%2Fpython-iptables)
 
-[![Latest Release](https://pypip.in/v/python-iptables/badge.png)](https://pypi.python.org/pypi/python-iptables)
+[![Latest Release](https://img.shields.io/pypi/v/python-iptables.svg)](https://pypi.python.org/pypi/python-iptables)
 
 [![Build Status](https://travis-ci.org/ldx/python-iptables.png?branch=master)](https://travis-ci.org/ldx/python-iptables)
 
@@ -42,9 +42,9 @@ If you are looking for `ebtables` python bindings, check out
 
 [![Code Health](https://landscape.io/github/ldx/python-iptables/codecoverage/landscape.svg)](https://landscape.io/github/ldx/python-iptables/codecoverage)
 
-[![Number of Downloads](https://pypip.in/d/python-iptables/badge.png)](https://pypi.python.org/pypi/python-iptables)
+[![Number of Downloads](https://img.shields.io/pypi/dm/python-iptables.svg)](https://pypi.python.org/pypi/python-iptables)
 
-[![License](https://pypip.in/license/python-iptables/badge.png)](https://pypi.python.org/pypi/python-iptables)
+[![License](https://img.shields.io/pypi/l/python-iptables.svg)](https://pypi.python.org/pypi/python-iptables)
 
 Installing via pip
 ------------------
