@@ -1492,12 +1492,16 @@ def _filter_empty_field(data_d):
     Remove empty lists from dictionary values
     Before: {'target': {'CHECKSUM': {'checksum-fill': []}}}
     After:  {'target': {'CHECKSUM': {'checksum-fill': ''}}}
+    Before: {'tcp': {'dport': ['22']}}}
+    After:  {'tcp': {'dport': '22'}}}
     """
     for k, v in data_d.items():
         if isinstance(v, dict):
             data_d[k] = _filter_empty_field(v)
         elif isinstance(v, list) and len(v) != 0:
             v = [_filter_empty_field(_v) if isinstance(_v, dict) else _v for _v in v ]
+        if isinstance(v, list) and len(v) == 1:
+            data_d[k] = v.pop()
         elif isinstance(v, list) and len(v) == 0:
             data_d[k] = ''
     return data_d
