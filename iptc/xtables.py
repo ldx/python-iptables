@@ -809,7 +809,7 @@ if _xtables_libdir is None:
     import subprocess
     ldconfig = subprocess.Popen(
         ('ldconfig', '-N', '-v'),
-        stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, universal_newlines=True
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
     )
     ldconfig_out, ldconfig_err = ldconfig.communicate()
     if ldconfig.returncode != 0:
