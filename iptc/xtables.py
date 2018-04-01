@@ -817,7 +817,7 @@ if _xtables_libdir is None:
     for ldconfig_out_line in ldconfig_out.splitlines():
         ldconfig_path_regex_match = ldconfig_path_regex.match(ldconfig_out_line)
         if ldconfig_path_regex_match is not None:
-            ldconfig_path = ldconfig_path_regex_match.group(1)
+            ldconfig_path = os.path.join(ldconfig_path_regex_match.group(1), 'xtables')
             if os.path.isdir(ldconfig_path):
                 _xtables_libdir = ldconfig_path
                 break
