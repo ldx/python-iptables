@@ -7,6 +7,7 @@ import weakref
 
 from . import version
 from .util import find_library
+from .errors import *
 
 XT_INV_PROTO = 0x40  # invert the sense of PROTO
 
@@ -790,9 +791,6 @@ class xtables_target(ct.Union):
                 ("v11", _xtables_target_v11),
                 ("v12", _xtables_target_v12)]
 
-class XTablesError(Exception):
-    """Raised when an xtables call fails for some reason."""
-
 
 _libc, _ = find_library("c")
 _optind = ct.c_long.in_dll(_libc, "optind")
@@ -806,13 +804,23 @@ else:
 _lib_xtables, xtables_version = find_library(_searchlib)
 _xtables_libdir = os.getenv("XTABLES_LIBDIR")
 if _xtables_libdir is None:
-    for xtdir in ["/lib/xtables", "/lib64/xtables", "/usr/lib/xtables",
-                  "/usr/lib/iptables", "/usr/lib64/xtables",
-                  "/usr/lib64/iptables", "/usr/local/lib/xtables",
-                  "/usr/lib/x86_64-linux-gnu/xtables"]:
-        if os.path.isdir(xtdir):
-            _xtables_libdir = xtdir
-            break
+    import re
+    ldconfig_path_regex = re.compile('^(/.*):$')
+    import subprocess
+    ldconfig = subprocess.Popen(
+        ('ldconfig', '-N', '-v'),
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
+    )
+    ldconfig_out, ldconfig_err = ldconfig.communicate()
+    if ldconfig.returncode != 0:
+        raise XTablesError("ldconfig failed, please set XTABLES_LIBDIR")
+    for ldconfig_out_line in ldconfig_out.splitlines():
+        ldconfig_path_regex_match = ldconfig_path_regex.match(ldconfig_out_line)
+        if ldconfig_path_regex_match is not None:
+            ldconfig_path = os.path.join(ldconfig_path_regex_match.group(1), 'xtables')
+            if os.path.isdir(ldconfig_path):
+                _xtables_libdir = ldconfig_path
+                break
 if _xtables_libdir is None:
     raise XTablesError("can't find directory with extensions; "
                        "please set XTABLES_LIBDIR")
