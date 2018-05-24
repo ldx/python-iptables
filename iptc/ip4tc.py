@@ -387,11 +387,18 @@ class IPTCModule(object):
         else:
             return self._get_all_values(buf)
 
+    def _unquote_value(self, value):
+        value = value.replace("\\\\", "\\")
+        value = value.replace("\\\"", "\"")
+        value = value.replace("\\'", "'")
+        return value
+
     def _get_all_values(self, buf):
         table = {}  # variable -> (value, inverted)
         res = re.findall(IPTCModule.pattern, buf)
         for x in res:
             value, invert = (x[3], x[0] or x[2])
+            value = self._unquote_value(value)
             table[x[1].replace("-", "_")] = "%s%s" % (invert and "!" or "",
                                                       value)
         return table
@@ -403,6 +410,7 @@ class IPTCModule(object):
             table[x[1]] = (x[3], x[0] or x[2])
         try:
             value, invert = table[name]
+            value = self._unquote_value(value)
             return "%s%s" % (invert and "!" or "", value)
         except KeyError:
             return None
@@ -420,7 +428,7 @@ class IPTCModule(object):
         res.reverse()
         inv = False
         while len(res) > 0:
-            x = res.pop()
+            x = self._unquote_value(res.pop())
             if x == '!':
                 # Next parameter is negated.
                 inv = True
