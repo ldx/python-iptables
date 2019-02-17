@@ -410,6 +410,21 @@ commit it::
 The drawback is that `Table` is a singleton, and if you disable autocommit, it
 will be disabled for all instances of that `Table`.
 
+Easy rules with dictionaries
+----------------------------
+To simplify operations with ``python-iptables`` rules we have included support to define and convert Rules object into python dictionaries.
+
+    >>> import iptc
+    >>> table = iptc.Table(iptc.Table.FILTER)
+    >>> chain = iptc.Chain(table, "INPUT")
+    >>> # Create an iptc.Rule object from dictionary
+    >>> rule_d = {'comment': {'comment': 'Match tcp.22'}, 'protocol': 'tcp', 'target': 'ACCEPT', 'tcp': {'dport': '22'}}
+    >>> rule = iptc.Rule.from_dict(rule_d)
+    >>> # Obtain a dictionary representation from the iptc.Rule
+    >>> rule.to_dict()
+    {'tcp': {'dport': '22'}, 'protocol': 'tcp', 'comment': {'comment': 'Match tcp.22'}, 'target': 'ACCEPT'}
+
+
 Known Issues
 ============
 
