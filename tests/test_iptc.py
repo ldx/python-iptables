@@ -574,6 +574,23 @@ class TestRule6(unittest.TestCase):
             self.failUnless(rule in crules)
             crules.remove(rule)
 
+    def test_rule_to_dict(self):
+        rule = iptc.Rule6()
+        rule.protocol = "tcp"
+        rule.src = "::1"
+        target = iptc.Target(rule, "ACCEPT")
+        rule.target = target
+        rule_d = rule.to_dict()
+        self.assertEqual(rule_d, {"protocol": "tcp", "src": "::1/128", "target": "ACCEPT"})
+
+    def test_rule_from_dict(self):
+        rule = iptc.Rule6()
+        rule.protocol = "tcp"
+        rule.src = "::1"
+        target = iptc.Target(rule, "ACCEPT")
+        rule.target = target
+        rule2 = iptc.Rule6.from_dict({"protocol": "tcp", "src": "::1/128", "target": "ACCEPT"})
+        self.assertEqual(rule, rule2)
 
 class TestRule(unittest.TestCase):
     def setUp(self):
@@ -915,6 +932,23 @@ class TestRule(unittest.TestCase):
         self.table_nat.commit()
         self.table_nat.refresh()
 
+    def test_rule_to_dict(self):
+        rule = iptc.Rule()
+        rule.protocol = "tcp"
+        rule.src = "127.0.0.1"
+        target = iptc.Target(rule, "ACCEPT")
+        rule.target = target
+        rule_d = rule.to_dict()
+        self.assertEqual(rule_d, {"protocol": "tcp", "src": "127.0.0.1/255.255.255.255", "target": "ACCEPT"})
+
+    def test_rule_from_dict(self):
+        rule = iptc.Rule()
+        rule.protocol = "tcp"
+        rule.src = "127.0.0.1"
+        target = iptc.Target(rule, "ACCEPT")
+        rule.target = target
+        rule2 = iptc.Rule.from_dict({"protocol": "tcp", "src": "127.0.0.1/255.255.255.255", "target": "ACCEPT"})
+        self.assertEqual(rule, rule2)
 
 def suite():
     suite_table6 = unittest.TestLoader().loadTestsFromTestCase(TestTable6)

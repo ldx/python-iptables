@@ -10,7 +10,7 @@ import struct
 import weakref
 
 from .util import find_library, load_kernel
-from .xtables import (XT_INV_PROTO, NFPROTO_IPV4, XTablesError, xtables,
+from .xtables import (XT_INV_PROTO, NFPROTO_IPV4, NFPROTO_IPV6, XTablesError, xtables,
                       xt_align, xt_counters, xt_entry_target, xt_entry_match)
 
 __all__ = ["Table", "Chain", "Rule", "Match", "Target", "Policy", "IPTCError"]
@@ -1388,6 +1388,123 @@ class Rule(object):
 
     mask = property(_get_mask)
     """This is the raw mask buffer as iptables uses it when removing rules."""
+
+    @classmethod
+    def from_dict(cls, rule_d):
+        """Generate a Rule(6) object from the input dictionary."""
+        # Sanity check
+        assert(isinstance(rule_d, dict))
+        # Basic rule attributes
+        rule_attr = ('src', 'dst', 'protocol', 'in-interface', 'out-interface', 'fragment')
+        iptc_rule = cls()
+        # Avoid issues with matches that require basic parameters to be configured first
+        for name in rule_attr:
+            if name in rule_d:
+                _iptc_setrule(iptc_rule, name, rule_d[name])
+        for name, value in rule_d.items():
+            try:
+                if name in rule_attr:
+                    #_iptc_setrule(iptc_rule, name, value)
+                    continue
+                elif name == 'target':
+                    _iptc_settarget(iptc_rule, value)
+                else:
+                    _iptc_setmatch(iptc_rule, name, value)
+            except Exception as e:
+                #print('Ignoring unsupported field <{}:{}>'.format(name, value))
+                continue
+        return iptc_rule
+
+    def to_dict(self):
+        """Generate a dictionary representation of the Rule(6) object."""
+        d = {}
+        if self.nfproto==NFPROTO_IPV4 and self.src != '0.0.0.0/0.0.0.0':
+            d['src'] = self.src
+        elif self.nfproto==NFPROTO_IPV6 and self.src != '::/0':
+            d['src'] = self.src
+        if self.nfproto==NFPROTO_IPV4 and self.dst != '0.0.0.0/0.0.0.0':
+            d['dst'] = self.dst
+        elif self.nfproto==NFPROTO_IPV6 and self.dst != '::/0':
+            d['dst'] = self.dst
+        if self.protocol != 'ip':
+            d['protocol'] = self.protocol
+        if self.in_interface is not None:
+            d['in-interface'] = self.in_interface
+        if self.out_interface is not None:
+            d['out-interface'] = self.out_interface
+        if self.nfproto==NFPROTO_IPV4 and self.fragment:
+            d['fragment'] = self.fragment
+        for m in self.matches:
+            if m.name not in d:
+                d[m.name] = m.get_all_parameters()
+            elif isinstance(d[m.name], list):
+                d[m.name].append(m.get_all_parameters())
+            else:
+                d[m.name] = [d[m.name], m.get_all_parameters()]
+        if self.target and self.target.name and len(self.target.get_all_parameters()):
+            name = self.target.name.replace('-', '_')
+            d['target'] = {name:self.target.get_all_parameters()}
+        elif self.target and self.target.name:
+            d['target'] = self.target.name
+        # Return a filtered dictionary
+        return _filter_empty_field(d)
+
+# Helper functions for dictionary operations over Rule(6) objects
+def _iptc_setattr(object, name, value):
+    # Translate attribute name
+    name = name.replace('-', '_')
+    setattr(object, name, value)
+
+def _iptc_setattr_d(object, value_d):
+    for name, value in value_d.items():
+        _iptc_setattr(object, name, value)
+
+def _iptc_setrule(iptc_rule, name, value):
+    _iptc_setattr(iptc_rule, name, value)
+
+def _iptc_setmatch(iptc_rule, name, value):
+    # Iterate list/tuple recursively
+    if isinstance(value, list) or isinstance(value, tuple):
+        for inner_value in value:
+            _iptc_setmatch(iptc_rule, name, inner_value)
+    # Assign dictionary value
+    elif isinstance(value, dict):
+        iptc_match = iptc_rule.create_match(name)
+        _iptc_setattr_d(iptc_match, value)
+    # Assign value directly
+    else:
+        iptc_match = iptc_rule.create_match(name)
+        _iptc_setattr(iptc_match, name, value)
+
+def _iptc_settarget(iptc_rule, value):
+    # Target is dictionary - Use only 1 pair key/value
+    if isinstance(value, dict):
+        for k, v in value.items():
+            iptc_target = iptc_rule.create_target(k)
+            _iptc_setattr_d(iptc_target, v)
+            return
+    # Simple target
+    else:
+        iptc_target = iptc_rule.create_target(value)
+
+def _filter_empty_field(data_d):
+    """
+    Remove empty lists from dictionary values
+    Before: {'target': {'CHECKSUM': {'checksum-fill': []}}}
+    After:  {'target': {'CHECKSUM': {'checksum-fill': ''}}}
+    Before: {'tcp': {'dport': ['22']}}}
+    After:  {'tcp': {'dport': '22'}}}
+    """
+    for k, v in data_d.items():
+        if isinstance(v, dict):
+            data_d[k] = _filter_empty_field(v)
+        elif isinstance(v, list) and len(v) != 0:
+            v = [_filter_empty_field(_v) if isinstance(_v, dict) else _v for _v in v ]
+        if isinstance(v, list) and len(v) == 1:
+            data_d[k] = v.pop()
+        elif isinstance(v, list) and len(v) == 0:
+            data_d[k] = ''
+    return data_d
 
 
 class Chain(object):
