@@ -140,7 +140,7 @@ def replace_rule(table, chain, old_rule_d, new_rule_d, ipv6=False):
     iptc_new_rule = encode_iptc_rule(new_rule_d, ipv6)
     iptc_chain.replace_rule(iptc_new_rule, iptc_chain.rules.index(iptc_old_rule))
 
-def get_rule_statistics(table, chain, rule_d, ipv6=False):
+def get_rule_counters(table, chain, rule_d, ipv6=False):
     """ Return a tuple with the rule counters (numberOfBytes, numberOfPackets) """
     if not has_rule(table, chain, rule_d, ipv6):
         raise AttributeError('Chain <{}@{}> has no rule <{}>'.format(chain, table, rule_d))
