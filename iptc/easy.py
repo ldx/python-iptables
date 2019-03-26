@@ -188,26 +188,16 @@ def test_target(name, value, ipv6=False):
 
 def dump_all(ipv6=False):
     """ Return a dictionary representation of all tables """
-    d = {}
-    for table in get_tables(ipv6):
-        d[table] = dump_table(table, ipv6)
-    return d
+    return {table: dump_table(table, ipv6) for table in get_tables(ipv6)}
 
 def dump_table(table, ipv6=False):
     """ Return a dictionary representation of a table """
-    d = {}
-    iptc_table = _iptc_gettable(table, ipv6)
-    for iptc_chain in iptc_table.chains:
-        d[iptc_chain.name] = dump_chain(iptc_table.name, iptc_chain.name, ipv6)
-    return d
+    return {chain: dump_chain(table, chain, ipv6) for chain in get_chains(table, ipv6)}
 
 def dump_chain(table, chain, ipv6=False):
     """ Return a list with the dictionary representation of the rules of a table """
-    l = []
     iptc_chain = _iptc_getchain(table, chain, ipv6)
-    for i, iptc_rule in enumerate(iptc_chain.rules):
-        l.append(_decode_iptc_rule(iptc_rule, ipv6))
-    return l
+    return [_decode_iptc_rule(iptc_rule, ipv6) for iptc_rule in iptc_chain.rules]
 
 
 def batch_begin(table = None, ipv6=False):
