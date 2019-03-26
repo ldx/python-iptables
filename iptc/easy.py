@@ -29,8 +29,7 @@ def flush_chain(table, chain, ipv6=False, raise_exc=True):
 
 def zero_all(table, ipv6=False):
     """ Zero all tables """
-    table_cls = Table6 if ipv6 else Table
-    for table in table_cls.ALL:
+    for table in get_tables(ipv6):
         zero_table(table, ipv6)
 
 def zero_table(table, ipv6=False):
