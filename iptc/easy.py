@@ -49,7 +49,7 @@ def has_chain(table, chain, ipv6=False):
 def has_rule(table, chain, rule_d, ipv6=False):
     """ Return True if rule exists in chain False otherwise """
     iptc_chain = _iptc_getchain(table, chain, ipv6)
-    iptc_rule  = _encode_iptc_rule(rule_d, ipv6)
+    iptc_rule  = encode_iptc_rule(rule_d, ipv6)
     return iptc_rule in iptc_chain.rules
 
 def add_chain(table, chain, ipv6=False, raise_exc=True):
@@ -65,7 +65,7 @@ def add_chain(table, chain, ipv6=False, raise_exc=True):
 def add_rule(table, chain, rule_d, position=0, ipv6=False):
     """ Add a rule to a chain in a given position. 0=append, 1=first, n=nth position """
     iptc_chain = _iptc_getchain(table, chain, ipv6)
-    iptc_rule  = _encode_iptc_rule(rule_d, ipv6)
+    iptc_rule  = encode_iptc_rule(rule_d, ipv6)
     if position == 0:
         # Insert rule in last position -> append
         iptc_chain.append_rule(iptc_rule)
@@ -99,7 +99,7 @@ def delete_rule(table, chain, rule_d, ipv6=False, raise_exc=True):
     """ Delete a rule from a chain """
     try:
         iptc_chain = _iptc_getchain(table, chain, ipv6)
-        iptc_rule  = _encode_iptc_rule(rule_d, ipv6)
+        iptc_rule  = encode_iptc_rule(rule_d, ipv6)
         iptc_chain.delete_rule(iptc_rule)
     except Exception as e:
         if raise_exc: raise
@@ -124,20 +124,20 @@ def get_rule(table, chain, position=0, ipv6=False, raise_exc=True):
             # Return specific rule by position
             iptc_chain = _iptc_getchain(table, chain, ipv6)
             iptc_rule = iptc_chain.rules[position - 1]
-            return _decode_iptc_rule(iptc_rule, ipv6)
+            return decode_iptc_rule(iptc_rule, ipv6)
         elif position < 0:
             # Return last rule  -> not available in iptables CLI
             iptc_chain = _iptc_getchain(table, chain, ipv6)
             iptc_rule = iptc_chain.rules[position]
-            return _decode_iptc_rule(iptc_rule, ipv6)
+            return decode_iptc_rule(iptc_rule, ipv6)
     except Exception as e:
         if raise_exc: raise
 
 def replace_rule(table, chain, old_rule_d, new_rule_d, ipv6=False):
     """ Replaces an existing rule of a chain """
     iptc_chain = _iptc_getchain(table, chain, ipv6)
-    iptc_old_rule = _encode_iptc_rule(old_rule_d, ipv6)
-    iptc_new_rule = _encode_iptc_rule(new_rule_d, ipv6)
+    iptc_old_rule = encode_iptc_rule(old_rule_d, ipv6)
+    iptc_new_rule = encode_iptc_rule(new_rule_d, ipv6)
     iptc_chain.replace_rule(iptc_new_rule, iptc_chain.rules.index(iptc_old_rule))
 
 def get_rule_statistics(table, chain, rule_d, ipv6=False):
@@ -145,7 +145,7 @@ def get_rule_statistics(table, chain, rule_d, ipv6=False):
     if not has_rule(table, chain, rule_d, ipv6):
         raise AttributeError('Chain <{}@{}> has no rule <{}>'.format(chain, table, rule_d))
     iptc_chain = _iptc_getchain(table, chain, ipv6)
-    iptc_rule  = _encode_iptc_rule(rule_d, ipv6)
+    iptc_rule  = encode_iptc_rule(rule_d, ipv6)
     iptc_rule_index = iptc_chain.rules.index(iptc_rule)
     return iptc_chain.rules[iptc_rule_index].get_counters()
 
@@ -154,14 +154,14 @@ def get_rule_position(table, chain, rule_d, ipv6=False):
     if not has_rule(table, chain, rule_d):
         raise AttributeError('Chain <{}@{}> has no rule <{}>'.format(chain, table, rule_d))
     iptc_chain = _iptc_getchain(table, chain, ipv6)
-    iptc_rule  = _encode_iptc_rule(rule_d, ipv6)
+    iptc_rule  = encode_iptc_rule(rule_d, ipv6)
     return iptc_chain.rules.index(iptc_rule)
 
 
 def test_rule(rule_d, ipv6=False):
     """ Return True if the rule is a well-formed dictionary, False otherwise """
     try:
-        _encode_iptc_rule(rule_d, ipv6)
+        encode_iptc_rule(rule_d, ipv6)
         return True
     except:
         return False
@@ -196,7 +196,7 @@ def dump_table(table, ipv6=False):
 def dump_chain(table, chain, ipv6=False):
     """ Return a list with the dictionary representation of the rules of a table """
     iptc_chain = _iptc_getchain(table, chain, ipv6)
-    return [_decode_iptc_rule(iptc_rule, ipv6) for iptc_rule in iptc_chain.rules]
+    return [decode_iptc_rule(iptc_rule, ipv6) for iptc_rule in iptc_chain.rules]
 
 
 def batch_begin(table = None, ipv6=False):
@@ -248,7 +248,7 @@ def batch_add_rules(table, batch_rules, ipv6=False):
     iptc_table = _batch_begin_table(table, ipv6)
     for (chain, rule_d, position) in batch_rules:
         iptc_chain = Chain(iptc_table, chain)
-        iptc_rule  = _encode_iptc_rule(rule_d, ipv6)
+        iptc_rule  = encode_iptc_rule(rule_d, ipv6)
         if position == 0:
             # Insert rule in last position -> append
             iptc_chain.append_rule(iptc_rule)
@@ -267,7 +267,7 @@ def batch_delete_rules(table, batch_rules, ipv6=False, raise_exc=True):
         iptc_table = _batch_begin_table(table, ipv6)
         for (chain, rule_d) in batch_rules:
             iptc_chain = Chain(iptc_table, chain)
-            iptc_rule  = _encode_iptc_rule(rule_d, ipv6)
+            iptc_rule  = encode_iptc_rule(rule_d, ipv6)
             iptc_chain.delete_rule(iptc_rule)
         _batch_end_table(table, ipv6)
     except Exception as e:
@@ -343,7 +343,7 @@ def _iptc_settarget(iptc_rule, value):
     else:
         iptc_target = iptc_rule.create_target(value)
 
-def _encode_iptc_rule(rule_d, ipv6=False):
+def encode_iptc_rule(rule_d, ipv6=False):
     # Sanity check
     assert(isinstance(rule_d, dict))
     # Basic rule attributes
@@ -367,7 +367,7 @@ def _encode_iptc_rule(rule_d, ipv6=False):
             continue
     return iptc_rule
 
-def _decode_iptc_rule(iptc_rule, ipv6=False):
+def decode_iptc_rule(iptc_rule, ipv6=False):
     """ Return a dictionary representation of an iptc_rule """
     d = {}
     if ipv6==False and iptc_rule.src != '0.0.0.0/0.0.0.0':
