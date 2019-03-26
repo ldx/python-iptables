@@ -185,6 +185,17 @@ def test_target(name, value, ipv6=False):
         return False
 
 
+def get_policy(table, chain, ipv6=False):
+    """ Return the default policy of chain in a table """
+    iptc_chain = _iptc_getchain(table, chain, ipv6)
+    return iptc_chain.get_policy().name
+
+def set_policy(table, chain, policy='ACCEPT', ipv6=False):
+    """ Set the default policy of chain in a table """
+    iptc_chain = _iptc_getchain(table, chain, ipv6)
+    iptc_chain.set_policy(policy)
+
+
 def dump_all(ipv6=False):
     """ Return a dictionary representation of all tables """
     return {table: dump_table(table, ipv6) for table in get_tables(ipv6)}
