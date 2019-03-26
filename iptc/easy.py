@@ -1,10 +1,9 @@
-# TODO
-# - Expose POLICY of a table
+# -*- coding: utf-8 -*-
 
 from .ip4tc import Rule, Table, Chain, IPTCError
 from .ip6tc import Rule6, Table6
 
-BATCH_MODE = False
+_BATCH_MODE = False
 
 def flush_all(ipv6=False):
     """ Flush all available tables """
@@ -212,7 +211,7 @@ def dump_chain(table, chain, ipv6=False):
 
 def batch_begin(table = None, ipv6=False):
     """ Disable autocommit on a table """
-    BATCH_MODE = True
+    _BATCH_MODE = True
     if table:
         tables = (table, )
     else:
@@ -223,7 +222,7 @@ def batch_begin(table = None, ipv6=False):
 
 def batch_end(table = None, ipv6=False):
     """ Enable autocommit on table and commit changes """
-    BATCH_MODE = False
+    _BATCH_MODE = False
     if table:
         tables = (table, )
     else:
@@ -302,7 +301,7 @@ def _iptc_gettables(ipv6=False):
 def _iptc_gettable(table, ipv6=False):
     """ Return an updated view of an iptc_table """
     iptc_table = Table6(table) if ipv6 else Table(table)
-    if BATCH_MODE is False:
+    if _BATCH_MODE is False:
         iptc_table.commit()
         iptc_table.refresh()
     return iptc_table
