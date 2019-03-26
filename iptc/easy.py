@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+# TODO:
+# - Add documentation
+# - Add HowToUse examples
+
 from .ip4tc import Rule, Table, Chain, IPTCError
 from .ip6tc import Rule6, Table6
 
