@@ -11,21 +11,21 @@ def flush_all(ipv6=False):
     for table in get_tables(ipv6):
         flush_table(table, ipv6)
 
-def flush_table(table, ipv6=False, silent=False):
+def flush_table(table, ipv6=False, raise_exc=True):
     """ Flush a table """
     try:
         iptc_table = _iptc_gettable(table, ipv6)
         iptc_table.flush()
     except Exception as e:
-        if not silent: raise
+        if raise_exc: raise
 
-def flush_chain(table, chain, ipv6=False, silent=False):
+def flush_chain(table, chain, ipv6=False, raise_exc=True):
     """ Flush a chain in table """
     try:
         iptc_chain = _iptc_getchain(table, chain, ipv6)
         iptc_chain.flush()
     except Exception as e:
-        if not silent: raise
+        if raise_exc: raise
 
 def zero_all(table, ipv6=False):
     """ Zero all tables """
@@ -53,14 +53,14 @@ def has_rule(table, chain, rule_d, ipv6=False):
     iptc_rule  = _encode_iptc_rule(rule_d, ipv6)
     return iptc_rule in iptc_chain.rules
 
-def add_chain(table, chain, ipv6=False, silent=False):
+def add_chain(table, chain, ipv6=False, raise_exc=True):
     """ Return True if chain was added successfully to a table, raise Exception otherwise """
     try:
         iptc_table = _iptc_gettable(table, ipv6)
         iptc_table.create_chain(chain)
         return True
     except Exception as e:
-        if not silent: raise
+        if raise_exc: raise
     return False
 
 def add_rule(table, chain, rule_d, position=0, ipv6=False):
@@ -86,24 +86,24 @@ def insert_rule(table, chain, rule_d, ipv6=False):
     """ Add a rule to a chain in the 1st position """
     add_rule(table, chain, rule_d, position=1, ipv6=ipv6)
 
-def delete_chain(table, chain, ipv6=False, flush=False, silent=False):
+def delete_chain(table, chain, ipv6=False, flush=False, raise_exc=True):
     """ Delete a chain """
     try:
         if flush:
-            flush_chain(table, chain, ipv6, silent)
+            flush_chain(table, chain, ipv6, raise_exc)
         iptc_table = _iptc_gettable(table, ipv6)
         iptc_table.delete_chain(chain)
     except Exception as e:
-        if not silent: raise
+        if raise_exc: raise
 
-def delete_rule(table, chain, rule_d, ipv6=False, silent=False):
+def delete_rule(table, chain, rule_d, ipv6=False, raise_exc=True):
     """ Delete a rule from a chain """
     try:
         iptc_chain = _iptc_getchain(table, chain, ipv6)
         iptc_rule  = _encode_iptc_rule(rule_d, ipv6)
         iptc_chain.delete_rule(iptc_rule)
     except Exception as e:
-        if not silent: raise
+        if raise_exc: raise
 
 def get_tables(ipv6=False):
     """ Get all tables """
@@ -115,7 +115,7 @@ def get_chains(table, ipv6=False):
     iptc_table = _iptc_gettable(table, ipv6)
     return [iptc_chain.name for iptc_chain in iptc_table.chains]
 
-def get_rule(table, chain, position=0, ipv6=False, silent=False):
+def get_rule(table, chain, position=0, ipv6=False, raise_exc=True):
     """ Get a rule from a chain in a given position. 0=all rules, 1=first, n=nth position """
     try:
         if position == 0:
@@ -132,7 +132,7 @@ def get_rule(table, chain, position=0, ipv6=False, silent=False):
             iptc_rule = iptc_chain.rules[position]
             return _decode_iptc_rule(iptc_rule, ipv6)
     except Exception as e:
-        if not silent: raise
+        if raise_exc: raise
 
 def replace_rule(table, chain, old_rule_d, new_rule_d, ipv6=False):
     """ Replaces an existing rule of a chain """
@@ -272,7 +272,7 @@ def batch_add_rules(table, batch_rules, ipv6=False):
             iptc_chain.insert_rule(iptc_rule, position + nof_rules)
     _batch_end_table(table, ipv6)
 
-def batch_delete_rules(table, batch_rules, ipv6=False, silent=True):
+def batch_delete_rules(table, batch_rules, ipv6=False, raise_exc=True):
     """ Delete  multiple rules from table with format (chain, rule_d) """
     try:
         iptc_table = _batch_begin_table(table, ipv6)
@@ -282,7 +282,7 @@ def batch_delete_rules(table, batch_rules, ipv6=False, silent=True):
             iptc_chain.delete_rule(iptc_rule)
         _batch_end_table(table, ipv6)
     except Exception as e:
-        if not silent: raise
+        if raise_exc: raise
 
 
 ### INTERNAL FUNCTIONS ###
@@ -307,7 +307,7 @@ def _iptc_gettable(table, ipv6=False):
         iptc_table.refresh()
     return iptc_table
 
-def _iptc_getchain(table, chain, ipv6=False, silent=False):
+def _iptc_getchain(table, chain, ipv6=False, raise_exc=True):
     """ Return an iptc_chain of an updated table """
     try:
         iptc_table = _iptc_gettable(table, ipv6)
@@ -315,7 +315,7 @@ def _iptc_getchain(table, chain, ipv6=False, silent=False):
             raise AttributeError('Table <{}> has no chain <{}>'.format(table, chain))
         return Chain(iptc_table, chain)
     except Exception as e:
-        if not silent: raise
+        if raise_exc: raise
 
 def _iptc_setattr(object, name, value):
     # Translate attribute name
