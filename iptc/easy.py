@@ -288,6 +288,69 @@ def batch_delete_rules(table, batch_rules, ipv6=False, raise_exc=True):
         if raise_exc: raise
 
 
+def encode_iptc_rule(rule_d, ipv6=False):
+    """ Return a Rule(6) object from the input dictionary """
+    # Sanity check
+    assert(isinstance(rule_d, dict))
+    # Basic rule attributes
+    rule_attr = ('src', 'dst', 'protocol', 'in-interface', 'out-interface', 'fragment')
+    iptc_rule = Rule6() if ipv6 else Rule()
+    # Avoid issues with matches that require basic parameters to be configured first
+    for name in rule_attr:
+        if name in rule_d:
+            _iptc_setrule(iptc_rule, name, rule_d[name])
+    for name, value in rule_d.items():
+        try:
+            if name in rule_attr:
+                continue
+            elif name == 'target':
+                _iptc_settarget(iptc_rule, value)
+            else:
+                _iptc_setmatch(iptc_rule, name, value)
+        except Exception as e:
+            #print('Ignoring unsupported field <{}:{}>'.format(name, value))
+            continue
+    return iptc_rule
+
+def decode_iptc_rule(iptc_rule, ipv6=False):
+    """ Return a dictionary representation of the Rule(6) object
+    Note: host IP addresses are appended their corresponding CIDR """
+    d = {}
+    if ipv6==False and iptc_rule.src != '0.0.0.0/0.0.0.0':
+        _ip, _netmask = iptc_rule.src.split('/')
+        _netmask = _netmask_v4_to_cidr(_netmask)
+        d['src'] = '{}/{}'.format(_ip, _netmask)
+    elif ipv6==True and iptc_rule.src != '::/0':
+        d['src'] = iptc_rule.src
+    if ipv6==False and iptc_rule.dst != '0.0.0.0/0.0.0.0':
+        _ip, _netmask = iptc_rule.dst.split('/')
+        _netmask = _netmask_v4_to_cidr(_netmask)
+        d['dst'] = '{}/{}'.format(_ip, _netmask)
+    elif ipv6==True and iptc_rule.dst != '::/0':
+        d['dst'] = iptc_rule.dst
+    if iptc_rule.protocol != 'ip':
+        d['protocol'] = iptc_rule.protocol
+    if iptc_rule.in_interface is not None:
+        d['in-interface'] = iptc_rule.in_interface
+    if iptc_rule.out_interface is not None:
+        d['out-interface'] = iptc_rule.out_interface
+    if ipv6 == False and iptc_rule.fragment:
+        d['fragment'] = iptc_rule.fragment
+    for m in iptc_rule.matches:
+        if m.name not in d:
+            d[m.name] = m.get_all_parameters()
+        elif isinstance(d[m.name], list):
+            d[m.name].append(m.get_all_parameters())
+        else:
+            d[m.name] = [d[m.name], m.get_all_parameters()]
+    if iptc_rule.target and iptc_rule.target.name and len(iptc_rule.target.get_all_parameters()):
+        name = iptc_rule.target.name.replace('-', '_')
+        d['target'] = {name:iptc_rule.target.get_all_parameters()}
+    elif iptc_rule.target and iptc_rule.target.name:
+        d['target'] = iptc_rule.target.name
+    # Return a filtered dictionary
+    return _filter_empty_field(d)
+
 ### INTERNAL FUNCTIONS ###
 def _iptc_table_available(table, ipv6=False):
     """ Return True if the table is available, False otherwise """
@@ -356,69 +419,6 @@ def _iptc_settarget(iptc_rule, value):
     # Simple target
     else:
         iptc_target = iptc_rule.create_target(value)
-
-def encode_iptc_rule(rule_d, ipv6=False):
-    # Sanity check
-    assert(isinstance(rule_d, dict))
-    # Basic rule attributes
-    rule_attr = ('src', 'dst', 'protocol', 'in-interface', 'out-interface', 'fragment')
-    iptc_rule = Rule6() if ipv6 else Rule()
-    # Avoid issues with matches that require basic parameters to be configured first
-    for name in rule_attr:
-        if name in rule_d:
-            _iptc_setrule(iptc_rule, name, rule_d[name])
-    for name, value in rule_d.items():
-        try:
-            if name in rule_attr:
-                #_iptc_setrule(iptc_rule, name, value)
-                continue
-            elif name == 'target':
-                _iptc_settarget(iptc_rule, value)
-            else:
-                _iptc_setmatch(iptc_rule, name, value)
-        except Exception as e:
-            #print('Ignoring unsupported field <{}:{}>'.format(name, value))
-            continue
-    return iptc_rule
-
-def decode_iptc_rule(iptc_rule, ipv6=False):
-    """ Return a dictionary representation of an iptc_rule
-    Note: host IP addresses are appended their corresponding CIDR """
-    d = {}
-    if ipv6==False and iptc_rule.src != '0.0.0.0/0.0.0.0':
-        _ip, _netmask = iptc_rule.src.split('/')
-        _netmask = _netmask_v4_to_cidr(_netmask)
-        d['src'] = '{}/{}'.format(_ip, _netmask)
-    elif ipv6==True and iptc_rule.src != '::/0':
-        d['src'] = iptc_rule.src
-    if ipv6==False and iptc_rule.dst != '0.0.0.0/0.0.0.0':
-        _ip, _netmask = iptc_rule.dst.split('/')
-        _netmask = _netmask_v4_to_cidr(_netmask)
-        d['dst'] = '{}/{}'.format(_ip, _netmask)
-    elif ipv6==True and iptc_rule.dst != '::/0':
-        d['dst'] = iptc_rule.dst
-    if iptc_rule.protocol != 'ip':
-        d['protocol'] = iptc_rule.protocol
-    if iptc_rule.in_interface is not None:
-        d['in-interface'] = iptc_rule.in_interface
-    if iptc_rule.out_interface is not None:
-        d['out-interface'] = iptc_rule.out_interface
-    if ipv6 == False and iptc_rule.fragment:
-        d['fragment'] = iptc_rule.fragment
-    for m in iptc_rule.matches:
-        if m.name not in d:
-            d[m.name] = m.get_all_parameters()
-        elif isinstance(d[m.name], list):
-            d[m.name].append(m.get_all_parameters())
-        else:
-            d[m.name] = [d[m.name], m.get_all_parameters()]
-    if iptc_rule.target and iptc_rule.target.name and len(iptc_rule.target.get_all_parameters()):
-        name = iptc_rule.target.name.replace('-', '_')
-        d['target'] = {name:iptc_rule.target.get_all_parameters()}
-    elif iptc_rule.target and iptc_rule.target.name:
-        d['target'] = iptc_rule.target.name
-    # Return a filtered dictionary
-    return _filter_empty_field(d)
 
 def _batch_begin_table(table, ipv6=False):
     """ Disable autocommit on a table """
