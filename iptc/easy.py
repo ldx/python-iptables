@@ -385,11 +385,15 @@ def decode_iptc_rule(iptc_rule, ipv6=False):
     """ Return a dictionary representation of an iptc_rule """
     d = {}
     if ipv6==False and iptc_rule.src != '0.0.0.0/0.0.0.0':
-        d['src'] = iptc_rule.src
+        _ip, _netmask = iptc_rule.src.split('/')
+        _netmask = _netmask_v4_to_cidr(_netmask)
+        d['src'] = '{}/{}'.format(_ip, _netmask)
     elif ipv6==True and iptc_rule.src != '::/0':
-        d['src'] = iptc_rule.src
+        d['src'] = iptc_rule.src.rstrip('/128')
     if ipv6==False and iptc_rule.dst != '0.0.0.0/0.0.0.0':
-        d['dst'] = iptc_rule.dst.rstrip('/255.255.255.255')
+        _ip, _netmask = iptc_rule.dst.split('/')
+        _netmask = _netmask_v4_to_cidr(_netmask)
+        d['dst'] = '{}/{}'.format(_ip, _netmask)
     elif ipv6==True and iptc_rule.dst != '::/0':
         d['dst'] = iptc_rule.dst.rstrip('/128')
     if iptc_rule.protocol != 'ip':
@@ -445,5 +449,9 @@ def _filter_empty_field(data_d):
         elif isinstance(v, list) and len(v) == 0:
             data_d[k] = ''
     return data_d
+
+def _netmask_v4_to_cidr(netmask_addr):
+    # Implement Subnet Mask conversion without dependencies
+    return sum([bin(int(x)).count('1') for x in netmask_addr.split('.')])
 
 ### /INTERNAL FUNCTIONS ###
