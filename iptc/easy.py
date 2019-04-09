@@ -382,20 +382,21 @@ def encode_iptc_rule(rule_d, ipv6=False):
     return iptc_rule
 
 def decode_iptc_rule(iptc_rule, ipv6=False):
-    """ Return a dictionary representation of an iptc_rule """
+    """ Return a dictionary representation of an iptc_rule
+    Note: host IP addresses are appended their corresponding CIDR """
     d = {}
     if ipv6==False and iptc_rule.src != '0.0.0.0/0.0.0.0':
         _ip, _netmask = iptc_rule.src.split('/')
         _netmask = _netmask_v4_to_cidr(_netmask)
         d['src'] = '{}/{}'.format(_ip, _netmask)
     elif ipv6==True and iptc_rule.src != '::/0':
-        d['src'] = iptc_rule.src.rstrip('/128')
+        d['src'] = iptc_rule.src
     if ipv6==False and iptc_rule.dst != '0.0.0.0/0.0.0.0':
         _ip, _netmask = iptc_rule.dst.split('/')
         _netmask = _netmask_v4_to_cidr(_netmask)
         d['dst'] = '{}/{}'.format(_ip, _netmask)
     elif ipv6==True and iptc_rule.dst != '::/0':
-        d['dst'] = iptc_rule.dst.rstrip('/128')
+        d['dst'] = iptc_rule.dst
     if iptc_rule.protocol != 'ip':
         d['protocol'] = iptc_rule.protocol
     if iptc_rule.in_interface is not None:
