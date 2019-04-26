@@ -577,19 +577,19 @@ class TestRule6(unittest.TestCase):
     def test_rule_to_dict(self):
         rule = iptc.Rule6()
         rule.protocol = "tcp"
-        rule.src = "::1"
+        rule.src = "::1/128"
         target = iptc.Target(rule, "ACCEPT")
         rule.target = target
-        rule_d = rule.to_dict()
+        rule_d = iptc.easy.decode_iptc_rule(rule, ipv6=True)
         self.assertEqual(rule_d, {"protocol": "tcp", "src": "::1/128", "target": "ACCEPT"})
 
     def test_rule_from_dict(self):
         rule = iptc.Rule6()
         rule.protocol = "tcp"
-        rule.src = "::1"
+        rule.src = "::1/128"
         target = iptc.Target(rule, "ACCEPT")
         rule.target = target
-        rule2 = iptc.Rule6.from_dict({"protocol": "tcp", "src": "::1/128", "target": "ACCEPT"})
+        rule2 = iptc.easy.encode_iptc_rule({"protocol": "tcp", "src": "::1/128", "target": "ACCEPT"}, ipv6=True)
         self.assertEqual(rule, rule2)
 
 class TestRule(unittest.TestCase):
@@ -935,19 +935,19 @@ class TestRule(unittest.TestCase):
     def test_rule_to_dict(self):
         rule = iptc.Rule()
         rule.protocol = "tcp"
-        rule.src = "127.0.0.1"
+        rule.src = "127.0.0.1/32"
         target = iptc.Target(rule, "ACCEPT")
         rule.target = target
-        rule_d = rule.to_dict()
-        self.assertEqual(rule_d, {"protocol": "tcp", "src": "127.0.0.1/255.255.255.255", "target": "ACCEPT"})
+        rule_d = iptc.easy.decode_iptc_rule(rule)
+        self.assertEqual(rule_d, {"protocol": "tcp", "src": "127.0.0.1/32", "target": "ACCEPT"})
 
     def test_rule_from_dict(self):
         rule = iptc.Rule()
         rule.protocol = "tcp"
-        rule.src = "127.0.0.1"
+        rule.src = "127.0.0.1/32"
         target = iptc.Target(rule, "ACCEPT")
         rule.target = target
-        rule2 = iptc.Rule.from_dict({"protocol": "tcp", "src": "127.0.0.1/255.255.255.255", "target": "ACCEPT"})
+        rule2 = iptc.easy.encode_iptc_rule({"protocol": "tcp", "src": "127.0.0.1/32", "target": "ACCEPT"})
         self.assertEqual(rule, rule2)
 
 def suite():

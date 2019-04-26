@@ -1,6 +1,31 @@
 Examples
 ========
 
+High level abstractions
+-----------------------
+
+``python-iptables`` implements a low-level interface that tries to closely
+match the underlying C libraries. The module ``iptc.easy`` improves the
+usability of the library by providing a rich set of high-level functions
+designed to simplify the interaction with the library, for example::
+
+    >>> import iptc
+    >>> iptc.easy.dump_table('nat', ipv6=False)
+    {'INPUT': [], 'OUTPUT': [], 'POSTROUTING': [], 'PREROUTING': []}
+    >>> iptc.easy.dump_chain('filter', 'OUTPUT', ipv6=False)
+    [{'comment': {'comment': 'DNS traffic to Google'},
+      'dst': '8.8.8.8/32',
+      'protocol': 'udp',
+      'target': 'ACCEPT',
+      'udp': {'dport': '53'}}]
+    >>> iptc.easy.add_chain('filter', 'TestChain')
+    True
+    >>> rule_d = {'protocol': 'tcp', 'target': 'ACCEPT', 'tcp': {'dport': '22'}}
+    >>> iptc.easy.insert_rule('filter', 'TestChain', rule_d)
+    >>> iptc.easy.dump_chain('filter', 'TestChain')
+    [{'protocol': 'tcp', 'target': 'ACCEPT', 'tcp': {'dport': '22'}}]
+    >>> iptc.easy.delete_chain('filter', 'TestChain', flush=True)
+
 Rules
 -----
 
@@ -419,9 +444,9 @@ To simplify operations with ``python-iptables`` rules we have included support t
     >>> chain = iptc.Chain(table, "INPUT")
     >>> # Create an iptc.Rule object from dictionary
     >>> rule_d = {'comment': {'comment': 'Match tcp.22'}, 'protocol': 'tcp', 'target': 'ACCEPT', 'tcp': {'dport': '22'}}
-    >>> rule = iptc.Rule.from_dict(rule_d)
+    >>> rule = iptc.easy.encode_iptc_rule(rule_d)
     >>> # Obtain a dictionary representation from the iptc.Rule
-    >>> rule.to_dict()
+    >>> iptc.easy.decode_iptc_rule(rule)
     {'tcp': {'dport': '22'}, 'protocol': 'tcp', 'comment': {'comment': 'Match tcp.22'}, 'target': 'ACCEPT'}
 
 
