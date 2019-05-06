@@ -5,6 +5,7 @@ Maintainer: Juliano Martinez <juliano@martinez.io>
 Build-Depends:
  debhelper (>= 8),
  dh-python,
+ python3-dbg,
  python-setuptools,
  python3-all,
  python3-setuptools
