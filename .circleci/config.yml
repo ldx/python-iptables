@@ -1,0 +1,31 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3.6.8-stretch
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            sudo apt-get install -y gcc python3-dev pkg-config \
+              nmap iptables devscripts ruby2.3-dev rubygems \
+              build-essential:native python-setuptools python3-all python3-setuptools
+      - run:
+          name: Install PackageCloud
+          command: |
+            sudo gem install rake package_cloud
+      - run:
+          name: Build dpkg packages
+          command: |
+            debuild  -i -us -uc -b
+            mkdir -p /tmp/deb
+            mv ../*.deb /tmp/deb
+      - deploy:
+          command: |
+              if [ "${CIRCLE_BRANCH}" == "master" ]; then
+                package_cloud push wott/agent/debian/stretch /tmp/deb/*.deb
+                package_cloud push wott/agent/raspbian/stretch /tmp/deb/*.deb
+              fi
+      - store_artifacts:
+          path: /tmp/deb
