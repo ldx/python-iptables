@@ -2,7 +2,6 @@ Source: python-iptables
 Section: net
 Priority: extra
 Maintainer: Juliano Martinez <juliano@martinez.io>
-Priority: extra
 Build-Depends:
  debhelper (>= 8),
  dh-python,
