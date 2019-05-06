@@ -4,10 +4,9 @@
 # Thu, 14 Nov 2013 16:04:50 +0100
 
 PY3VERS := $(shell py3versions -r)
-PY2VERS := $(shell pyversions -r)
 
 %:
-	dh $@ --with python2,python3 --buildsystem=python_distutils
+	dh $@ --with python3 --buildsystem=python_distutils
 
 .PHONY: override_dh_clean
 override_dh_clean:
@@ -27,22 +26,11 @@ override_dh_auto_install:
 	set -e; \
 	mkdir -p $(CURDIR)/debian/python3-iptables/etc/ld.so.conf.d; \
 	echo "/usr/lib/python3/dist-packages" > $(CURDIR)/debian/python3-iptables/etc/ld.so.conf.d/python3-dist-packages.conf
-	
-	set -e; \
-	for py in $(PY2VERS); do \
-		$$py -B setup.py install --root debian/python-iptables --install-layout deb; \
-		$$py-dbg -B setup.py install --root debian/python-iptables-dbg --install-layout deb; \
-	done
 
 .PHONY: override_dh_strip
 override_dh_strip:
 	set -e; \
-	dh_strip -ppython-ev  --dbg-package=python-iptables-dbg; \
-	dh_strip -ppython3-ev --dbg-package=python3-iptables-dbg; 
-
-override_dh_python2:
-	dh_python2 -ppython-iptables
-	dh_python2 -ppython-iptables-dbg
+	dh_strip -ppython3-ev --dbg-package=python3-iptables-dbg;
 
 override_dh_python3:
 	dh_python3 -ppython3-iptables
