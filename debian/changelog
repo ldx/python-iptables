@@ -1,4 +1,4 @@
-python-iptables (0.14.0-dev) stable; urgency=medium
+python-iptables (0.14.0) stable; urgency=medium
 
   * update debian changelog
 
