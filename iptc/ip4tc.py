@@ -419,6 +419,7 @@ class IPTCModule(object):
         res = shlex.split(buf)
         res.reverse()
         inv = False
+        key = None
         while len(res) > 0:
             x = res.pop()
             if x == '!':
@@ -433,6 +434,7 @@ class IPTCModule(object):
                     params[key] = []
                 inv = False
                 continue
+            if key is not None:
                 params[key].append(x)  # This is a parameter value.
         return params
 
