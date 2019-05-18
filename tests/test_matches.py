@@ -19,7 +19,7 @@ class TestMatch(unittest.TestCase):
         match = rule.create_match("udp")
 
         for m in rule.matches:
-            self.failUnless(m == match)
+            self.assertEqual(m, match)
 
         # check that we can change match parameters after creation
         match.sport = "12345:55555"
@@ -29,7 +29,7 @@ class TestMatch(unittest.TestCase):
         m.sport = "12345:55555"
         m.dport = "!33333"
 
-        self.failUnless(m == match)
+        self.assertEqual(m, match)
 
     def test_match_compare(self):
         m1 = iptc.Match(iptc.Rule(), "udp")
@@ -40,28 +40,28 @@ class TestMatch(unittest.TestCase):
         m2.sport = "12345:55555"
         m2.dport = "!33333"
 
-        self.failUnless(m1 == m2)
+        self.assertEqual(m1, m2)
 
         m2.reset()
         m2.sport = "12345:55555"
         m2.dport = "33333"
-        self.failIf(m1 == m2)
+        self.assertNotEqual(m1, m2)
 
     def test_match_parameters(self):
         m = iptc.Match(iptc.Rule(), "udp")
         m.sport = "12345:55555"
         m.dport = "!33333"
 
-        self.failUnless(len(m.parameters) == 2)
+        self.assertEqual(len(m.parameters), 2)
 
         for p in m.parameters:
-            self.failUnless(p == "sport" or p == "dport")
+            self.assertTrue(p == "sport" or p == "dport")
 
-        self.failUnless(m.parameters["sport"] == "12345:55555")
-        self.failUnless(m.parameters["dport"] == "!33333")
+        self.assertEqual(m.parameters["sport"], "12345:55555")
+        self.assertEqual(m.parameters["dport"], "!33333")
 
         m.reset()
-        self.failUnless(len(m.parameters) == 0)
+        self.assertEqual(len(m.parameters), 0)
 
     def test_get_all_parameters(self):
         m = iptc.Match(iptc.Rule(), "udp")
@@ -69,8 +69,8 @@ class TestMatch(unittest.TestCase):
         m.dport = "!33333"
 
         params = m.get_all_parameters()
-        self.assertEquals(set(params['sport']), set(['12345:55555']))
-        self.assertEquals(set(params['dport']), set(['!', '33333']))
+        self.assertEqual(set(params['sport']), set(['12345:55555']))
+        self.assertEqual(set(params['dport']), set(['!', '33333']))
 
 
 class TestMultiportMatch(unittest.TestCase):
@@ -103,14 +103,14 @@ class TestMultiportMatch(unittest.TestCase):
         self.chain.insert_rule(self.rule)
         rule = self.chain.rules[0]
         match = rule.matches[0]
-        self.assertEquals(match.dports, '1111,2222')
+        self.assertEqual(match.dports, '1111,2222')
 
     def test_unicode_multiport(self):
         self.match.dports = u'1111,2222'
         self.chain.insert_rule(self.rule)
         rule = self.chain.rules[0]
         match = rule.matches[0]
-        self.assertEquals(match.dports, '1111,2222')
+        self.assertEqual(match.dports, '1111,2222')
 
 
 class TestXTUdpMatch(unittest.TestCase):
@@ -135,9 +135,9 @@ class TestXTUdpMatch(unittest.TestCase):
                      "!12345:12346", "0:1234", "! 1234", "!0:12345",
                      "!1234:65535"]:
             self.match.sport = port
-            self.assertEquals(self.match.sport, port.replace(" ", ""))
+            self.assertEqual(self.match.sport, port.replace(" ", ""))
             self.match.dport = port
-            self.assertEquals(self.match.dport, port.replace(" ", ""))
+            self.assertEqual(self.match.dport, port.replace(" ", ""))
             self.match.reset()
         for port in ["-1", "asdf", "!asdf"]:
             try:
@@ -188,7 +188,7 @@ class TestXTMarkMatch(unittest.TestCase):
     def test_mark(self):
         for mark in ["0x7b", "! 0x7b", "0x7b/0xfffefffe", "!0x7b/0xff00ff00"]:
             self.match.mark = mark
-            self.assertEquals(self.match.mark, mark.replace(" ", ""))
+            self.assertEqual(self.match.mark, mark.replace(" ", ""))
             self.match.reset()
         for mark in ["0xffffffffff", "123/0xffffffff1", "!asdf", "1234:1233"]:
             try:
@@ -232,7 +232,7 @@ class TestXTLimitMatch(unittest.TestCase):
     def test_limit(self):
         for limit in ["1/sec", "5/min", "3/hour"]:
             self.match.limit = limit
-            self.assertEquals(self.match.limit, limit)
+            self.assertEqual(self.match.limit, limit)
             self.match.reset()
         for limit in ["asdf", "123/1", "!1", "!1/second"]:
             try:
@@ -284,7 +284,7 @@ class TestIcmpv6Match(unittest.TestCase):
     def test_icmpv6(self):
         self.chain.insert_rule(self.rule)
         rule = self.chain.rules[0]
-        self.assertEquals(self.rule, rule)
+        self.assertEqual(self.rule, rule)
 
 
 class TestCommentMatch(unittest.TestCase):
@@ -310,7 +310,7 @@ class TestCommentMatch(unittest.TestCase):
         self.match.reset()
         self.match.comment = comment
         self.chain.insert_rule(self.rule)
-        self.assertEquals(self.match.comment, comment)
+        self.assertEqual(self.match.comment, comment)
 
 
 class TestIprangeMatch(unittest.TestCase):
@@ -389,8 +389,10 @@ class TestXTStateMatch(unittest.TestCase):
         self.chain.insert_rule(self.rule)
         rule = self.chain.rules[0]
         m = rule.matches[0]
-        self.assertEquals(m.name, "state")
-        self.assertEquals(m.state, "RELATED,ESTABLISHED")
+        self.assertEqual(m.name, "state")
+        self.assertEqual(m.state, "RELATED,ESTABLISHED")
+        self.assertEqual(rule.matches[0].name, self.rule.matches[0].name)
+        self.assertEqual(rule, self.rule)
 
 
 class TestXTConntrackMatch(unittest.TestCase):
@@ -425,7 +427,7 @@ class TestXTConntrackMatch(unittest.TestCase):
         rule = self.chain.rules[0]
         m = rule.matches[0]
         self.assertTrue(m.name, ["conntrack"])
-        self.assertEquals(m.ctstate, "NEW,RELATED")
+        self.assertEqual(m.ctstate, "NEW,RELATED")
 
 
 class TestHashlimitMatch(unittest.TestCase):
@@ -464,10 +466,10 @@ class TestHashlimitMatch(unittest.TestCase):
         rule = self.chain.rules[0]
         m = rule.matches[0]
         self.assertTrue(m.name, ["hashlimit"])
-        self.assertEquals(m.hashlimit_name, "foo")
-        self.assertEquals(m.hashlimit_mode, "srcip")
-        self.assertEquals(m.hashlimit_upto, "200/sec")
-        self.assertEquals(m.hashlimit_burst, "5")
+        self.assertEqual(m.hashlimit_name, "foo")
+        self.assertEqual(m.hashlimit_mode, "srcip")
+        self.assertEqual(m.hashlimit_upto, "200/sec")
+        self.assertEqual(m.hashlimit_burst, "5")
 
 
 def suite():

@@ -574,9 +574,7 @@ class Match(IPTCModule):
 
     def __eq__(self, match):
         basesz = ct.sizeof(xt_entry_match)
-        if (self.match.u.match_size == match.match.u.match_size and
-            self.match.u.user.name == match.match.u.user.name and
-            self.match.u.user.revision == match.match.u.user.revision and
+        if (self.name == match.name and
             self.match_buf[basesz:self.usersize] ==
                 match.match_buf[basesz:match.usersize]):
             return True
