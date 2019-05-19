@@ -295,6 +295,8 @@ def encode_iptc_rule(rule_d, ipv6=False):
     # Basic rule attributes
     rule_attr = ('src', 'dst', 'protocol', 'in-interface', 'out-interface', 'fragment')
     iptc_rule = Rule6() if ipv6 else Rule()
+    # Set default target
+    rule_d.setdefault('target', '')
     # Avoid issues with matches that require basic parameters to be configured first
     for name in rule_attr:
         if name in rule_d:
@@ -347,7 +349,10 @@ def decode_iptc_rule(iptc_rule, ipv6=False):
         name = iptc_rule.target.name.replace('-', '_')
         d['target'] = {name:iptc_rule.target.get_all_parameters()}
     elif iptc_rule.target and iptc_rule.target.name:
-        d['target'] = iptc_rule.target.name
+        if iptc_rule.target.goto:
+            d['target'] = {'goto':iptc_rule.target.name}
+        else:
+            d['target'] = iptc_rule.target.name
     # Return a filtered dictionary
     return _filter_empty_field(d)
 
@@ -412,10 +417,12 @@ def _iptc_setmatch(iptc_rule, name, value):
 def _iptc_settarget(iptc_rule, value):
     # Target is dictionary - Use only 1 pair key/value
     if isinstance(value, dict):
-        for k, v in value.items():
-            iptc_target = iptc_rule.create_target(k)
-            _iptc_setattr_d(iptc_target, v)
-            return
+        t_name, t_value = next(iter(value.items()))
+        if t_name == 'goto':
+            iptc_target = iptc_rule.create_target(t_value, goto=True)
+        else:
+            iptc_target = iptc_rule.create_target(t_name)
+            _iptc_setattr_d(iptc_target, t_value)
     # Simple target
     else:
         iptc_target = iptc_rule.create_target(value)
