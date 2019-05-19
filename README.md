@@ -141,7 +141,7 @@ High level abstractions
 ``python-iptables`` implements a low-level interface that tries to closely
 match the underlying C libraries. The module ``iptc.easy`` improves the
 usability of the library by providing a rich set of high-level functions
-designed to simplify the interaction with the library, for example::
+designed to simplify the interaction with the library, for example:
 
     >>> import iptc
     >>> iptc.easy.dump_table('nat', ipv6=False)
@@ -159,6 +159,11 @@ designed to simplify the interaction with the library, for example::
     >>> iptc.easy.dump_chain('filter', 'TestChain')
     [{'protocol': 'tcp', 'target': 'ACCEPT', 'tcp': {'dport': '22'}}]
     >>> iptc.easy.delete_chain('filter', 'TestChain', flush=True)
+
+    >>> # Example of goto rule // iptables -A FORWARD -p gre -g TestChainGoto
+    >>> iptc.easy.add_chain('filter', 'TestChainGoto')
+    >>> rule_goto_d = {'protocol': 'gre', 'target': {'goto': 'TestChainGoto'}}
+    >>> iptc.easy.insert_rule('filter', 'FORWARD', rule_goto_d)
 
 Rules
 -----
