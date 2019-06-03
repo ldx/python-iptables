@@ -1062,9 +1062,6 @@ class Rule(object):
             saddr = _a_to_i(socket.inet_pton(socket.AF_INET, addr))
         except socket.error:
             raise ValueError("invalid address %s" % (addr))
-        ina = in_addr()
-        ina.s_addr = ct.c_uint32(saddr)
-        self.entry.ip.src = ina
 
         if not netm.isdigit():
             try:
@@ -1078,8 +1075,11 @@ class Rule(object):
             nmask = socket.htonl((2 ** imask - 1) << (32 - imask))
         neta = in_addr()
         neta.s_addr = ct.c_uint32(nmask)
-
         self.entry.ip.smsk = neta
+        # Apply subnet mask to IP address
+        ina = in_addr()
+        ina.s_addr = ct.c_uint32(saddr & nmask)
+        self.entry.ip.src = ina
 
     src = property(get_src, set_src)
     """This is the source network address with an optional network mask in
@@ -1123,9 +1123,6 @@ class Rule(object):
             daddr = _a_to_i(socket.inet_pton(socket.AF_INET, addr))
         except socket.error:
             raise ValueError("invalid address %s" % (addr))
-        ina = in_addr()
-        ina.s_addr = ct.c_uint32(daddr)
-        self.entry.ip.dst = ina
 
         if not netm.isdigit():
             try:
@@ -1140,6 +1137,10 @@ class Rule(object):
         neta = in_addr()
         neta.s_addr = ct.c_uint32(nmask)
         self.entry.ip.dmsk = neta
+        # Apply subnet mask to IP address
+        ina = in_addr()
+        ina.s_addr = ct.c_uint32(daddr & nmask)
+        self.entry.ip.dst = ina
 
     dst = property(get_dst, set_dst)
     """This is the destination network address with an optional network mask
