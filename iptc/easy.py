@@ -300,7 +300,7 @@ def encode_iptc_rule(rule_d, ipv6=False):
     # Avoid issues with matches that require basic parameters to be configured first
     for name in rule_attr:
         if name in rule_d:
-            _iptc_setrule(iptc_rule, name, rule_d[name])
+            setattr(iptc_rule, name.replace('-', '_'), rule_d[name])
     for name, value in rule_d.items():
         try:
             if name in rule_attr:
@@ -388,18 +388,6 @@ def _iptc_getchain(table, chain, ipv6=False, raise_exc=True):
     except Exception as e:
         if raise_exc: raise
 
-def _iptc_setattr(object, name, value):
-    # Translate attribute name
-    name = name.replace('-', '_')
-    setattr(object, name, value)
-
-def _iptc_setattr_d(object, value_d):
-    for name, value in value_d.items():
-        _iptc_setattr(object, name, value)
-
-def _iptc_setrule(iptc_rule, name, value):
-    _iptc_setattr(iptc_rule, name, value)
-
 def _iptc_setmatch(iptc_rule, name, value):
     # Iterate list/tuple recursively
     if isinstance(value, list) or isinstance(value, tuple):
@@ -408,21 +396,21 @@ def _iptc_setmatch(iptc_rule, name, value):
     # Assign dictionary value
     elif isinstance(value, dict):
         iptc_match = iptc_rule.create_match(name)
-        _iptc_setattr_d(iptc_match, value)
+        [iptc_match.set_parameter(k, v) for k, v in value.items()]
     # Assign value directly
     else:
         iptc_match = iptc_rule.create_match(name)
-        _iptc_setattr(iptc_match, name, value)
+        iptc_match.set_parameter(name, value)
 
 def _iptc_settarget(iptc_rule, value):
-    # Target is dictionary - Use only 1 pair key/value
+    # Target is dictionary - Use only 1st pair key/value
     if isinstance(value, dict):
         t_name, t_value = next(iter(value.items()))
         if t_name == 'goto':
             iptc_target = iptc_rule.create_target(t_value, goto=True)
         else:
             iptc_target = iptc_rule.create_target(t_name)
-            _iptc_setattr_d(iptc_target, t_value)
+            [iptc_target.set_parameter(k, v) for k, v in t_value.items()]
     # Simple target
     else:
         iptc_target = iptc_rule.create_target(value)

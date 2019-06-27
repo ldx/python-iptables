@@ -471,6 +471,35 @@ class TestHashlimitMatch(unittest.TestCase):
         self.assertEqual(m.hashlimit_upto, "200/sec")
         self.assertEqual(m.hashlimit_burst, "5")
 
+class TestRecentMatch(unittest.TestCase):
+    def setUp(self):
+        self.table = 'filter'
+        self.chain = 'iptc_test_recent'
+        iptc.easy.delete_chain(self.table, self.chain, ipv6=False, flush=True, raise_exc=False)
+        iptc.easy.add_chain(self.table, self.chain, ipv6=False, raise_exc=True)
+
+    def tearDown(self):
+        iptc.easy.delete_chain(self.table, self.chain, ipv6=False, flush=True, raise_exc=False)
+
+    def test_recent(self):
+        rule_d = {
+            'protocol': 'udp',
+            'recent': {
+                'mask': '255.255.255.255',
+                'update': '',
+                'seconds': '60',
+                'rsource': '',
+                'name': 'UDP-PORTSCAN',
+            },
+            'target': {
+                'REJECT':{
+                    'reject-with': 'icmp-port-unreachable'
+                    }
+                }
+        }
+        iptc.easy.add_rule(self.table, self.chain, rule_d)
+        rule2_d = iptc.easy.get_rule(self.table, self.chain, -1)
+        self.assertEqual(rule_d, rule2_d)
 
 def suite():
     suite_match = unittest.TestLoader().loadTestsFromTestCase(TestMatch)
@@ -488,6 +517,8 @@ def suite():
         TestXTConntrackMatch)
     suite_hashlimit = unittest.TestLoader().loadTestsFromTestCase(
         TestHashlimitMatch)
+    suite_recent = unittest.TestLoader().loadTestsFromTestCase(
+        TestRecentMatch)
     extra_suites = []
     if is_table6_available(iptc.Table6.FILTER):
         extra_suites += unittest.TestLoader().loadTestsFromTestCase(
@@ -496,7 +527,7 @@ def suite():
     return unittest.TestSuite([suite_match, suite_udp, suite_mark,
                                suite_limit, suite_mport, suite_comment,
                                suite_iprange, suite_state, suite_conntrack,
-                               suite_hashlimit] + extra_suites)
+                               suite_hashlimit, suite_recent] + extra_suites)
 
 
 def run_tests():
