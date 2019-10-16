@@ -419,6 +419,7 @@ class IPTCModule(object):
         res = shlex.split(buf)
         res.reverse()
         inv = False
+        key = None
         while len(res) > 0:
             x = res.pop()
             if x == '!':
@@ -433,7 +434,11 @@ class IPTCModule(object):
                     params[key] = []
                 inv = False
                 continue
-            params[key].append(x)  # This is a parameter value.
+            # At this point key should be set, unless the output from save is
+            # not formatted right. Let's be defensive, since some users
+            # reported that problem.
+            if key is not None:
+                params[key].append(x)  # This is a parameter value.
         return params
 
     def _update_parameters(self):
