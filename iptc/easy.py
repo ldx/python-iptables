@@ -305,6 +305,8 @@ def encode_iptc_rule(rule_d, ipv6=False):
         try:
             if name in rule_attr:
                 continue
+            elif name == 'counters':
+                _iptc_setcounters(iptc_rule, value)
             elif name == 'target':
                 _iptc_settarget(iptc_rule, value)
             else:
@@ -353,6 +355,8 @@ def decode_iptc_rule(iptc_rule, ipv6=False):
             d['target'] = {'goto':iptc_rule.target.name}
         else:
             d['target'] = iptc_rule.target.name
+    # Get counters
+    d['counters'] = iptc_rule.counters
     # Return a filtered dictionary
     return _filter_empty_field(d)
 
@@ -387,6 +391,10 @@ def _iptc_getchain(table, chain, ipv6=False, raise_exc=True):
         return Chain(iptc_table, chain)
     except Exception as e:
         if raise_exc: raise
+
+def _iptc_setcounters(iptc_rule, value):
+    # Value is a tuple (numberOfBytes, numberOfPackets)
+    iptc_rule.counters = value
 
 def _iptc_setmatch(iptc_rule, name, value):
     # Iterate list/tuple recursively

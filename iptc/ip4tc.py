@@ -1286,6 +1286,15 @@ class Rule(object):
         counters = self.entry.counters
         return counters.pcnt, counters.bcnt
 
+    def set_counters(self, counters):
+        """This method set a tuple pair of the packet and byte counters of
+        the rule."""
+        self.entry.counters.pcnt = counters[0]
+        self.entry.counters.bcnt = counters[1]
+
+    counters = property(get_counters, set_counters)
+    """This is the packet and byte counters of the rule."""
+
     # override the following three for the IPv6 subclass
     def _entry_size(self):
         return xt_align(ct.sizeof(ipt_entry))
