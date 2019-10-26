@@ -499,6 +499,8 @@ class TestRecentMatch(unittest.TestCase):
         }
         iptc.easy.add_rule(self.table, self.chain, rule_d)
         rule2_d = iptc.easy.get_rule(self.table, self.chain, -1)
+        # Remove counters when comparing rules
+        rule2_d.pop('counters', None)
         self.assertEqual(rule_d, rule2_d)
 
 def suite():
