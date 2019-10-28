@@ -581,6 +581,8 @@ class TestRule6(unittest.TestCase):
         target = iptc.Target(rule, "ACCEPT")
         rule.target = target
         rule_d = iptc.easy.decode_iptc_rule(rule, ipv6=True)
+        # Remove counters when comparing rules
+        rule_d.pop('counters', None)
         self.assertEqual(rule_d, {"protocol": "tcp", "src": "::1/128", "target": "ACCEPT"})
 
     def test_rule_from_dict(self):
@@ -939,6 +941,8 @@ class TestRule(unittest.TestCase):
         target = iptc.Target(rule, "ACCEPT")
         rule.target = target
         rule_d = iptc.easy.decode_iptc_rule(rule)
+        # Remove counters when comparing rules
+        rule_d.pop('counters', None)
         self.assertEqual(rule_d, {"protocol": "tcp", "src": "127.0.0.1/32", "target": "ACCEPT"})
 
     def test_rule_from_dict(self):

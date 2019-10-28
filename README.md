@@ -148,6 +148,7 @@ designed to simplify the interaction with the library, for example:
     {'INPUT': [], 'OUTPUT': [], 'POSTROUTING': [], 'PREROUTING': []}
     >>> iptc.easy.dump_chain('filter', 'OUTPUT', ipv6=False)
     [{'comment': {'comment': 'DNS traffic to Google'},
+      'counters': (1, 56),
       'dst': '8.8.8.8/32',
       'protocol': 'udp',
       'target': 'ACCEPT',
