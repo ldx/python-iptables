@@ -6,7 +6,7 @@ import sys
 import weakref
 
 from . import version
-from .util import find_library
+from .util import find_library, find_libc
 from .errors import *
 
 XT_INV_PROTO = 0x40  # invert the sense of PROTO
@@ -792,7 +792,7 @@ class xtables_target(ct.Union):
                 ("v12", _xtables_target_v12)]
 
 
-_libc, _ = find_library("c")
+_libc = find_libc()
 _optind = ct.c_long.in_dll(_libc, "optind")
 _optarg = ct.c_char_p.in_dll(_libc, "optarg")
 
