@@ -109,3 +109,19 @@ def find_library(*names):
             major = int(m.group(1))
         return lib, major
     return None, None
+
+
+def find_libc():
+    lib = ctypes.util.find_library('c')
+    if lib is not None:
+        return ctypes.CDLL(lib, mode=ctypes.RTLD_GLOBAL)
+
+    libnames = ['libc.so.6', 'libc.so.0', 'libc.so']
+    for name in libnames:
+        try:
+            lib = ctypes.CDLL(name, mode=ctypes.RTLD_GLOBAL)
+            return lib
+        except:
+            pass
+
+    return None

@@ -9,7 +9,7 @@ import socket
 import struct
 import weakref
 
-from .util import find_library, load_kernel
+from .util import find_library, load_kernel, find_libc
 from .xtables import (XT_INV_PROTO, NFPROTO_IPV4, XTablesError, xtables,
                       xt_align, xt_counters, xt_entry_target, xt_entry_match)
 
@@ -26,7 +26,7 @@ if not hasattr(socket, 'IPPROTO_SCTP'):
 
 _IFNAMSIZ = 16
 
-_libc = ct.CDLL("libc.so.6")
+_libc = find_libc()
 _get_errno_loc = _libc.__errno_location
 _get_errno_loc.restype = ct.POINTER(ct.c_int)
 _malloc = _libc.malloc
