@@ -80,12 +80,19 @@ def _do_find_library(name):
 
 
 def _find_library(*names):
+    exts = []
     if version_info >= (3, 3):
-        ext = get_config_var("EXT_SUFFIX")
+        exts.append(get_config_var("EXT_SUFFIX"))
     else:
-        ext = get_config_var('SO')
+        exts.append(get_config_var('SO'))
+
+    if version_info >= (3, 5):
+        exts.append('.so')
+
     for name in names:
-        libnames = [name, "lib" + name, name + ext, "lib" + name + ext]
+        libnames = [name, "lib" + name]
+        for ext in exts:
+            libnames += [name + ext, "lib" + name + ext]
         libdir = os.environ.get('IPTABLES_LIBDIR', None)
         if libdir is not None:
             libdirs = libdir.split(':')
