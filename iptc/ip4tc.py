@@ -9,7 +9,7 @@ import socket
 import struct
 import weakref
 
-from .util import find_library, load_kernel
+from .util import find_library, load_kernel, find_libc
 from .xtables import (XT_INV_PROTO, NFPROTO_IPV4, XTablesError, xtables,
                       xt_align, xt_counters, xt_entry_target, xt_entry_match)
 
@@ -20,9 +20,13 @@ try:
 except:
     pass
 
+# Add IPPROTO_SCTP to socket module if not available
+if not hasattr(socket, 'IPPROTO_SCTP'):
+    setattr(socket, 'IPPROTO_SCTP', 132)
+
 _IFNAMSIZ = 16
 
-_libc = ct.CDLL("libc.so.6")
+_libc = find_libc()
 _get_errno_loc = _libc.__errno_location
 _get_errno_loc.restype = ct.POINTER(ct.c_int)
 _malloc = _libc.malloc
@@ -98,7 +102,7 @@ class ipt_entry(ct.Structure):
 class IPTCError(Exception):
     """This exception is raised when a low-level libiptc error occurs.
 
-    It contains a short description about the error that occured while
+    It contains a short description about the error that occurred while
     executing an iptables operation.
     """
 
@@ -415,6 +419,7 @@ class IPTCModule(object):
         res = shlex.split(buf)
         res.reverse()
         inv = False
+        key = None
         while len(res) > 0:
             x = res.pop()
             if x == '!':
@@ -429,7 +434,11 @@ class IPTCModule(object):
                     params[key] = []
                 inv = False
                 continue
-            params[key].append(x)  # This is a parameter value.
+            # At this point key should be set, unless the output from save is
+            # not formatted right. Let's be defensive, since some users
+            # reported that problem.
+            if key is not None:
+                params[key].append(x)  # This is a parameter value.
         return params
 
     def _update_parameters(self):
@@ -570,9 +579,7 @@ class Match(IPTCModule):
 
     def __eq__(self, match):
         basesz = ct.sizeof(xt_entry_match)
-        if (self.match.u.match_size == match.match.u.match_size and
-            self.match.u.user.name == match.match.u.user.name and
-            self.match.u.user.revision == match.match.u.user.revision and
+        if (self.name == match.name and
             self.match_buf[basesz:self.usersize] ==
                 match.match_buf[basesz:match.usersize]):
             return True
@@ -662,7 +669,7 @@ class Target(IPTCModule):
     does not take any value in the iptables extension, an empty string i.e. ""
     should be used.
     """
-    def __init__(self, rule, name=None, target=None, revision=None):
+    def __init__(self, rule, name=None, target=None, revision=None, goto=None):
         """
         *rule* is the Rule object this match belongs to; it can be changed
         later via *set_rule()*.  *name* is the name of the iptables target
@@ -672,6 +679,7 @@ class Target(IPTCModule):
         should be used; different revisions use different structures in C and
         they usually only work with certain kernel versions. Python-iptables
         by default will use the latest revision available.
+        If goto is True, then it converts '-j' to '-g'.
         """
         if name is None and target is None:
             raise ValueError("can't create target based on nothing")
@@ -681,6 +689,28 @@ class Target(IPTCModule):
         self._rule = rule
         self._orig_parse = None
         self._orig_options = None
+
+        # NOTE:
+        # get_ip() returns the 'ip' structure that contains (1)the 'flags' field, and
+        # (2)the value for the GOTO flag.
+        # We *must* use get_ip() because the actual name of the field containing the
+        # structure apparently differs between implementation
+        ipstruct = rule.get_ip()
+        f_goto_attrs = [a for a in dir(ipstruct) if a.endswith('_F_GOTO')]
+        if len(f_goto_attrs) == 0:
+            raise RuntimeError('What kind of struct is this? It does not have "*_F_GOTO" constant!')
+        _F_GOTO = getattr(ipstruct, f_goto_attrs[0])
+
+        if target is not None or goto is None:
+            # We are 'decoding' existing Target
+            self._goto = bool(ipstruct.flags & _F_GOTO)
+        if goto is not None:
+            assert isinstance(goto, bool)
+            self._goto = goto
+            if goto:
+                ipstruct.flags |= _F_GOTO
+            else:
+                ipstruct.flags &= ~_F_GOTO
 
         self._xt = xtables(rule.nfproto)
 
@@ -831,6 +861,10 @@ class Target(IPTCModule):
     target = property(_get_target)
     """This is the C structure used by the extension."""
 
+    def _get_goto(self):
+        return self._goto
+    goto = property(_get_goto)
+
 
 class Policy(object):
     """
@@ -905,6 +939,7 @@ class Rule(object):
                  socket.IPPROTO_RAW: "raw",
                  socket.IPPROTO_ROUTING: "routing",
                  socket.IPPROTO_RSVP: "rsvp",
+                 socket.IPPROTO_SCTP: "sctp",
                  socket.IPPROTO_TCP: "tcp",
                  socket.IPPROTO_TP: "tp",
                  socket.IPPROTO_UDP: "udp",
@@ -960,11 +995,11 @@ class Rule(object):
         self.add_match(match)
         return match
 
-    def create_target(self, name, revision=None):
+    def create_target(self, name, revision=None, goto=False):
         """Create a new *target*, and set it as this rule's target. *name* is
         the name of the target extension, *revision* is the revision to
-        use."""
-        target = Target(self, name=name, revision=revision)
+        use. *goto* determines if target uses '-j' (default) or '-g'."""
+        target = Target(self, name=name, revision=revision, goto=goto)
         self.target = target
         return target
 
@@ -1032,9 +1067,6 @@ class Rule(object):
             saddr = _a_to_i(socket.inet_pton(socket.AF_INET, addr))
         except socket.error:
             raise ValueError("invalid address %s" % (addr))
-        ina = in_addr()
-        ina.s_addr = ct.c_uint32(saddr)
-        self.entry.ip.src = ina
 
         if not netm.isdigit():
             try:
@@ -1048,8 +1080,11 @@ class Rule(object):
             nmask = socket.htonl((2 ** imask - 1) << (32 - imask))
         neta = in_addr()
         neta.s_addr = ct.c_uint32(nmask)
-
         self.entry.ip.smsk = neta
+        # Apply subnet mask to IP address
+        ina = in_addr()
+        ina.s_addr = ct.c_uint32(saddr & nmask)
+        self.entry.ip.src = ina
 
     src = property(get_src, set_src)
     """This is the source network address with an optional network mask in
@@ -1093,9 +1128,6 @@ class Rule(object):
             daddr = _a_to_i(socket.inet_pton(socket.AF_INET, addr))
         except socket.error:
             raise ValueError("invalid address %s" % (addr))
-        ina = in_addr()
-        ina.s_addr = ct.c_uint32(daddr)
-        self.entry.ip.dst = ina
 
         if not netm.isdigit():
             try:
@@ -1110,6 +1142,10 @@ class Rule(object):
         neta = in_addr()
         neta.s_addr = ct.c_uint32(nmask)
         self.entry.ip.dmsk = neta
+        # Apply subnet mask to IP address
+        ina = in_addr()
+        ina.s_addr = ct.c_uint32(daddr & nmask)
+        self.entry.ip.dst = ina
 
     dst = property(get_dst, set_dst)
     """This is the destination network address with an optional network mask
@@ -1207,7 +1243,10 @@ class Rule(object):
 
     def set_fragment(self, frag):
         self.entry.ip.invflags &= ~ipt_ip.IPT_INV_FRAG & ipt_ip.IPT_INV_MASK
-        self.entry.ip.flags = int(bool(frag))
+        if frag:
+            self.entry.ip.flags |= ipt_ip.IPT_F_FRAG
+        else:
+            self.entry.ip.flags &= ~ipt_ip.IPT_F_FRAG
 
     fragment = property(get_fragment, set_fragment)
     """This means that the rule refers to the second and further fragments of
@@ -1218,16 +1257,20 @@ class Rule(object):
             proto = "!"
         else:
             proto = ""
-        proto = "".join([proto, self.protocols[self.entry.ip.proto]])
+        proto = "".join([proto, self.protocols.get(self.entry.ip.proto, str(self.entry.ip.proto))])
         return proto
 
     def set_protocol(self, proto):
+        proto = str(proto)
         if proto[0] == "!":
             self.entry.ip.invflags |= ipt_ip.IPT_INV_PROTO
             proto = proto[1:]
         else:
             self.entry.ip.invflags &= (~ipt_ip.IPT_INV_PROTO &
                                        ipt_ip.IPT_INV_MASK)
+        if proto.isdigit():
+            self.entry.ip.proto = int(proto)
+            return
         for p in self.protocols.items():
             if proto.lower() == p[1]:
                 self.entry.ip.proto = p[0]
@@ -1242,6 +1285,15 @@ class Rule(object):
         the rule."""
         counters = self.entry.counters
         return counters.pcnt, counters.bcnt
+
+    def set_counters(self, counters):
+        """This method set a tuple pair of the packet and byte counters of
+        the rule."""
+        self.entry.counters.pcnt = counters[0]
+        self.entry.counters.bcnt = counters[1]
+
+    counters = property(get_counters, set_counters)
+    """This is the packet and byte counters of the rule."""
 
     # override the following three for the IPv6 subclass
     def _entry_size(self):
@@ -1361,10 +1413,11 @@ class Chain(object):
     _cache = weakref.WeakValueDictionary()
 
     def __new__(cls, table, name):
-        obj = Chain._cache.get(table.name + "." + name, None)
+        table_name = type(table).__name__ + "." + table.name
+        obj = Chain._cache.get(table_name + "." + name, None)
         if not obj:
             obj = object.__new__(cls)
-            Chain._cache[table.name + "." + name] = obj
+            Chain._cache[table_name + "." + name] = obj
         return obj
 
     def __init__(self, table, name):
@@ -1465,7 +1518,12 @@ class Chain(object):
         return [self.table.create_rule(e, self) for e in entries]
 
     rules = property(_get_rules)
-    """This is the list of rules currently in the chain."""
+    """This is the list of rules currently in the chain.
+
+    The indexes of the Rule items produced from this list *should* correspond
+    to the IPTables --line-numbers value minus one.  Keeping in mind that
+    iptables rules are 1-indexed whereas the Python list is 0-indexed
+    """
 
 
 def autocommit(fn):
@@ -1508,7 +1566,9 @@ class Table(object):
     """This is the constant for the raw table."""
     NAT = "nat"
     """This is the constant for the nat table."""
-    ALL = ["filter", "mangle", "raw", "nat"]
+    SECURITY = "security"
+    """This is the constant for the security table."""
+    ALL = ["filter", "mangle", "raw", "nat", "security"]
     """This is the constant for all tables."""
 
     _cache = dict()
@@ -1670,7 +1730,7 @@ class Table(object):
         rv = self._iptc.iptc_set_policy(chain.encode(), policy.encode(),
                                         cntrs, self._handle)
         if rv != 1:
-            raise IPTCError("can't set policy %s on chain %s: %s)" %
+            raise IPTCError("can't set policy %s on chain %s: %s" %
                             (policy, chain, self.strerror()))
 
     @autocommit
@@ -1695,7 +1755,7 @@ class Table(object):
                                           ct.cast(entry, ct.c_void_p),
                                           self._handle)
         if rv != 1:
-            raise IPTCError("can't append entry to chain %s: %s)" %
+            raise IPTCError("can't append entry to chain %s: %s" %
                             (chain, self.strerror()))
 
     @autocommit
@@ -1705,7 +1765,7 @@ class Table(object):
                                           ct.cast(entry, ct.c_void_p),
                                           position, self._handle)
         if rv != 1:
-            raise IPTCError("can't insert entry into chain %s: %s)" %
+            raise IPTCError("can't insert entry into chain %s: %s" %
                             (chain, self.strerror()))
 
     @autocommit
@@ -1715,7 +1775,7 @@ class Table(object):
                                            ct.cast(entry, ct.c_void_p),
                                            position, self._handle)
         if rv != 1:
-            raise IPTCError("can't replace entry in chain %s: %s)" %
+            raise IPTCError("can't replace entry in chain %s: %s" %
                             (chain, self.strerror()))
 
     @autocommit
@@ -1725,7 +1785,7 @@ class Table(object):
                                           ct.cast(entry, ct.c_void_p),
                                           mask, self._handle)
         if rv != 1:
-            raise IPTCError("can't delete entry from chain %s: %s)" %
+            raise IPTCError("can't delete entry from chain %s: %s" %
                             (chain, self.strerror()))
 
     def first_rule(self, chain):

@@ -6,7 +6,8 @@ import sys
 import weakref
 
 from . import version
-from .util import find_library
+from .util import find_library, find_libc
+from .errors import *
 
 XT_INV_PROTO = 0x40  # invert the sense of PROTO
 
@@ -84,7 +85,9 @@ class xtables_globals(ct.Structure):
                 ("program_version", ct.c_char_p),
                 ("orig_opts", ct.c_void_p),
                 ("opts", ct.c_void_p),
-                ("exit_err", ct.CFUNCTYPE(None, ct.c_int, ct.c_char_p))]
+                ("exit_err", ct.CFUNCTYPE(None, ct.c_int, ct.c_char_p)),
+                ("compat_rev", ct.CFUNCTYPE(ct.c_int, ct.c_char_p, ct.c_uint8,
+                                            ct.c_int))]
 
 
 # struct used by getopt()
@@ -408,6 +411,62 @@ class _xtables_match_v10(ct.Structure):
                 ("loaded", ct.c_uint)]
 
 
+_xtables_match_v11 = _xtables_match_v10
+
+
+class _xtables_match_v12(ct.Structure):
+    _fields_ = [("version", ct.c_char_p),
+                ("next", ct.c_void_p),
+                ("name", ct.c_char_p),
+                ("real_name", ct.c_char_p),
+                ("revision", ct.c_uint8),
+                ("ext_flags", ct.c_uint8),
+                ("family", ct.c_uint16),
+                ("size", ct.c_size_t),
+                ("userspacesize", ct.c_size_t),
+                ("help", ct.CFUNCTYPE(None)),
+                ("init", ct.CFUNCTYPE(None, ct.POINTER(xt_entry_match))),
+                # fourth parameter entry is struct ipt_entry for example
+                # int (*parse)(int c, char **argv, int invert, unsigned int
+                # *flags, const void *entry, struct xt_entry_match **match)
+                ("parse", ct.CFUNCTYPE(ct.c_int, ct.c_int,
+                                       ct.POINTER(ct.c_char_p), ct.c_int,
+                                       ct.POINTER(ct.c_uint), ct.c_void_p,
+                                       ct.POINTER(ct.POINTER(
+                                           xt_entry_match)))),
+                ("final_check", ct.CFUNCTYPE(None, ct.c_uint)),
+                # prints out the match iff non-NULL: put space at end
+                # first parameter ip is struct ipt_ip * for example
+                ("print", ct.CFUNCTYPE(None, ct.c_void_p,
+                                       ct.POINTER(xt_entry_match), ct.c_int)),
+                # saves the match info in parsable form to stdout.
+                # first parameter ip is struct ipt_ip * for example
+                ("save", ct.CFUNCTYPE(None, ct.c_void_p,
+                                      ct.POINTER(xt_entry_match))),
+                # Print match name or alias
+                ("alias", ct.CFUNCTYPE(ct.c_char_p,
+                                       ct.POINTER(xt_entry_match))),
+                # pointer to list of extra command-line options
+                ("extra_opts", ct.POINTER(option)),
+
+                # introduced with the new iptables API
+                ("x6_parse", ct.CFUNCTYPE(None, ct.POINTER(xt_option_call))),
+                ("x6_fcheck", ct.CFUNCTYPE(None, ct.POINTER(xt_fcheck_call))),
+                ("x6_options", ct.POINTER(xt_option_entry)),
+
+                ('xt_xlate', ct.c_int),
+
+                # size of per-extension instance extra "global" scratch space
+                ("udata_size", ct.c_size_t),
+
+                # ignore these men behind the curtain:
+                ("udata", ct.c_void_p),
+                ("option_offset", ct.c_uint),
+                ("m", ct.POINTER(xt_entry_match)),
+                ("mflags", ct.c_uint),
+                ("loaded", ct.c_uint)]
+
+
 class xtables_match(ct.Union):
     _fields_ = [("v1", _xtables_match_v1),
                 ("v2", _xtables_match_v2),
@@ -418,7 +477,9 @@ class xtables_match(ct.Union):
                 ("v7", _xtables_match_v7),
                 # Apparently v8 was skipped
                 ("v9", _xtables_match_v9),
-                ("v10", _xtables_match_v10)]
+                ("v10", _xtables_match_v10),
+                ("v11", _xtables_match_v11),
+                ("v12", _xtables_match_v12)]
 
 
 class _xtables_target_v1(ct.Structure):
@@ -659,6 +720,63 @@ class _xtables_target_v10(ct.Structure):
                 ("loaded", ct.c_uint)]
 
 
+_xtables_target_v11 = _xtables_target_v10
+
+class _xtables_target_v12(ct.Structure):
+    _fields_ = [("version", ct.c_char_p),
+                ("next", ct.c_void_p),
+                ("name", ct.c_char_p),
+                ("real_name", ct.c_char_p),
+                ("revision", ct.c_uint8),
+                ("ext_flags", ct.c_uint8),
+                ("family", ct.c_uint16),
+                ("size", ct.c_size_t),
+                ("userspacesize", ct.c_size_t),
+                ("help", ct.CFUNCTYPE(None)),
+                ("init", ct.CFUNCTYPE(None, ct.POINTER(xt_entry_target))),
+                # fourth parameter entry is struct ipt_entry for example
+                # int (*parse)(int c, char **argv, int invert,
+                #              unsigned int *flags, const void *entry,
+                #              struct xt_entry_target **target)
+                ("parse", ct.CFUNCTYPE(ct.c_int,
+                                       ct.POINTER(ct.c_char_p), ct.c_int,
+                                       ct.POINTER(ct.c_uint), ct.c_void_p,
+                                       ct.POINTER(ct.POINTER(
+                                           xt_entry_target)))),
+                ("final_check", ct.CFUNCTYPE(None, ct.c_uint)),
+                # prints out the target iff non-NULL: put space at end
+                # first parameter ip is struct ipt_ip * for example
+                ("print", ct.CFUNCTYPE(None, ct.c_void_p,
+                                       ct.POINTER(xt_entry_target), ct.c_int)),
+                # saves the target info in parsable form to stdout.
+                # first parameter ip is struct ipt_ip * for example
+                ("save", ct.CFUNCTYPE(None, ct.c_void_p,
+                                      ct.POINTER(xt_entry_target))),
+                # Print target name or alias
+                ("alias", ct.CFUNCTYPE(ct.c_char_p,
+                                       ct.POINTER(xt_entry_target))),
+                # pointer to list of extra command-line options
+                ("extra_opts", ct.POINTER(option)),
+
+                # introduced with the new iptables API
+                ("x6_parse", ct.CFUNCTYPE(None, ct.POINTER(xt_option_call))),
+                ("x6_fcheck", ct.CFUNCTYPE(None, ct.POINTER(xt_fcheck_call))),
+                ("x6_options", ct.POINTER(xt_option_entry)),
+
+                ('xt_xlate', ct.c_int),
+
+                # size of per-extension instance extra "global" scratch space
+                ("udata_size", ct.c_size_t),
+
+                # ignore these men behind the curtain:
+                ("udata", ct.c_void_p),
+                ("option_offset", ct.c_uint),
+                ("t", ct.POINTER(xt_entry_target)),
+                ("tflags", ct.c_uint),
+                ("used", ct.c_uint),
+                ("loaded", ct.c_uint)]
+
+
 class xtables_target(ct.Union):
     _fields_ = [("v1", _xtables_target_v1),
                 ("v2", _xtables_target_v2),
@@ -669,27 +787,40 @@ class xtables_target(ct.Union):
                 ("v7", _xtables_target_v7),
                 # Apparently v8 was skipped
                 ("v9", _xtables_target_v9),
-                ("v10", _xtables_target_v10)]
+                ("v10", _xtables_target_v10),
+                ("v11", _xtables_target_v11),
+                ("v12", _xtables_target_v12)]
 
 
-class XTablesError(Exception):
-    """Raised when an xtables call fails for some reason."""
-
-
-_libc, _ = find_library("c")
+_libc = find_libc()
 _optind = ct.c_long.in_dll(_libc, "optind")
 _optarg = ct.c_char_p.in_dll(_libc, "optarg")
 
-_lib_xtables, xtables_version = find_library("xtables")
+xtables_version = os.getenv("PYTHON_IPTABLES_XTABLES_VERSION")
+if xtables_version:
+    _searchlib = "libxtables.so.%s" % (xtables_version,)
+else:
+    _searchlib = "xtables"
+_lib_xtables, xtables_version = find_library(_searchlib)
 _xtables_libdir = os.getenv("XTABLES_LIBDIR")
 if _xtables_libdir is None:
-    import os.path
-    for xtdir in ["/lib/xtables", "/lib64/xtables", "/usr/lib/xtables",
-                  "/usr/lib/iptables", "/usr/lib64/xtables",
-                  "/usr/lib64/iptables", "/usr/local/lib/xtables"]:
-        if os.path.isdir(xtdir):
-            _xtables_libdir = xtdir
-            break
+    import re
+    ldconfig_path_regex = re.compile('^(/.*):$')
+    import subprocess
+    ldconfig = subprocess.Popen(
+        ('/sbin/ldconfig', '-N', '-v'),
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
+    )
+    ldconfig_out, ldconfig_err = ldconfig.communicate()
+    if ldconfig.returncode != 0:
+        raise XTablesError("ldconfig failed, please set XTABLES_LIBDIR")
+    for ldconfig_out_line in ldconfig_out.splitlines():
+        ldconfig_path_regex_match = ldconfig_path_regex.match(ldconfig_out_line)
+        if ldconfig_path_regex_match is not None:
+            ldconfig_path = os.path.join(ldconfig_path_regex_match.group(1), 'xtables')
+            if os.path.isdir(ldconfig_path):
+                _xtables_libdir = ldconfig_path
+                break
 if _xtables_libdir is None:
     raise XTablesError("can't find directory with extensions; "
                        "please set XTABLES_LIBDIR")
@@ -746,6 +877,11 @@ _xt_globals.program_version = version.__version__.encode()
 _xt_globals.orig_opts = None
 _xt_globals.opts = None
 _xt_globals.exit_err = _xt_exit
+
+if xtables_version > 10:
+    _COMPAT_REV_FN = ct.CFUNCTYPE(ct.c_int, ct.c_char_p, ct.c_uint8, ct.c_int)
+    _xt_compat_rev = _COMPAT_REV_FN(_lib_xtables.xtables_compatible_revision)
+    _xt_globals.compat_rev = _xt_compat_rev
 
 
 _loaded_exts = {}
@@ -884,10 +1020,6 @@ class xtables(object):
         if ext is not None:
             return ext
 
-        xtables._xtables_matches.value = ct.c_void_p(None).value
-        if xtables._xtables_pending_matches:
-            xtables._xtables_pending_matches.value = ct.c_void_p(None).value
-
         match = xtables._xtables_find_match(name, XTF_TRY_LOAD, None)
         if not match:
             self._try_register(name)
@@ -908,10 +1040,6 @@ class xtables(object):
         ext = self._get_loaded_ext(name)
         if ext is not None:
             return ext
-
-        xtables._xtables_targets.value = ct.c_void_p(None).value
-        if xtables._xtables_pending_targets:
-            xtables._xtables_pending_targets.value = ct.c_void_p(None).value
 
         target = xtables._xtables_find_target(name, XTF_TRY_LOAD)
         if not target:

@@ -1,34 +1,27 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Introduction &mdash; python-iptables 0.4.0-dev documentation</title>
-    
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <title>Introduction &#8212; python-iptables 0.4.0-dev documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.4.0-dev',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="python-iptables 0.4.0-dev documentation" href="index.html" />
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Usage" href="usage.html" />
     <link rel="prev" title="Welcome to python-iptables’s documentation!" href="index.html" /> 
-  </head>
-  <body>
-    <div class="related">
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -40,14 +33,14 @@
         <li class="right" >
           <a href="index.html" title="Welcome to python-iptables’s documentation!"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">python-iptables 0.4.0-dev documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">python-iptables 0.4.0-dev documentation</a> &#187;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
@@ -66,64 +59,66 @@ user- defined chains.</p>
 rule specifies what to do with a packet that matches.  This is called a
 <cite>target</cite>, which may be a jump to a user-defined chain in the same table.</p>
 </div></blockquote>
-<p><tt class="docutils literal"><span class="pre">Python-iptables</span></tt> provides a pythonesque wrapper via python bindings to
+<p><code class="docutils literal notranslate"><span class="pre">Python-iptables</span></code> provides a pythonesque wrapper via python bindings to
 iptables under Linux.  Interoperability with iptables is achieved via using
-the iptables C libraries (<tt class="docutils literal"><span class="pre">libiptc</span></tt>, <tt class="docutils literal"><span class="pre">libxtables</span></tt>, and the iptables
+the iptables C libraries (<code class="docutils literal notranslate"><span class="pre">libiptc</span></code>, <code class="docutils literal notranslate"><span class="pre">libxtables</span></code>, and the iptables
 extensions), not calling the iptables binary and parsing its output. It is
 meant primarily for dynamic and/or complex routers and firewalls, where rules
 are often updated or changed, or Python programs wish to interface with the
 Linux iptables framework..</p>
-<p>If you are looking for <tt class="docutils literal"><span class="pre">ebtables</span></tt> python bindings, check out
+<p>If you are looking for <code class="docutils literal notranslate"><span class="pre">ebtables</span></code> python bindings, check out
 <a class="reference external" href="https://github.com/ldx/python-ebtables/">python-ebtables</a>.</p>
-<p><tt class="docutils literal"><span class="pre">Python-iptables</span></tt> supports Python 2.6, 2.7 and 3.4.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Python-iptables</span></code> supports Python 2.6, 2.7 and 3.4.</p>
 <a class="reference external image-reference" href="https://flattr.com/submit/auto?user_id=ldx&amp;url=https%3A%2F%2Fgithub.com%2Fldx%2Fpython-iptables"><img alt="Flattr" src="http://api.flattr.com/button/flattr-badge-large.png" /></a>
 <a class="reference external image-reference" href="https://pypi.python.org/pypi/python-iptables"><img alt="Latest Release" src="https://pypip.in/v/python-iptables/badge.png" /></a>
 <a class="reference external image-reference" href="https://travis-ci.org/ldx/python-iptables"><img alt="Build Status" src="https://travis-ci.org/ldx/python-iptables.png?branch=master" /></a>
+<a class="reference external image-reference" href="https://coveralls.io/r/ldx/python-iptables?branch=codecoverage"><img alt="Coverage Status" src="https://coveralls.io/repos/ldx/python-iptables/badge.svg?branch=codecoverage" /></a>
+<a class="reference external image-reference" href="https://landscape.io/github/ldx/python-iptables/codecoverage"><img alt="Code Health" src="https://landscape.io/github/ldx/python-iptables/codecoverage/landscape.svg" /></a>
 <a class="reference external image-reference" href="https://pypi.python.org/pypi/python-iptables"><img alt="Number of Downloads" src="https://pypip.in/d/python-iptables/badge.png" /></a>
 <a class="reference external image-reference" href="https://pypi.python.org/pypi/python-iptables"><img alt="License" src="https://pypip.in/license/python-iptables/badge.png" /></a>
 </div>
 <div class="section" id="installing-via-pip">
 <h2>Installing via pip<a class="headerlink" href="#installing-via-pip" title="Permalink to this headline">¶</a></h2>
 <p>The usual way:</p>
-<div class="highlight-python"><div class="highlight"><pre>pip install --upgrade python-iptables
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">python</span><span class="o">-</span><span class="n">iptables</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="compiling-from-source">
 <h2>Compiling from source<a class="headerlink" href="#compiling-from-source" title="Permalink to this headline">¶</a></h2>
 <p>First make sure you have iptables installed (most Linux distributions install
-it by default). <tt class="docutils literal"><span class="pre">Python-iptables</span></tt> needs the shared libraries <tt class="docutils literal"><span class="pre">libiptc.so</span></tt>
-and <tt class="docutils literal"><span class="pre">libxtables.so</span></tt> coming with iptables, they are installed in <tt class="docutils literal"><span class="pre">/lib</span></tt> on
+it by default). <code class="docutils literal notranslate"><span class="pre">Python-iptables</span></code> needs the shared libraries <code class="docutils literal notranslate"><span class="pre">libiptc.so</span></code>
+and <code class="docutils literal notranslate"><span class="pre">libxtables.so</span></code> coming with iptables, they are installed in <code class="docutils literal notranslate"><span class="pre">/lib</span></code> on
 Ubuntu.</p>
-<p>You can compile <tt class="docutils literal"><span class="pre">python-iptables</span></tt> in the usual distutils way:</p>
-<div class="highlight-python"><div class="highlight"><pre>% cd python-iptables
-% python setup.py build
+<p>You can compile <code class="docutils literal notranslate"><span class="pre">python-iptables</span></code> in the usual distutils way:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">cd</span> <span class="n">python</span><span class="o">-</span><span class="n">iptables</span>
+<span class="o">%</span> <span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">build</span>
 </pre></div>
 </div>
-<p>If you like, <tt class="docutils literal"><span class="pre">python-iptables</span></tt> can also be installed into a <tt class="docutils literal"><span class="pre">virtualenv</span></tt>:</p>
-<div class="highlight-python"><div class="highlight"><pre>% mkvirtualenv python-iptables
-% python setup.py install
+<p>If you like, <code class="docutils literal notranslate"><span class="pre">python-iptables</span></code> can also be installed into a <code class="docutils literal notranslate"><span class="pre">virtualenv</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">mkvirtualenv</span> <span class="n">python</span><span class="o">-</span><span class="n">iptables</span>
+<span class="o">%</span> <span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
 </pre></div>
 </div>
-<p>If you install <tt class="docutils literal"><span class="pre">python-iptables</span></tt> as a system package, make sure the
-directory where <tt class="docutils literal"><span class="pre">distutils</span></tt> installs shared libraries is in the dynamic
-linker&#8217;s search path (it&#8217;s in <tt class="docutils literal"><span class="pre">/etc/ld.so.conf</span></tt> or in one of the files in
-the folder <tt class="docutils literal"><span class="pre">/etc/ld.co.conf.d</span></tt>).  Under Ubuntu <tt class="docutils literal"><span class="pre">distutils</span></tt> by default
-installs into <tt class="docutils literal"><span class="pre">/usr/local/lib</span></tt>.</p>
+<p>If you install <code class="docutils literal notranslate"><span class="pre">python-iptables</span></code> as a system package, make sure the
+directory where <code class="docutils literal notranslate"><span class="pre">distutils</span></code> installs shared libraries is in the dynamic
+linker’s search path (it’s in <code class="docutils literal notranslate"><span class="pre">/etc/ld.so.conf</span></code> or in one of the files in
+the folder <code class="docutils literal notranslate"><span class="pre">/etc/ld.co.conf.d</span></code>).  Under Ubuntu <code class="docutils literal notranslate"><span class="pre">distutils</span></code> by default
+installs into <code class="docutils literal notranslate"><span class="pre">/usr/local/lib</span></code>.</p>
 <p>Now you can run the tests:</p>
-<div class="highlight-python"><div class="highlight"><pre>% sudo PATH=$PATH ./test.py
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>% sudo PATH=$PATH python setup.py test
 WARNING: this test will manipulate iptables rules.
 Don&#39;t do this on a production machine.
 Would you like to continue? y/n y
 [...]
 </pre></div>
 </div>
-<p>The <tt class="docutils literal"><span class="pre">PATH=$PATH</span></tt> part is necessary after <tt class="docutils literal"><span class="pre">sudo</span></tt> if you have installed into
-a <tt class="docutils literal"><span class="pre">virtualenv</span></tt>, since <tt class="docutils literal"><span class="pre">sudo</span></tt> will reset your environment to a system
+<p>The <code class="docutils literal notranslate"><span class="pre">PATH=$PATH</span></code> part is necessary after <code class="docutils literal notranslate"><span class="pre">sudo</span></code> if you have installed into
+a <code class="docutils literal notranslate"><span class="pre">virtualenv</span></code>, since <code class="docutils literal notranslate"><span class="pre">sudo</span></code> will reset your environment to a system
 setting otherwise..</p>
 <p>Once everything is in place you can fire up python to check whether the
 package can be imported:</p>
-<div class="highlight-python"><div class="highlight"><pre>% sudo PATH=$PATH python
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>% sudo PATH=$PATH python
 &gt;&gt;&gt; import iptc
 &gt;&gt;&gt;
 </pre></div>
@@ -132,20 +127,20 @@ package can be imported:</p>
 </div>
 <div class="section" id="using-a-custom-iptables-install">
 <h2>Using a custom iptables install<a class="headerlink" href="#using-a-custom-iptables-install" title="Permalink to this headline">¶</a></h2>
-<p>If you are stuck on a system with an old version of <tt class="docutils literal"><span class="pre">iptables</span></tt>, you can
+<p>If you are stuck on a system with an old version of <code class="docutils literal notranslate"><span class="pre">iptables</span></code>, you can
 install a more up to date version to a custom location, and ask
-<tt class="docutils literal"><span class="pre">python-iptables</span></tt> to use libraries at that location.</p>
-<p>To install <tt class="docutils literal"><span class="pre">iptables</span></tt> to <tt class="docutils literal"><span class="pre">/tmp/iptables</span></tt>:</p>
-<div class="highlight-python"><div class="highlight"><pre>% git clone git://git.netfilter.org/iptables &amp;&amp; cd iptables
-% ./autogen.sh
-% ./configure --prefix=/tmp/iptables
-% make
-% make install
+<code class="docutils literal notranslate"><span class="pre">python-iptables</span></code> to use libraries at that location.</p>
+<p>To install <code class="docutils literal notranslate"><span class="pre">iptables</span></code> to <code class="docutils literal notranslate"><span class="pre">/tmp/iptables</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="p">:</span><span class="o">//</span><span class="n">git</span><span class="o">.</span><span class="n">netfilter</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">iptables</span> <span class="o">&amp;&amp;</span> <span class="n">cd</span> <span class="n">iptables</span>
+<span class="o">%</span> <span class="o">./</span><span class="n">autogen</span><span class="o">.</span><span class="n">sh</span>
+<span class="o">%</span> <span class="o">./</span><span class="n">configure</span> <span class="o">--</span><span class="n">prefix</span><span class="o">=/</span><span class="n">tmp</span><span class="o">/</span><span class="n">iptables</span>
+<span class="o">%</span> <span class="n">make</span>
+<span class="o">%</span> <span class="n">make</span> <span class="n">install</span>
 </pre></div>
 </div>
-<p>Make sure the dependencies <tt class="docutils literal"><span class="pre">iptables</span></tt> needs are installed.</p>
-<p>Now you can point <tt class="docutils literal"><span class="pre">python-iptables</span></tt> to this install path via:</p>
-<div class="highlight-python"><div class="highlight"><pre>% sudo PATH=$PATH IPTABLES_LIBDIR=/tmp/iptables/lib XTABLES_LIBDIR=/tmp/iptables/lib/xtables python
+<p>Make sure the dependencies <code class="docutils literal notranslate"><span class="pre">iptables</span></code> needs are installed.</p>
+<p>Now you can point <code class="docutils literal notranslate"><span class="pre">python-iptables</span></code> to this install path via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>% sudo PATH=$PATH IPTABLES_LIBDIR=/tmp/iptables/lib XTABLES_LIBDIR=/tmp/iptables/lib/xtables python
 &gt;&gt;&gt; import iptc
 &gt;&gt;&gt;
 </pre></div>
@@ -154,7 +149,7 @@ install a more up to date version to a custom location, and ask
 <div class="section" id="what-is-supported">
 <h2>What is supported<a class="headerlink" href="#what-is-supported" title="Permalink to this headline">¶</a></h2>
 <p>The basic iptables framework and all the match/target extensions are supported
-by <tt class="docutils literal"><span class="pre">python-iptables</span></tt>, including IPv4 and IPv6 ones. All IPv4 and IPv6 tables
+by <code class="docutils literal notranslate"><span class="pre">python-iptables</span></code>, including IPv4 and IPv6 ones. All IPv4 and IPv6 tables
 are supported as well.</p>
 <p>Full documentation with API reference is available <a class="reference external" href="http://ldx.github.com/python-iptables/">here</a>.</p>
 </div>
@@ -164,9 +159,9 @@ are supported as well.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
+  <h3><a href="index.html">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Introduction</a><ul>
 <li><a class="reference internal" href="#about-python-iptables">About python-iptables</a></li>
@@ -180,33 +175,34 @@ are supported as well.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="index.html"
-                        title="previous chapter">Welcome to python-iptables&#8217;s documentation!</a></p>
+                        title="previous chapter">Welcome to python-iptables’s documentation!</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="usage.html"
                         title="next chapter">Usage</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/intro.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/intro.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
       <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -218,13 +214,13 @@ are supported as well.</p>
         <li class="right" >
           <a href="index.html" title="Welcome to python-iptables’s documentation!"
              >previous</a> |</li>
-        <li><a href="index.html">python-iptables 0.4.0-dev documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">python-iptables 0.4.0-dev documentation</a> &#187;</li> 
       </ul>
     </div>
 
-    <div class="footer">
-        &copy; Copyright 2010-2014, Vilmos Nebehaj.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2010-2014, Vilmos Nebehaj.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.5.
     </div>
 <script type="text/javascript">
 

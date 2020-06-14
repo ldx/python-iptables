@@ -52,6 +52,11 @@ def load_kernel(name, exc_if_failed=False):
 
 
 def _do_find_library(name):
+    if '/' in name:
+        try:
+            return ctypes.CDLL(name, mode=ctypes.RTLD_GLOBAL)
+        except Exception:
+            return None
     p = ctypes.util.find_library(name)
     if p:
         lib = ctypes.CDLL(p, mode=ctypes.RTLD_GLOBAL)
@@ -75,12 +80,19 @@ def _do_find_library(name):
 
 
 def _find_library(*names):
-    if version_info > (3, ):
-        ext = get_config_var("EXT_SUFFIX")
+    exts = []
+    if version_info >= (3, 3):
+        exts.append(get_config_var("EXT_SUFFIX"))
     else:
-        ext = get_config_var('SO')
+        exts.append(get_config_var('SO'))
+
+    if version_info >= (3, 5):
+        exts.append('.so')
+
     for name in names:
-        libnames = [name, "lib" + name, name + ext, "lib" + name + ext]
+        libnames = [name, "lib" + name]
+        for ext in exts:
+            libnames += [name + ext, "lib" + name + ext]
         libdir = os.environ.get('IPTABLES_LIBDIR', None)
         if libdir is not None:
             libdirs = libdir.split(':')
@@ -104,3 +116,19 @@ def find_library(*names):
             major = int(m.group(1))
         return lib, major
     return None, None
+
+
+def find_libc():
+    lib = ctypes.util.find_library('c')
+    if lib is not None:
+        return ctypes.CDLL(lib, mode=ctypes.RTLD_GLOBAL)
+
+    libnames = ['libc.so.6', 'libc.so.0', 'libc.so']
+    for name in libnames:
+        try:
+            lib = ctypes.CDLL(name, mode=ctypes.RTLD_GLOBAL)
+            return lib
+        except:
+            pass
+
+    return None
