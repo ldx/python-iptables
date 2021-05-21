@@ -805,7 +805,7 @@ _lib_xtables, xtables_version = find_library(_searchlib)
 _xtables_libdir = os.getenv("XTABLES_LIBDIR")
 if _xtables_libdir is None:
     import re
-    ldconfig_path_regex = re.compile('^(/.*):$')
+    ldconfig_path_regex = re.compile('^(/.*):($| \\(from)')
     import subprocess
     ldconfig = subprocess.Popen(
         ('/sbin/ldconfig', '-N', '-v'),
