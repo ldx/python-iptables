@@ -54,25 +54,27 @@ def load_kernel(name, exc_if_failed=False):
 def _do_find_library(name):
     if '/' in name:
         try:
-            return ctypes.CDLL(name, mode=ctypes.RTLD_GLOBAL)
+            return ctypes.CDLL(name, mode=ctypes.RTLD_GLOBAL, use_errno=True)
         except Exception:
             return None
     p = ctypes.util.find_library(name)
     if p:
-        lib = ctypes.CDLL(p, mode=ctypes.RTLD_GLOBAL)
+        lib = ctypes.CDLL(p, mode=ctypes.RTLD_GLOBAL, use_errno=True)
         return lib
 
     # probably we have been installed in a virtualenv
     try:
         lib = ctypes.CDLL(os.path.join(get_python_lib(), name),
-                          mode=ctypes.RTLD_GLOBAL)
+                          mode=ctypes.RTLD_GLOBAL,
+                          use_errno=True)
         return lib
     except:
         pass
 
     for p in sys.path:
         try:
-            lib = ctypes.CDLL(os.path.join(p, name), mode=ctypes.RTLD_GLOBAL)
+            lib = ctypes.CDLL(os.path.join(p, name), mode=ctypes.RTLD_GLOBAL,
+                                use_errno=True)
             return lib
         except:
             pass
@@ -121,12 +123,12 @@ def find_library(*names):
 def find_libc():
     lib = ctypes.util.find_library('c')
     if lib is not None:
-        return ctypes.CDLL(lib, mode=ctypes.RTLD_GLOBAL)
+        return ctypes.CDLL(lib, mode=ctypes.RTLD_GLOBAL, use_errno=True)
 
     libnames = ['libc.so.6', 'libc.so.0', 'libc.so']
     for name in libnames:
         try:
-            lib = ctypes.CDLL(name, mode=ctypes.RTLD_GLOBAL)
+            lib = ctypes.CDLL(name, mode=ctypes.RTLD_GLOBAL, use_errno=True)
             return lib
         except:
             pass

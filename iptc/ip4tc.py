@@ -27,8 +27,6 @@ if not hasattr(socket, 'IPPROTO_SCTP'):
 _IFNAMSIZ = 16
 
 _libc = find_libc()
-_get_errno_loc = _libc.__errno_location
-_get_errno_loc.restype = ct.POINTER(ct.c_int)
 _malloc = _libc.malloc
 _malloc.restype = ct.POINTER(ct.c_ubyte)
 _malloc.argtypes = [ct.c_size_t]
@@ -1655,7 +1653,8 @@ class Table(object):
 
     def strerror(self):
         """Returns any pending iptables error from the previous operation."""
-        errno = _get_errno_loc()[0]
+        errno = ct.get_errno()
+        ct.set_errno(0)
         if errno == 0:
             return "libiptc version error"
         return self._iptc.iptc_strerror(errno)
