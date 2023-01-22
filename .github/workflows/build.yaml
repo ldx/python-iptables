@@ -1,0 +1,32 @@
+name: Build & Test
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.7"
+          - "3.8"
+          - "3.9"
+          - "3.10"
+          - "3.11"
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Build package
+      run: python setup.py build
+    - name: Install package
+      run: python setup.py install
+    - name: Install coveralls
+      run: sudo pip install coveralls
+    - name: Run tests
+      run: sudo PATH=$PATH coverage run setup.py test
