@@ -38,11 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     needs:
-      - build-and-test (3.7)
-      - build-and-test (3.8)
-      - build-and-test (3.9)
-      - build-and-test (3.10)
-      - build-and-test (3.11)
+      - build-and-test
     steps:
     - name: Check out code
       uses: actions/checkout@v2
