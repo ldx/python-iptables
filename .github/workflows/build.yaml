@@ -51,6 +51,7 @@ jobs:
         python -m pip install --upgrade build twine
         python -m build
         twine check --strict dist/*
+        rm -f dist/*.whl
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
