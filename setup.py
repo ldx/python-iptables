@@ -15,6 +15,8 @@ setup(
     name=__pkgname__,
     version=__version__,
     description="Python bindings for iptables",
+    long_description="Python bindings for classic iptables",
+    long_description_content_type="text/x-rst",
     author="Vilmos Nebehaj",
     author_email="v.nebehaj@gmail.com",
     url="https://github.com/ldx/python-iptables",
