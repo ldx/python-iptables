@@ -3,7 +3,7 @@ import os
 import sys
 import ctypes
 import ctypes.util
-from distutils.sysconfig import get_python_lib
+import sysconfig
 from itertools import product
 from subprocess import Popen, PIPE
 from sys import version_info
@@ -64,7 +64,7 @@ def _do_find_library(name):
 
     # probably we have been installed in a virtualenv
     try:
-        lib = ctypes.CDLL(os.path.join(get_python_lib(), name),
+        lib = ctypes.CDLL(os.path.join(sysconfig.get_path("purelib"), name),
                           mode=ctypes.RTLD_GLOBAL)
         return lib
     except:
