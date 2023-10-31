@@ -17,12 +17,19 @@ except:
 _IFNAMSIZ = 16
 
 
+exist_table6_names = dict() # Dictionary to check faster if table is available
+
 def is_table6_available(name):
+    global exist_table6_names
     try:
+        if name in exist_table6_names:
+            return exist_table6_names[name]
         Table6(name)
+        exist_table6_names[name] = True
         return True
     except IPTCError:
         pass
+    exist_table6_names[name] = False
     return False
 
 
