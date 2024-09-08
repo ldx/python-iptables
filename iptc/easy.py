@@ -7,8 +7,6 @@
 from .ip4tc import Rule, Table, Chain, IPTCError
 from .ip6tc import Rule6, Table6
 
-_BATCH_MODE = False
-
 def flush_all(ipv6=False):
     """ Flush all available tables """
     for table in get_tables(ipv6):
@@ -353,11 +351,7 @@ def _iptc_gettables(ipv6=False):
 
 def _iptc_gettable(table, ipv6=False):
     """ Return an updated view of an iptc_table """
-    iptc_table = Table6(table) if ipv6 else Table(table)
-    if _BATCH_MODE is False:
-        iptc_table.commit()
-        iptc_table.refresh()
-    return iptc_table
+    return Table6(table) if ipv6 else Table(table)
 
 def _iptc_getchain(table, chain, ipv6=False, raise_exc=True):
     """ Return an iptc_chain of an updated table """
