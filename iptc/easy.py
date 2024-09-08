@@ -212,29 +212,6 @@ def dump_chain(table, chain, ipv6=False):
     iptc_chain = _iptc_getchain(table, chain, ipv6)
     return [decode_iptc_rule(iptc_rule, ipv6) for iptc_rule in iptc_chain.rules]
 
-
-def batch_begin(table = None, ipv6=False):
-    """ Disable autocommit on a table """
-    _BATCH_MODE = True
-    if table:
-        tables = (table, )
-    else:
-        tables = get_tables(ipv6)
-    for table in tables:
-        iptc_table = _iptc_gettable(table, ipv6)
-        iptc_table.autocommit = False
-
-def batch_end(table = None, ipv6=False):
-    """ Enable autocommit on table and commit changes """
-    _BATCH_MODE = False
-    if table:
-        tables = (table, )
-    else:
-        tables = get_tables(ipv6)
-    for table in tables:
-        iptc_table = _iptc_gettable(table, ipv6)
-        iptc_table.autocommit = True
-
 def batch_add_chains(table, chains, ipv6=False, flush=True):
     """ Add multiple chains to a table """
     iptc_table = _batch_begin_table(table, ipv6)
