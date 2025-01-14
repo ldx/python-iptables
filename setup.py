@@ -3,7 +3,6 @@
 """python-iptables setup script"""
 
 from setuptools import setup, Extension
-#from distutils.core import setup, Extension
 
 # make pyflakes happy
 __pkgname__ = None

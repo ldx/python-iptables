@@ -3,7 +3,6 @@ import os
 import sys
 import ctypes
 import ctypes.util
-from distutils.sysconfig import get_python_lib
 from itertools import product
 from subprocess import Popen, PIPE
 from sys import version_info
@@ -14,6 +13,12 @@ except ImportError:
         if name == 'SO':
             return '.so'
         raise Exception('Not implemented')
+try:
+    from distutils.sysconfig import get_python_lib
+except ModuleNotFoundError:
+    import sysconfig
+    def get_python_lib():
+        return sysconfig.get_path("purelib")
 
 
 def _insert_ko(modprobe, modname):
