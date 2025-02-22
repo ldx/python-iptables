@@ -423,7 +423,9 @@ class TestRule6(unittest.TestCase):
     def test_rule_interface(self):
         # valid interfaces
         rule = iptc.Rule6()
-        for intf in ["eth0", "eth+", "ip6tnl1", "ip6tnl+", "!ppp0", "!ppp+"]:
+
+        max_length_valid_interface_name = "0123456789abcde"
+        for intf in ["eth0", "eth+", "ip6tnl1", "ip6tnl+", "!ppp0", "!ppp+", max_length_valid_interface_name]:
             rule.in_interface = intf
             self.assertEquals(intf, rule.in_interface)
             rule.out_interface = intf

@@ -412,22 +412,19 @@ class Rule6(Rule):
     def get_in_interface(self):
         intf = ""
         if self.entry.ipv6.invflags & ip6t_ip6.IP6T_INV_VIA_IN:
-            intf = "".join(["!", intf])
-        iface = bytearray(_IFNAMSIZ)
-        iface[:len(self.entry.ipv6.iniface)] = self.entry.ipv6.iniface
-        mask = bytearray(_IFNAMSIZ)
-        mask[:len(self.entry.ipv6.iniface_mask)] = self.entry.ipv6.iniface_mask
-        if mask[0] == 0:
+            intf = "!"
+
+        iface = self.entry.ipv6.iniface.decode()
+        mask = self.entry.ipv6.iniface_mask
+
+        if len(mask) == 0:
             return None
-        for i in range(_IFNAMSIZ):
-            if mask[i] != 0:
-                intf = "".join([intf, chr(iface[i])])
-            else:
-                if iface[i - 1] != 0:
-                    intf = "".join([intf, "+"])
-                else:
-                    intf = intf[:-1]
-                break
+
+        intf += iface
+        if len(iface) == len(mask):
+            intf += '+'
+        intf = intf[:_IFNAMSIZ]
+
         return intf
 
     def set_in_interface(self, intf):
@@ -456,23 +453,19 @@ class Rule6(Rule):
     def get_out_interface(self):
         intf = ""
         if self.entry.ipv6.invflags & ip6t_ip6.IP6T_INV_VIA_OUT:
-            intf = "".join(["!", intf])
-        iface = bytearray(_IFNAMSIZ)
-        iface[:len(self.entry.ipv6.outiface)] = self.entry.ipv6.outiface
-        mask = bytearray(_IFNAMSIZ)
-        mask[:len(self.entry.ipv6.outiface_mask)] = \
-            self.entry.ipv6.outiface_mask
-        if mask[0] == 0:
+            intf = "!"
+
+        iface = self.entry.ipv6.outiface.decode()
+        mask = self.entry.ipv6.outiface_mask
+
+        if len(mask) == 0:
             return None
-        for i in range(_IFNAMSIZ):
-            if mask[i] != 0:
-                intf = "".join([intf, chr(iface[i])])
-            else:
-                if iface[i - 1] != 0:
-                    intf = "".join([intf, "+"])
-                else:
-                    intf = intf[:-1]
-                break
+
+        intf += iface
+        if len(iface) == len(mask):
+            intf += '+'
+        intf = intf[:_IFNAMSIZ]
+
         return intf
 
     def set_out_interface(self, intf):
