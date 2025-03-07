@@ -19,10 +19,14 @@ _IFNAMSIZ = 16
 
 def is_table6_available(name):
     try:
+        if name in Table6.existing_table_names:
+            return Table6.existing_table_names[name]
         Table6(name)
+        Table6.existing_table_names[name] = True
         return True
     except IPTCError:
         pass
+    Table6.existing_table_names[name] = False
     return False
 
 
@@ -572,6 +576,8 @@ class Table6(Table):
     """This is the constant for all tables."""
 
     _cache = dict()
+    existing_table_names = dict()
+    """Dictionary to check faster if a table is available."""
 
     def __new__(cls, name, autocommit=None):
         obj = Table6._cache.get(name, None)

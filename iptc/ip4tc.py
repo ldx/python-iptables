@@ -42,10 +42,14 @@ xtables(NFPROTO_IPV4)
 
 def is_table_available(name):
     try:
+        if name in Table.existing_table_names:
+            return Table.existing_table_names[name]
         Table(name)
+        Table.existing_table_names[name] = True
         return True
     except IPTCError:
         pass
+    Table.existing_table_names[name] = False
     return False
 
 
@@ -669,6 +673,11 @@ class Target(IPTCModule):
     does not take any value in the iptables extension, an empty string i.e. ""
     should be used.
     """
+
+    STANDARD_TARGETS = ["", "ACCEPT", "DROP", "REJECT", "RETURN", "REDIRECT", "SNAT", "DNAT", \
+        "MASQUERADE", "MIRROR", "TOS", "MARK", "QUEUE", "LOG"]
+    """This is the constant for all standard targets."""
+
     def __init__(self, rule, name=None, target=None, revision=None, goto=None):
         """
         *rule* is the Rule object this match belongs to; it can be changed
@@ -784,6 +793,8 @@ class Target(IPTCModule):
             self.reset()
 
     def _is_standard_target(self):
+        if self._name in Target.STANDARD_TARGETS:
+            return False
         for t in self._rule.tables:
             if t.is_chain(self._name):
                 return True
@@ -1572,6 +1583,8 @@ class Table(object):
     """This is the constant for all tables."""
 
     _cache = dict()
+    existing_table_names = dict()
+    """Dictionary to check faster if a table is available."""
 
     def __new__(cls, name, autocommit=None):
         obj = Table._cache.get(name, None)
