@@ -40,19 +40,16 @@ _free.argtypes = [ct.POINTER(ct.c_ubyte)]
 xtables(NFPROTO_IPV4)
 
 
-exist_table_names = dict() # Dictionary to check faster if table is available
-
 def is_table_available(name):
-    global exist_table_names
     try:
-        if name in exist_table_names:
-            return exist_table_names[name]
+        if name in Table.existing_table_names:
+            return Table.existing_table_names[name]
         Table(name)
-        exist_table_names[name] = True
+        Table.existing_table_names[name] = True
         return True
     except IPTCError:
         pass
-    exist_table_names[name] = False
+    Table.existing_table_names[name] = False
     return False
 
 
@@ -1586,6 +1583,8 @@ class Table(object):
     """This is the constant for all tables."""
 
     _cache = dict()
+    existing_table_names = dict()
+    """Dictionary to check faster if a table is available."""
 
     def __new__(cls, name, autocommit=None):
         obj = Table._cache.get(name, None)

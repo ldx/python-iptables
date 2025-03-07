@@ -17,19 +17,16 @@ except:
 _IFNAMSIZ = 16
 
 
-exist_table6_names = dict() # Dictionary to check faster if table is available
-
 def is_table6_available(name):
-    global exist_table6_names
     try:
-        if name in exist_table6_names:
-            return exist_table6_names[name]
+        if name in Table6.existing_table_names:
+            return Table6.existing_table_names[name]
         Table6(name)
-        exist_table6_names[name] = True
+        Table6.existing_table_names[name] = True
         return True
     except IPTCError:
         pass
-    exist_table6_names[name] = False
+    Table6.existing_table_names[name] = False
     return False
 
 
@@ -579,6 +576,8 @@ class Table6(Table):
     """This is the constant for all tables."""
 
     _cache = dict()
+    existing_table_names = dict()
+    """Dictionary to check faster if a table is available."""
 
     def __new__(cls, name, autocommit=None):
         obj = Table6._cache.get(name, None)
